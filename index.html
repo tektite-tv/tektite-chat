@@ -233,9 +233,45 @@ textarea::placeholder {
   font-size: 1.5em; /* +50% */
 }
 
+
+/* ADDED: markdown styling */
+.msg h1, .msg h2, .msg h3 {
+  margin: 6px 0;
+  color: #7CFF00;
+}
+
+.msg p {
+  margin: 4px 0;
+  line-height: 1.4;
+}
+
+.msg code {
+  background: #111;
+  padding: 2px 4px;
+  border: 1px solid #333;
+  color: #00ffaa;
+  font-size: 0.9em;
+}
+
+.msg pre {
+  background: #111;
+  padding: 8px;
+  border: 1px solid #333;
+  overflow-x: auto;
+}
+
+.msg ul, .msg ol {
+  margin-left: 16px;
+}
+
+.msg a {
+  color: #00aaff;
+}
+
 </style>
 
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -524,7 +560,12 @@ function addMessage(role, content, saveMsg=true) {
 
   const msg = document.createElement("div");
   msg.className = "msg";
-  msg.textContent = content;
+  // MODIFIED: render markdown
+  try {
+    msg.innerHTML = marked.parse(content);
+  } catch {
+    msg.textContent = content;
+  }
 
   block.appendChild(label);
   block.appendChild(msg);
