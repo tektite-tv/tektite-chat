@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+<!-- MODIFIED: Title updated with versioning system -->
+<title>Tektite's Chat v1.42</title>
+
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Courier New', monospace; background: #0b0b0b; color: #e8e8e8; height: 100dvh; }
+.app { height: 100dvh; display: flex; flex-direction: column; }
+
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px; border-bottom: 1px solid #222; background: #2a0a4a;
+}
+
+.header-left { display: flex; align-items: center; gap: 10px; }
+
+.header-title { color: #7CFF00; font-weight: bold; white-space: nowrap; }
+
+#menuBtn, #settingsBtn, #deleteChatBtn, #closeSidebarBtn, #zoomBtn {
+  width: 44px; height: 44px;
+  background: #3a0f66; border: 1px solid #4a1a80;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+}
+  width: 44px; height: 44px;
+  background: #3a0f66; border: 1px solid #4a1a80;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+}
+#deleteChatBtn { background: #660000; border: 1px solid #aa0000; }
+
+#chatLog { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+
+.message-block { display: flex; flex-direction: column; }
+.label { font-size: 12px; opacity: 0.7; }
+.msg {
+  padding: 8px;
+  font-size: 1.5em; /* ADDED */
+  font-weight: bold; /* ADDED */
+}
+.user .msg {
+  background: #111;
+  color: #00aaff; /* ADDED: blue */
+}
+.assistant .msg {
+  background: #2a2a2a;
+  color: #ff4444; /* ADDED: red */
+}
+
+.composer {
+  display: flex;
+  gap: 6px;
+  padding: 10px;
+  border-top: 1px solid #222;
+  align-items: flex-end; /* MODIFIED: keeps send button aligned */
+}
+
+textarea {
+  flex: 1;
+  resize: none; /* MODIFIED: disable native resize */ /* MODIFIED: allow vertical resize */
+  min-height: 40px;
+
+  padding: 8px; border: 1px solid #222;
+  background: #0b0b0b; color: #e8e8e8;
+}
+
+button {
+  padding: 0 10px;
+  border: none;
+  background: #333;
+  color: white;
+  cursor: pointer;
+  font-family: 'Courier New', monospace; /* ADDED: force buttons font */
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 260px;
+  height: 100%;
+  background: #111;
+  border-right: 1px solid #222;
+  display: flex;
+  flex-direction: column;
+  transition: left 0.2s;
+  z-index: 1000; /* sidebar stays above overlay */
+  font-family: 'Courier New', monospace; /* FIXED CLEAN */
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+/* ADDED: force all sidebar elements to inherit Courier */
+.sidebar * {
+  font-family: 'Courier New', monospace !important;
+}
+
+.sidebar-header {
+  display: flex; align-items: center; padding: 10px; gap: 10px; /* MODIFIED: match main header spacing */
+  border-bottom: 1px solid #222; background: #2a0a4a;
+}
+
+#chatList { flex: 1; overflow-y: auto; padding: 10px; }
+
+/* ADDED: New Chat button styling */
+#newChatBtn {
+  font-size: 1.25em;
+  font-weight: bold;
+}
+
+.chat-item-btn {
+  font-size: 1.25em; /* MODIFIED: reduced to +25% */
+  font-weight: bold; /* ADDED */
+
+  width: 100%; text-align: left; padding: 8px; margin-top: 6px;
+  background: #1a1a1a; border: 1px solid #222; color: #e8e8e8; cursor: pointer;
+}
+
+/* ADDED: Hover invert effect */
+.chat-item-btn:hover {
+  background: #e8e8e8;
+  color: #111;
+}
+
+/* ADDED: Flash lime effect */
+.chat-item-btn.flash {
+  background: #7CFF00 !important;
+  color: #000 !important;
+}
+.chat-item-btn.active {
+  /* MODIFIED: Active chat styling */
+  background: #ffffff;
+  color: #000000;
+  font-weight: bold;
+}
+
+/* MODIFIED: Hover unopened chats same as active */
+.chat-item-btn:not(.active):hover {
+  background: #ffffff;
+  color: #000000;
+  font-weight: bold;
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: none;
+  z-index: 900; /* ADDED: above header, below sidebar */
+}
+#overlay.show { display: block; }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+}
+.modal.show { display: flex; }
+
+#modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.7);
+  z-index: 2000;
+}
+#modal.show { display: flex; }
+.modal-box {
+  background: #111;
+  padding: 16px; /* MODIFIED: slightly tighter */
+  border: 1px solid #333;
+  width: 500px; /* MODIFIED: +25% */
+  max-width: 90%;
+}
+.modal-box textarea {
+  width: 100%;
+  height: 120px;
+}
+
+
+/* ADDED: FORCE lime focus style */
+textarea:focus {
+  outline: none !important;
+  border: 1px solid #7CFF00 !important;
+  box-shadow: 0 0 0 2px #7CFF00 !important;
+}
+
+/* ADDED: System Prompt modal tweaks */
+.modal-box h3 {
+  margin-top: 0; /* ADDED: remove gap above title */
+}
+
+#systemPromptInput {
+  resize: both; /* ADDED: allow bottom-right drag to expand */
+  overflow: auto; /* ADDED */
+  min-height: 160px; /* ADDED: more usable default */
+}
+
+/* ADDED: larger, uniform modal buttons */
+#modal .modal-box button {
+  padding: 10px 18px; /* ADDED */
+  font-size: 16px; /* ADDED */
+  min-width: 110px; /* ADDED: uniform */
+}
+
+
+/* ADDED: increase textarea default height by ~50% */
+textarea {
+  height: 150px !important; /* MODIFIED */
+}
+
+/* ADDED: larger input text + placeholder styling */
+textarea {
+  font-size: 1.5em !important; /* +50% */
+  color: white;
+}
+
+textarea::placeholder {
+  color: #66ff66;
+  font-weight: bold;
+  font-size: 1.5em; /* +50% */
+}
+
+</style>
+
+
+</head>
+
+<body>
+
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <button id="closeSidebarBtn">☰</button>
+    <div class="header-title">Tektite's Chat</div>
+  </div>
+  <div id="chatList"></div>
+  <button id="newChatBtn" class="chat-item-btn">+ New Chat</button>
+</div>
+
+<div id="overlay"></div>
+
+<div class="app">
+  <header>
+    <div class="header-left">
+      <button id="menuBtn">☰</button>
+      <div class="header-title">
+        Tektite's Chat <span id="activeChatTitle" style="color:white; font-weight:bold;"></span> <span id="editTitleBtn" title="Rename chat" style="cursor:pointer; color:#7CFF00; font-size:18px; line-height:1;">✏️</span> <!-- ADDED -->
+      </div>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <div id="copyContainer" style="position:relative; display:inline-block;">
+      <button id="copyBtn" style="
+  width:auto; padding:0 10px; /* MODIFIED: wider button */
+  height:44px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#3a0f66;
+  border:1px solid #4a1a80;
+  color:#7CFF00;
+  font-weight:bold;
+  font-size:14px;
+  font-family:'Courier New', monospace;
+  cursor:pointer;
+">Copy</button> <!-- ADDED -->
+      <div id="copyPopup" style="
+  position: absolute;
+  top: 50px;
+  left: 0;
+  background: #2a0a4a;
+  color: #7CFF00;
+  padding: 8px 12px;
+  border: 1px solid #4a1a80;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  display: none;
+  z-index: 2000;
+">Copied!</div>
+    </div>
+      <button id="settingsBtn">⚙️</button>
+      <div style="position:relative;">
+      <button id="zoomBtn" style="display:flex; align-items:center; justify-content:center; width:auto; padding:0 10px; /* MODIFIED: wider button */ height:44px;">🔍</button> <!-- ADDED -->
+      <div id="zoomPopup" style="display:none; position:absolute; top:50px; right:0; background:#111; border:1px solid #333; padding:8px; z-index: 500; /* FIXED: below overlay so it dims */">
+        <input type="range" id="zoomSlider" min="50" max="200" value="100" style="width:140px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px;">
+          <button id="zoomOutBtn" style="width:32px; height:32px; font-size:16px; font-weight:bold;">-</button>
+          <div id="zoomValue" style="font-size:18px; font-weight:bold; text-align:center; flex:1;">100%</div>
+          <button id="zoomInBtn" style="width:32px; height:32px; font-size:16px; font-weight:bold;">+</button>
+        </div>
+      </div>
+    </div>
+      <button id="deleteChatBtn">❌</button>
+    </div>
+  </header>
+
+
+
+  <div id="chatLog"></div>
+
+  <div id="composerWrapper" style="display:flex; flex-direction:column;">
+  <!-- ADDED: top resize handle -->
+  <div id="resizeHandle" style="height:6px; cursor:ns-resize; background:#222;"></div>
+  <div class="composer" style="align-items: stretch;">
+    <textarea placeholder="Ask anything or say something stupid..." id="userInput"></textarea>
+    <button id="sendBtn" style="height:40px; align-self:center;">Send</button>
+  </div>
+</div>
+</div>
+
+<div id="modal">
+  <div class="modal-box">
+    <h3>System Prompt</h3>
+    <textarea id="systemPromptInput"></textarea>
+    <br><br>
+    <button id="savePromptBtn">Save</button>
+    <button id="closeModalBtn">Close</button>
+  </div>
+</div>
+
+<script>
+
+// ADDED: ensure currentChatId exists
+if (typeof currentChatId === 'undefined') {
+    var currentChatId = null;
+}
+
+
+
+
+// NOTE: Versioning rule
+// Increment manually in <title> each update: v1.311, v1.312, etc.
+
+const chatLog = document.getElementById("chatLog");
+const input = document.getElementById("userInput");
+
+// (rest unchanged)
+
+function loadChats() {
+  let raw;
+  try { raw = JSON.parse(localStorage.getItem("chats")); } catch { raw = null; }
+
+  let normalized = {};
+  if (raw && typeof raw === "object") {
+    Object.keys(raw).forEach(id => {
+      let chat = raw[id];
+      if (Array.isArray(chat)) chat = { title: "Chat", messages: chat };
+
+      normalized[id] = {
+        title: chat.title || "Chat",
+        messages: Array.isArray(chat.messages) ? chat.messages : [],
+        systemPrompt: chat.systemPrompt || ""
+      };
+    });
+  }
+
+  return normalized;
+}
+
+let chats = loadChats();
+let activeChatId = localStorage.getItem("activeChatId");
+
+if (!activeChatId || !chats[activeChatId]) {
+  const keys = Object.keys(chats);
+  activeChatId = keys.length ? keys[0] : null;
+}
+
+function save() {
+  localStorage.setItem("chats", JSON.stringify(chats));
+  localStorage.setItem("activeChatId", activeChatId);
+}
+
+function getMessages() {
+  if (!activeChatId || !chats[activeChatId]) return [];
+  return chats[activeChatId].messages;
+}
+
+function updateHeaderTitle() {
+  const el = document.getElementById("activeChatTitle");
+  if (!activeChatId || !chats[activeChatId]) {
+    el.textContent = "";
+    return;
+  }
+  el.textContent = " [" + (chats[activeChatId].title || "New Chat") + "]";
+}
+
+function renderChat() {
+  chatLog.innerHTML = "";
+  if (!activeChatId) return;
+  getMessages().forEach(m => addMessage(m.role, m.content, false));
+}
+
+function renderChatList() {
+  const list = document.getElementById("chatList");
+  list.innerHTML = "";
+
+  const ids = Object.keys(chats);
+
+  if (ids.length === 0) {
+    const empty = document.createElement("div");
+    empty.textContent = "Start A Chat";
+    empty.style.opacity = "0.6";
+    empty.style.padding = "8px";
+    list.appendChild(empty);
+    return;
+  }
+
+  ids.forEach(id => {
+    const btn = document.createElement("button");
+    btn.textContent = chats[id].title;
+    btn.className = "chat-item-btn";
+    if (id === activeChatId) btn.classList.add("active");
+
+    btn.onclick = () => {
+      activeChatId = id;
+      save();
+      renderChat();
+      // ADDED: Zoom functionality (popup version)
+const zoomBtn = document.getElementById("zoomBtn");
+const zoomPopup = document.getElementById("zoomPopup");
+
+// ADDED: prevent clicks inside popup from closing it
+zoomPopup.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomValue = document.getElementById("zoomValue");
+
+let zoomLevel = 100;
+
+function applyZoom() {
+  document.querySelectorAll(".msg").forEach(el => {
+    el.style.fontSize = (1.5 * zoomLevel / 100) + "em";
+  });
+}
+
+zoomBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  e.stopPropagation();
+  zoomPopup.style.display = zoomPopup.style.display === "none" ? "block" : "none";
+};
+
+document.addEventListener("click", () => {
+  zoomPopup.style.display = "none";
+});
+
+// ADDED: +/- zoom buttons
+const zoomInBtn = document.getElementById("zoomInBtn");
+const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+zoomInBtn.onclick = () => {
+  zoomLevel = Math.min(200, zoomLevel + 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomOutBtn.onclick = () => {
+  zoomLevel = Math.max(50, zoomLevel - 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomSlider.oninput = () => {
+  zoomLevel = zoomSlider.value;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+// ADDED: custom top drag resize
+const handle = document.getElementById("resizeHandle");
+const textarea = document.getElementById("userInput");
+
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+handle.addEventListener("mousedown", (e) => {
+  isResizing = true;
+  startY = e.clientY;
+  startHeight = textarea.offsetHeight;
+  document.body.style.cursor = "ns-resize";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing) return;
+  let dy = startY - e.clientY;
+  textarea.style.height = (startHeight + dy) + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  isResizing = false;
+  document.body.style.cursor = "default";
+});
+
+renderChatList();
+      updateHeaderTitle();
+    };
+
+    list.appendChild(btn);
+  });
+}
+
+function addMessage(role, content, saveMsg=true) {
+  const block = document.createElement("div");
+  block.className = "message-block " + role;
+
+  const label = document.createElement("div");
+  label.className = "label";
+  label.textContent = role === "user" ? "User" : "Bot";
+
+  const msg = document.createElement("div");
+  msg.className = "msg";
+  msg.textContent = content;
+
+  block.appendChild(label);
+  block.appendChild(msg);
+  chatLog.appendChild(block);
+
+  if (saveMsg && activeChatId) {
+    getMessages().push({ role, content });
+    save();
+  }
+
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+async function generateTitle(firstMessage) {
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: "Generate a very short 3-6 word title only." },
+          { role: "user", content: firstMessage }
+        ]
+      })
+    });
+
+    const data = await res.json();
+    return (data.content || "New Chat").trim();
+
+  } catch {
+    return "New Chat";
+  }
+}
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text || !activeChatId) return;
+
+  input.value = "";
+  addMessage("user", text);
+
+  if (getMessages().length === 1) {
+    const title = await generateTitle(text);
+    chats[activeChatId].title = title;
+    save();
+    // ADDED: Zoom functionality (popup version)
+const zoomBtn = document.getElementById("zoomBtn");
+const zoomPopup = document.getElementById("zoomPopup");
+
+// ADDED: prevent clicks inside popup from closing it
+zoomPopup.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomValue = document.getElementById("zoomValue");
+
+let zoomLevel = 100;
+
+function applyZoom() {
+  document.querySelectorAll(".msg").forEach(el => {
+    el.style.fontSize = (1.5 * zoomLevel / 100) + "em";
+  });
+}
+
+zoomBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  e.stopPropagation();
+  zoomPopup.style.display = zoomPopup.style.display === "none" ? "block" : "none";
+};
+
+document.addEventListener("click", () => {
+  zoomPopup.style.display = "none";
+});
+
+// ADDED: +/- zoom buttons
+const zoomInBtn = document.getElementById("zoomInBtn");
+const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+zoomInBtn.onclick = () => {
+  zoomLevel = Math.min(200, zoomLevel + 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomOutBtn.onclick = () => {
+  zoomLevel = Math.max(50, zoomLevel - 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomSlider.oninput = () => {
+  zoomLevel = zoomSlider.value;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+// ADDED: custom top drag resize
+const handle = document.getElementById("resizeHandle");
+const textarea = document.getElementById("userInput");
+
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+handle.addEventListener("mousedown", (e) => {
+  isResizing = true;
+  startY = e.clientY;
+  startHeight = textarea.offsetHeight;
+  document.body.style.cursor = "ns-resize";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing) return;
+  let dy = startY - e.clientY;
+  textarea.style.height = (startHeight + dy) + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  isResizing = false;
+  document.body.style.cursor = "default";
+});
+
+renderChatList();
+    updateHeaderTitle();
+  }
+
+  let messages = [...getMessages()];
+  const systemPrompt = chats[activeChatId].systemPrompt;
+  if (systemPrompt) {
+    messages = [{ role: "system", content: systemPrompt }, ...messages];
+  }
+
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ messages })
+    });
+
+    const data = await res.json();
+    addMessage("assistant", data.content || "(no response)");
+
+  } catch {
+    addMessage("assistant", "Error");
+  }
+}
+
+
+// ADDED: CORRECT auto-create chat (uses activeChatId, not fake variable)
+const __originalSendMessage = sendMessage;
+sendMessage = async function() {
+  if (!activeChatId) {
+    const btn = document.getElementById("newChatBtn");
+    if (btn) btn.click();
+  }
+  return __originalSendMessage.apply(this, arguments);
+};
+
+
+document.getElementById("sendBtn").onclick = sendMessage;
+
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+document.getElementById("deleteChatBtn").onclick = () => {
+  if (!activeChatId) return;
+
+  delete chats[activeChatId];
+  const remaining = Object.keys(chats);
+  activeChatId = remaining.length ? remaining[0] : null;
+
+  save();
+  // ADDED: Zoom functionality (popup version)
+const zoomBtn = document.getElementById("zoomBtn");
+const zoomPopup = document.getElementById("zoomPopup");
+
+// ADDED: prevent clicks inside popup from closing it
+zoomPopup.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomValue = document.getElementById("zoomValue");
+
+let zoomLevel = 100;
+
+function applyZoom() {
+  document.querySelectorAll(".msg").forEach(el => {
+    el.style.fontSize = (1.5 * zoomLevel / 100) + "em";
+  });
+}
+
+zoomBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  e.stopPropagation();
+  zoomPopup.style.display = zoomPopup.style.display === "none" ? "block" : "none";
+};
+
+document.addEventListener("click", () => {
+  zoomPopup.style.display = "none";
+});
+
+// ADDED: +/- zoom buttons
+const zoomInBtn = document.getElementById("zoomInBtn");
+const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+zoomInBtn.onclick = () => {
+  zoomLevel = Math.min(200, zoomLevel + 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomOutBtn.onclick = () => {
+  zoomLevel = Math.max(50, zoomLevel - 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomSlider.oninput = () => {
+  zoomLevel = zoomSlider.value;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+// ADDED: custom top drag resize
+const handle = document.getElementById("resizeHandle");
+const textarea = document.getElementById("userInput");
+
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+handle.addEventListener("mousedown", (e) => {
+  isResizing = true;
+  startY = e.clientY;
+  startHeight = textarea.offsetHeight;
+  document.body.style.cursor = "ns-resize";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing) return;
+  let dy = startY - e.clientY;
+  textarea.style.height = (startHeight + dy) + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  isResizing = false;
+  document.body.style.cursor = "default";
+});
+
+renderChatList();
+  renderChat();
+  updateHeaderTitle();
+};
+
+// MODIFIED: Added flash effect on click
+document.getElementById("newChatBtn").onclick = () => {
+  const btn = document.getElementById("newChatBtn");
+  btn.classList.add("flash"); // ADDED
+  setTimeout(() => btn.classList.remove("flash"), 150); // ADDED
+
+  const id = "chat_" + Date.now();
+  chats[id] = { title: "New Chat", messages: [], systemPrompt: "" };
+  activeChatId = id;
+  save();
+  // ADDED: Zoom functionality (popup version)
+const zoomBtn = document.getElementById("zoomBtn");
+const zoomPopup = document.getElementById("zoomPopup");
+
+// ADDED: prevent clicks inside popup from closing it
+zoomPopup.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomValue = document.getElementById("zoomValue");
+
+let zoomLevel = 100;
+
+function applyZoom() {
+  document.querySelectorAll(".msg").forEach(el => {
+    el.style.fontSize = (1.5 * zoomLevel / 100) + "em";
+  });
+}
+
+zoomBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  e.stopPropagation();
+  zoomPopup.style.display = zoomPopup.style.display === "none" ? "block" : "none";
+};
+
+document.addEventListener("click", () => {
+  zoomPopup.style.display = "none";
+});
+
+// ADDED: +/- zoom buttons
+const zoomInBtn = document.getElementById("zoomInBtn");
+const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+zoomInBtn.onclick = () => {
+  zoomLevel = Math.min(200, zoomLevel + 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomOutBtn.onclick = () => {
+  zoomLevel = Math.max(50, zoomLevel - 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomSlider.oninput = () => {
+  zoomLevel = zoomSlider.value;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+// ADDED: custom top drag resize
+const handle = document.getElementById("resizeHandle");
+const textarea = document.getElementById("userInput");
+
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+handle.addEventListener("mousedown", (e) => {
+  isResizing = true;
+  startY = e.clientY;
+  startHeight = textarea.offsetHeight;
+  document.body.style.cursor = "ns-resize";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing) return;
+  let dy = startY - e.clientY;
+  textarea.style.height = (startHeight + dy) + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  isResizing = false;
+  document.body.style.cursor = "default";
+});
+
+renderChatList();
+  renderChat();
+  updateHeaderTitle();
+};
+
+const sidebar = document.getElementById("sidebar");
+const overlay = document.getElementById("overlay");
+
+document.getElementById("menuBtn").onclick = () => {
+  sidebar.classList.add("open");
+  overlay.classList.add("show");
+};
+
+document.getElementById("closeSidebarBtn").onclick = () => {
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
+};
+
+overlay.onclick = () => {
+  sidebar.classList.remove("open");
+  overlay.classList.remove("show");
+};
+
+const modal = document.getElementById("modal");
+const systemInput = document.getElementById("systemPromptInput");
+
+document.getElementById("settingsBtn").onclick = () => {
+  if (!activeChatId) return;
+  systemInput.value = chats[activeChatId].systemPrompt || "";
+  modal.classList.add("show");
+};
+
+document.getElementById("closeModalBtn").onclick = () => {
+  modal.classList.remove("show");
+};
+
+document.getElementById("savePromptBtn").onclick = () => {
+  if (!activeChatId) return;
+  chats[activeChatId].systemPrompt = systemInput.value;
+  save();
+  modal.classList.remove("show");
+};
+
+// ADDED: Zoom functionality (popup version)
+const zoomBtn = document.getElementById("zoomBtn");
+const zoomPopup = document.getElementById("zoomPopup");
+
+// ADDED: prevent clicks inside popup from closing it
+zoomPopup.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+const zoomSlider = document.getElementById("zoomSlider");
+const zoomValue = document.getElementById("zoomValue");
+
+let zoomLevel = 100;
+
+function applyZoom() {
+  document.querySelectorAll(".msg").forEach(el => {
+    el.style.fontSize = (1.5 * zoomLevel / 100) + "em";
+  });
+}
+
+zoomBtn.onclick = (e) => {
+  e.stopPropagation();
+
+  e.stopPropagation();
+  zoomPopup.style.display = zoomPopup.style.display === "none" ? "block" : "none";
+};
+
+document.addEventListener("click", () => {
+  zoomPopup.style.display = "none";
+});
+
+// ADDED: +/- zoom buttons
+const zoomInBtn = document.getElementById("zoomInBtn");
+const zoomOutBtn = document.getElementById("zoomOutBtn");
+
+zoomInBtn.onclick = () => {
+  zoomLevel = Math.min(200, zoomLevel + 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomOutBtn.onclick = () => {
+  zoomLevel = Math.max(50, zoomLevel - 10);
+  zoomSlider.value = zoomLevel;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+zoomSlider.oninput = () => {
+  zoomLevel = zoomSlider.value;
+  zoomValue.textContent = zoomLevel + "%";
+  applyZoom();
+};
+
+// ADDED: custom top drag resize
+const handle = document.getElementById("resizeHandle");
+const textarea = document.getElementById("userInput");
+
+let isResizing = false;
+let startY = 0;
+let startHeight = 0;
+
+handle.addEventListener("mousedown", (e) => {
+  isResizing = true;
+  startY = e.clientY;
+  startHeight = textarea.offsetHeight;
+  document.body.style.cursor = "ns-resize";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!isResizing) return;
+  let dy = startY - e.clientY;
+  textarea.style.height = (startHeight + dy) + "px";
+});
+
+document.addEventListener("mouseup", () => {
+  isResizing = false;
+  document.body.style.cursor = "default";
+});
+
+
+// ADDED: Copy chat to clipboard
+document.getElementById("copyBtn").onclick = () => {
+  const messages = getMessages();
+  let text = "";
+
+  messages.forEach(m => {
+    const label = m.role === "user" ? "User" : "Bot";
+    text += label + ": " + m.content + "\n\n";
+  });
+
+  // Trim if too large (simple safety ~100k chars)
+  const MAX = 100000;
+  if (text.length > MAX) {
+    text = text.substring(0, MAX);
+  }
+
+  navigator.clipboard.writeText(text);
+
+// ADDED: popup feedback
+const popup = document.getElementById("copyPopup");
+
+if (text.length >= MAX) {
+  popup.textContent = "YOU ARE FAT";
+} else {
+  popup.textContent = "Copied!";
+}
+
+popup.style.display = "block";
+setTimeout(() => {
+  popup.style.display = "none";
+}, 1200);
+
+};
+
+renderChatList();
+renderChat();
+updateHeaderTitle();
+
+// ADDED: Robust inline chat title editing (FIXED)
+function enableChatTitleEditing() {
+  const buttons = document.querySelectorAll(".chat-item-btn");
+
+  buttons.forEach(btn => {
+    btn.ondblclick = (e) => {
+      e.stopPropagation();
+
+      // Try multiple ways to get chatId
+      let chatId = btn.dataset.chatId;
+
+      if (!chatId) {
+        const onclick = btn.getAttribute("onclick");
+        if (onclick) {
+          const match = onclick.match(/'([^']+)'/);
+          if (match) chatId = match[1];
+        }
+      }
+
+      if (!chatId) return;
+
+      const currentText = btn.textContent.trim();
+
+      const input = document.createElement("input");
+      input.value = currentText;
+      input.style.width = "90%";
+      input.style.fontFamily = "Courier New, monospace";
+      input.style.fontSize = "16px";
+
+      btn.innerHTML = "";
+      btn.appendChild(input);
+      input.focus();
+
+      function save() {
+        const newTitle = input.value.trim() || "Untitled";
+
+        const chats = JSON.parse(localStorage.getItem("chats") || "{}");
+
+        if (chats[chatId]) {
+          chats[chatId].title = newTitle;
+          localStorage.setItem("chats", JSON.stringify(chats));
+        }
+
+        renderChatList();
+      }
+
+      input.onblur = save;
+
+      input.onkeydown = (ev) => {
+        if (ev.key === "Enter") save();
+        if (ev.key === "Escape") renderChatList();
+      };
+    };
+  });
+}
+
+// Hook safely AFTER render without overriding core
+setTimeout(enableChatTitleEditing, 100);
+
+// also re-run periodically to catch re-renders
+setInterval(enableChatTitleEditing, 500);
+
+
+// MODIFIED: Prompt-based chat title editing (simple + stable)
+document.addEventListener("dblclick", (e) => {
+  const btn = e.target.closest(".chat-item-btn");
+  if (!btn) return;
+
+  e.stopPropagation();
+
+  // extract chatId from onclick
+  let chatId = null;
+  const onclick = btn.getAttribute("onclick");
+  if (onclick) {
+    const match = onclick.match(/'([^']+)'/);
+    if (match) chatId = match[1];
+  }
+  if (!chatId) return;
+
+  const currentText = btn.textContent.trim();
+
+  const newTitle = prompt("Edit chat title:", currentText);
+  if (newTitle === null) return; // cancelled
+
+  const chats = JSON.parse(localStorage.getItem("chats") || "{}");
+  if (chats[chatId]) {
+    chats[chatId].title = newTitle.trim() || "Untitled";
+    localStorage.setItem("chats", JSON.stringify(chats));
+  }
+
+  renderChatList();
+});
+
+
+// ADDED: Rename active chat from header pencil
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (!t || t.id !== "editTitleBtn") return;
+
+  if (!activeChatId || !chats[activeChatId]) return;
+
+  const currentTitle = chats[activeChatId].title || "Chat";
+  const newTitle = prompt("Edit chat title:", currentTitle);
+  if (newTitle === null) return; // cancelled
+
+  chats[activeChatId].title = newTitle.trim() || "Chat";
+  save();              // preserve existing persistence flow
+  renderChatList();    // refresh sidebar
+  updateHeaderTitle(); // refresh header title
+});
+
+
+// ADDED: toggle pencil visibility
+function updatePencilVisibility() {
+  const pencil = document.getElementById("editTitleBtn");
+  if (!pencil) return;
+
+  try {
+    const chats = JSON.parse(localStorage.getItem("chats") || "{}");
+    const hasChats = Object.keys(chats).length > 0;
+    pencil.style.display = hasChats ? "inline" : "none";
+  } catch (e) {
+    pencil.style.display = "none";
+  }
+}
+
+// run on load + after render
+setTimeout(updatePencilVisibility, 50);
+const originalRenderChatList_pencil = window.renderChatList;
+window.renderChatList = function() {
+  if (originalRenderChatList_pencil) originalRenderChatList_pencil();
+  updatePencilVisibility();
+};
+
+</script>
+
+</body>
+</html>
