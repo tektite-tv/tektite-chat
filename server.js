@@ -35,9 +35,14 @@ app.post("/chat", async (req, res) => {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         input: messages.map(m => ({
-          role: m.role,
-          content: m.content
-        }))
+  role: m.role,
+  content: [
+    {
+      type: "text",
+      text: m.content
+    }
+  ]
+}))
       })
     });
 
