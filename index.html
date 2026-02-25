@@ -101,7 +101,7 @@ async function sendMessage() {
   input.value = "";
 
   try {
-    const res = await fetch("/chat", {
+    const res = await fetch("https://tektite-chat.onrender.com/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
