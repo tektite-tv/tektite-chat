@@ -720,6 +720,7 @@ renderChatList();
     });
 
     const data = await res.json();
+    if (data && data.request_id) console.log("OpenAI request_id:", data.request_id);
     addMessage("assistant", data.content || "(no response)");
 
   } catch {
