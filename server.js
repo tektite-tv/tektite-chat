@@ -1,4 +1,4 @@
-require("dotenv").config();
+ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
@@ -17,7 +17,7 @@ app.post("/chat", async (req, res) => {
     let messages = req.body.messages || [];
     messages = messages.slice(-30);
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -25,13 +25,18 @@ app.post("/chat", async (req, res) => {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages
+        input: messages.map(m => ({
+          role: m.role,
+          content: m.content
+        }))
       })
     });
 
     const data = await response.json();
 
-    const content = data?.choices?.[0]?.message?.content || "";
+    const content =
+      data?.output?.[0]?.content?.[0]?.text ||
+      "(no response)";
 
     res.json({ content });
 
@@ -41,6 +46,8 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+// FIX: Use Render's dynamic port
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
