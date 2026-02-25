@@ -233,45 +233,46 @@ textarea::placeholder {
   font-size: 1.5em; /* +50% */
 }
 
-
-/* ADDED: markdown styling */
-.msg h1, .msg h2, .msg h3 {
-  margin: 6px 0;
-  color: #7CFF00;
-}
-
-.msg p {
-  margin: 4px 0;
-  line-height: 1.4;
-}
-
-.msg code {
-  background: #111;
-  padding: 2px 4px;
-  border: 1px solid #333;
-  color: #00ffaa;
-  font-size: 0.9em;
-}
-
-.msg pre {
-  background: #111;
-  padding: 8px;
-  border: 1px solid #333;
-  overflow-x: auto;
-}
-
-.msg ul, .msg ol {
-  margin-left: 16px;
-}
-
-.msg a {
-  color: #00aaff;
-}
-
 </style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js">
+// ADDED: image upload + paste
+const uploadBtn = document.getElementById("uploadBtn");
+const imageInput = document.getElementById("imageInput");
+
+if (uploadBtn && imageInput) {
+  uploadBtn.onclick = () => imageInput.click();
+
+  imageInput.onchange = () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      addMessage("user", { type: "image", data: reader.result });
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
+input.addEventListener("paste", (e) => {
+  const items = e.clipboardData.items;
+  for (let item of items) {
+    if (item.type.startsWith("image")) {
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = () => {
+        addMessage("user", { type: "image", data: reader.result });
+      };
+      reader.readAsDataURL(file);
+      e.preventDefault();
+      break;
+    }
+  }
+});
+
+</script>
 </head>
 
 <body>
@@ -350,6 +351,8 @@ textarea::placeholder {
   <div id="resizeHandle" style="height:6px; cursor:ns-resize; background:#222;"></div>
   <div class="composer" style="align-items: stretch;">
     <textarea placeholder="Ask anything or say something stupid..." id="userInput"></textarea>
+    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+<button id="uploadBtn">📎</button>
     <button id="sendBtn" style="height:40px; align-self:center;">Send</button>
   </div>
 </div>
@@ -560,11 +563,19 @@ function addMessage(role, content, saveMsg=true) {
 
   const msg = document.createElement("div");
   msg.className = "msg";
-  // MODIFIED: render markdown
-  try {
-    msg.innerHTML = marked.parse(content);
-  } catch {
-    msg.textContent = content;
+  // MODIFIED: image + markdown support
+  if (typeof content === "object" && content.type === "image") {
+    const img = document.createElement("img");
+    img.src = content.data;
+    img.style.maxWidth = "300px";
+    img.style.border = "1px solid #333";
+    msg.appendChild(img);
+  } else {
+    try {
+      msg.innerHTML = marked.parse(content);
+    } catch {
+      msg.textContent = content;
+    }
   }
 
   block.appendChild(label);
@@ -1215,6 +1226,42 @@ window.renderChatList = function() {
   if (originalRenderChatList_pencil) originalRenderChatList_pencil();
   updatePencilVisibility();
 };
+
+
+// ADDED: image upload + paste
+const uploadBtn = document.getElementById("uploadBtn");
+const imageInput = document.getElementById("imageInput");
+
+if (uploadBtn && imageInput) {
+  uploadBtn.onclick = () => imageInput.click();
+
+  imageInput.onchange = () => {
+    const file = imageInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      addMessage("user", { type: "image", data: reader.result });
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
+input.addEventListener("paste", (e) => {
+  const items = e.clipboardData.items;
+  for (let item of items) {
+    if (item.type.startsWith("image")) {
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = () => {
+        addMessage("user", { type: "image", data: reader.result });
+      };
+      reader.readAsDataURL(file);
+      e.preventDefault();
+      break;
+    }
+  }
+});
 
 </script>
 
