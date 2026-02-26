@@ -10,7 +10,6 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Courier New', monospace; background: #0b0b0b; color: #e8e8e8; height: 100dvh; }
 
-/* LOGIN SCREEN */
 #loginGate {
   position: fixed;
   inset: 0;
@@ -31,7 +30,6 @@ body { margin: 0; font-family: 'Courier New', monospace; background: #0b0b0b; co
   cursor: pointer;
 }
 
-/* EXISTING APP */
 .app { height: 100dvh; display: flex; flex-direction: column; }
 
 header {
@@ -76,20 +74,17 @@ button {
 }
 </style>
 
-<!-- Netlify Identity -->
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
 
-<!-- LOGIN GATE -->
 <div id="loginGate">
   <div style="font-size:24px; color:#7CFF00; font-weight:bold;">Login Required</div>
   <button id="loginBtn">Login / Signup</button>
 </div>
 
-<!-- APP -->
 <div class="app" id="app" style="display:none;">
   <header>
     <div class="header-title">Tektite's Chat</div>
@@ -104,60 +99,57 @@ button {
 </div>
 
 <script>
-const chatLog = document.getElementById("chatLog");
-const input = document.getElementById("userInput");
-
-function addMessage(role, content) {
-  const block = document.createElement("div");
-  block.className = role;
-
-  const msg = document.createElement("div");
-  msg.className = "msg";
-  msg.innerHTML = marked.parse(content);
-
-  block.appendChild(msg);
-  chatLog.appendChild(block);
-  chatLog.scrollTop = chatLog.scrollHeight;
-}
-
-async function sendMessage() {
-  const text = input.value.trim();
-  if (!text) return;
-
-  input.value = "";
-  addMessage("user", text);
-
-  try {
-    const res = await fetch("https://tektite-chat.onrender.com/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        messages: [{ role: "user", content: text }]
-      })
-    });
-
-    const data = await res.json();
-    addMessage("assistant", data.content || "(no response)");
-  } catch {
-    addMessage("assistant", "Error talking to server.");
-  }
-}
-
-document.getElementById("sendBtn").onclick = sendMessage;
-
-input.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    sendMessage();
-  }
-});
-
-
-<script>
 document.addEventListener("DOMContentLoaded", () => {
+  const chatLog = document.getElementById("chatLog");
+  const input = document.getElementById("userInput");
   const gate = document.getElementById("loginGate");
   const app = document.getElementById("app");
   const btn = document.getElementById("loginBtn");
+
+  function addMessage(role, content) {
+    const block = document.createElement("div");
+    block.className = role;
+
+    const msg = document.createElement("div");
+    msg.className = "msg";
+    msg.innerHTML = marked.parse(content);
+
+    block.appendChild(msg);
+    chatLog.appendChild(block);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if (!text) return;
+
+    input.value = "";
+    addMessage("user", text);
+
+    try {
+      const res = await fetch("https://tektite-chat.onrender.com/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          messages: [{ role: "user", content: text }]
+        })
+      });
+
+      const data = await res.json();
+      addMessage("assistant", data.content || "(no response)");
+    } catch {
+      addMessage("assistant", "Error talking to server.");
+    }
+  }
+
+  document.getElementById("sendBtn").onclick = sendMessage;
+
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
 
   function showApp() {
     gate.style.display = "none";
@@ -170,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (!window.netlifyIdentity) {
-    console.error("Netlify Identity not loaded");
+    console.error("Identity not loaded");
     return;
   }
 
@@ -179,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
     else showLogin();
   });
 
-  netlifyIdentity.on("login", user => {
+  netlifyIdentity.on("login", () => {
     showApp();
     netlifyIdentity.close();
   });
@@ -194,12 +186,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", () => {
       netlifyIdentity.open("login");
     });
-  } else {
-    console.error("loginBtn not found");
   }
 });
 </script>
-
 
 </body>
 </html>
