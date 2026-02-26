@@ -86,7 +86,7 @@ button {
 <!-- LOGIN GATE -->
 <div id="loginGate">
   <div style="font-size:24px; color:#7CFF00; font-weight:bold;">Login Required</div>
-  <button onclick="netlifyIdentity.open()">Login / Signup</button>
+  <button id="loginBtn">Login / Signup</button>
 </div>
 
 <!-- APP -->
@@ -181,6 +181,22 @@ netlifyIdentity.on("logout", () => {
 });
 
 netlifyIdentity.init();
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("loginBtn");
+  if (btn) {
+    btn.addEventListener("click", () => {
+      if (window.netlifyIdentity) {
+        netlifyIdentity.open();
+      } else {
+        console.error("Netlify Identity not loaded yet");
+      }
+    });
+  }
+});
 </script>
 
 </body>
