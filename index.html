@@ -152,52 +152,54 @@ input.addEventListener("keydown", e => {
   }
 });
 
-/* AUTH LOGIC */
-const gate = document.getElementById("loginGate");
-const app = document.getElementById("app");
-
-function showApp() {
-  gate.style.display = "none";
-  app.style.display = "flex";
-}
-
-function showLogin() {
-  gate.style.display = "flex";
-  app.style.display = "none";
-}
-
-netlifyIdentity.on("init", user => {
-  if (user) showApp();
-  else showLogin();
-});
-
-netlifyIdentity.on("login", user => {
-  showApp();
-  netlifyIdentity.close();
-});
-
-netlifyIdentity.on("logout", () => {
-  showLogin();
-});
-
-netlifyIdentity.init();
-</script>
-
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
+  const gate = document.getElementById("loginGate");
+  const app = document.getElementById("app");
   const btn = document.getElementById("loginBtn");
+
+  function showApp() {
+    gate.style.display = "none";
+    app.style.display = "flex";
+  }
+
+  function showLogin() {
+    gate.style.display = "flex";
+    app.style.display = "none";
+  }
+
+  if (!window.netlifyIdentity) {
+    console.error("Netlify Identity not loaded");
+    return;
+  }
+
+  netlifyIdentity.on("init", user => {
+    if (user) showApp();
+    else showLogin();
+  });
+
+  netlifyIdentity.on("login", user => {
+    showApp();
+    netlifyIdentity.close();
+  });
+
+  netlifyIdentity.on("logout", () => {
+    showLogin();
+  });
+
+  netlifyIdentity.init();
+
   if (btn) {
     btn.addEventListener("click", () => {
-      if (window.netlifyIdentity) {
-        netlifyIdentity.open();
-      } else {
-        console.error("Netlify Identity not loaded yet");
-      }
+      netlifyIdentity.open("login");
     });
+  } else {
+    console.error("loginBtn not found");
   }
 });
 </script>
+
 
 </body>
 </html>
