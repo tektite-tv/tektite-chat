@@ -1,0 +1,24 @@
+{
+  "name": "photosphere",
+  "version": "1.0.0",
+  "description": "Photosphere 1.0 - Three.js interactive sphere visualizer",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve .",
+    "lite": "npx http-server .",
+    "open": "npx serve . -o"
+  },
+  "keywords": [
+    "threejs",
+    "webgl",
+    "photosphere",
+    "visualizer"
+  ],
+  "author": "you, clearly possessed",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.1",
+    "http-server": "^14.1.1"
+  }
+}
