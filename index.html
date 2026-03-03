@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Tektite's Photosphere</title>
+<title>Escher Sphere v1.09</title>
 <style>
 body { margin:0; overflow:hidden; background:black; font-family:sans-serif; }
 #menu {
@@ -282,7 +282,7 @@ void main(){
       vec3 col = vec3(r, g, b);
 
       // slow hue shift
-      // removed global hue shift
+      col = hueRotateYIQ(col, time * hueSpeed);
 
       // light vignette (darken edges slightly, keep it subtle)
       vec2 p = uv - 0.5;
@@ -340,58 +340,6 @@ sphere.add(outline);
 let skyMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true, side: THREE.BackSide });
 const outer = new THREE.Mesh(new THREE.SphereGeometry(100,32,32), skyMaterial);
 scene.add(outer);
-
-// === SKYBOX HUE FIX (non-destructive) ===
-function applySkyboxRainbow(mat, tex){
-  return new THREE.ShaderMaterial({
-    side: THREE.BackSide,
-    uniforms: {
-      time: { value: 0.0 },
-      map: { value: tex || null },
-      hasMap: { value: tex ? 1.0 : 0.0 },
-      hueSpeed: { value: 0.08 }
-    },
-    vertexShader: `
-      varying vec2 vUv;
-      void main(){
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-      }
-    `,
-    fragmentShader: `
-      precision highp float;
-      varying vec2 vUv;
-      uniform float time;
-      uniform sampler2D map;
-      uniform float hasMap;
-      uniform float hueSpeed;
-
-      vec3 hueRotate(vec3 c, float a){
-        float s = sin(a), co = cos(a);
-        mat3 m = mat3(
-          0.299+0.701*co+0.168*s, 0.587-0.587*co+0.330*s, 0.114-0.114*co-0.497*s,
-          0.299-0.299*co-0.328*s, 0.587+0.413*co+0.035*s, 0.114-0.114*co+0.292*s,
-          0.299-0.300*co+1.250*s, 0.587-0.588*co-1.050*s, 0.114+0.886*co-0.203*s
-        );
-        return clamp(m*c,0.0,1.0);
-      }
-
-      void main(){
-        vec3 col = vec3(0.0);
-        if(hasMap > 0.5){
-          col = texture2D(map, vUv).rgb;
-        }
-        float ang = vUv.x * 6.28318 + time * hueSpeed;
-        col = hueRotate(col, ang);
-        gl_FragColor = vec4(col,1.0);
-      }
-    `
-  });
-}
-
-// apply shader safely
-outer.material = applySkyboxRainbow(outer.material, outer.material.map);
-
 
 // ===== FOG GLOW =====
 const fogMaterial = new THREE.ShaderMaterial({
@@ -798,7 +746,6 @@ if (postFXEnabled && outer.material && outer.material.color) {
   fieldMaterial.uniforms.time.value += 0.02;
   fogMaterial.uniforms.time.value += 0.02;
   postMat.uniforms.time.value += 0.02;
-  if(outer.material.uniforms){ outer.material.uniforms.time.value += 0.02; }
 
   fieldMaterial.uniforms.fogInfluence.value = (fogSphere.visible && fieldGroup.visible) ? 1.0 : 0.0;
 
