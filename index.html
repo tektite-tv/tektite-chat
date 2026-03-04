@@ -51,6 +51,10 @@ select, button { margin-top:10px; display:block; width: 100%; }
   </div>
 
   <label><input type="checkbox" id="magneticToggle"> Magnetic Field Bands</label>
+<select id="bandMode" style="display:none; margin-top:6px;">
+  <option value="1">1 Band</option>
+  <option value="2">2 Bands (reverse)</option>
+</select>
   <label><input type="checkbox" id="fogToggle"> Radiant Fog Glow</label>
   <label><input type="checkbox" id="postFXToggle"> Overlay Post FX</label>
   <div class="small">Light vignette + breathing RGB chromatic aberration + slow hue shift.</div>
@@ -65,7 +69,10 @@ select, button { margin-top:10px; display:block; width: 100%; }
   <div class="small" style="display:none;">Erratic, organic camera jumps across the skybox.</div>
 
   
-  <label>WASD Rotation Speed</label>
+  <label><input type="checkbox" id="axisToggle"> Axis Lines</label>
+<div class="small">6 white axes from sphere center to skybox</div>
+
+<label>WASD Rotation Speed</label>
   <input type="range" id="wasdSpeed" min="1" max="4" step="1" value="1">
   <div class="small">1x, 2x, 3x, 4x speed</div>
 
@@ -309,6 +316,38 @@ let sphereMaterial = new THREE.MeshToonMaterial({ color: 0x2EE6A6 }) // seafoam 
 const sphere = new THREE.Mesh(new THREE.SphereGeometry(2,32,32), sphereMaterial);
 scene.add(sphere);
 
+// ===== AXIS LINES (FIXED TO SPHERE) =====
+const axisGroup = new THREE.Group();
+sphere.add(axisGroup);
+
+const axisMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.45 });
+
+function createAxis(rotation){
+  const geo = new THREE.CylinderGeometry(0.04, 0.04, 200, 8);
+  const mesh = new THREE.Mesh(geo, axisMaterial);
+  mesh.rotation.set(rotation.x, rotation.y, rotation.z);
+  return mesh;
+}
+
+// X, Y, Z axes
+axisGroup.add(createAxis({x:0, y:0, z:Math.PI/2}));
+axisGroup.add(createAxis({x:0, y:0, z:0}));
+axisGroup.add(createAxis({x:Math.PI/2, y:0, z:0}));
+
+axisGroup.visible = false;
+
+// toggle hook (safe attach after DOM load)
+setTimeout(()=>{
+  const axisToggle = document.getElementById("axisToggle");
+  if(axisToggle){
+    axisToggle.addEventListener("change", e=>{
+      axisGroup.visible = e.target.checked;
+    });
+  }
+}, 0);
+
+
+
 // ===== OUTLINE (FIXED SCREEN-SPACE STYLE) =====
 const outlineMaterial = new THREE.ShaderMaterial({
   uniforms: {
@@ -337,9 +376,71 @@ const outline = new THREE.Mesh(
 sphere.add(outline);
 
 // ===== SKYBOX =====
-let skyMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true, side: THREE.BackSide });
+const skyMaterial = new THREE.ShaderMaterial({
+  side: THREE.BackSide,
+  uniforms: {
+    time: { value: 0 },
+    lightPos: { value: new THREE.Vector3(0,0,0) }
+  },
+  vertexShader: `
+    varying vec3 vWorldPos;
+    void main(){
+      vec4 worldPos = modelMatrix * vec4(position, 1.0);
+      vWorldPos = worldPos.xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vWorldPos;
+    uniform vec3 lightPos;
+    uniform float time;
+
+    void main(){
+      vec3 dir = normalize(vWorldPos - lightPos);
+
+      float bandShadow = sin(dir.y * 20.0 + time * 2.0) * 0.5 + 0.5;
+
+      float axisShadow = max(
+        1.0 - abs(dir.x),
+        max(1.0 - abs(dir.y), 1.0 - abs(dir.z))
+      );
+
+      float shadow = bandShadow * 0.5 + axisShadow * 0.5;
+
+      vec3 base = vec3(0.05, 0.1, 0.2);
+      base *= 1.0 - shadow * 0.6;
+
+      gl_FragColor = vec4(base, 1.0);
+    }
+  `
+});
 const outer = new THREE.Mesh(new THREE.SphereGeometry(100,32,32), skyMaterial);
 scene.add(outer);
+
+// ===== SKYBOX WIREFRAME (THICKER STABLE LINES) =====
+// ===== SKYBOX WIREFRAME (ENHANCED GRID + LIME) =====
+// ===== SKYBOX WIREFRAME (STABLE FIX) =====
+const geo = new THREE.SphereGeometry(100, 64, 64);
+const edges = new THREE.EdgesGeometry(geo);
+
+const outerWire = new THREE.LineSegments(
+  edges,
+  new THREE.LineBasicMaterial({
+    color: 0x00ff66,
+    transparent: true,
+    opacity: 0.6,
+    depthTest: false,
+    depthWrite: false
+  })
+);
+
+// keep normal orientation, just follow skybox
+scene.add(outerWire);
+outerWire.visible = true;
+
+
+
+
 
 // ===== FOG GLOW =====
 const fogMaterial = new THREE.ShaderMaterial({
@@ -501,9 +602,24 @@ for(let i=0;i<6;i++){
 }
 fieldGroup.visible = false;
 
+// ===== REVERSE FIELD GROUP (SAFE INIT) =====
+const reverseFieldGroup = new THREE.Group();
+scene.add(reverseFieldGroup);
+
+// clone torus meshes
+fieldGroup.children.forEach(torus=>{
+  const clone = torus.clone();
+  reverseFieldGroup.add(clone);
+});
+
+reverseFieldGroup.visible = false;
+
+
 // ===== UI TOGGLES =====
 document.getElementById("magneticToggle").addEventListener("change", e=>{
   fieldGroup.visible = e.target.checked;
+  const bandMode = document.getElementById("bandMode");
+  if(bandMode) bandMode.style.display = e.target.checked ? "block" : "none";
 });
 document.getElementById("fogToggle").addEventListener("change", e=>{
   fogSphere.visible = e.target.checked;
@@ -727,7 +843,13 @@ renderer.domElement.addEventListener("click", (event) => {
 });
 
 function animate(){
-  requestAnimationFrame(animate);
+  // auto visibility control
+if (typeof outerWire !== 'undefined'){
+  const hasSky = outer.material.map != null;
+  const hasSphere = sphere.material.map != null;
+  outerWire.visible = !(hasSky || hasSphere);
+}
+requestAnimationFrame(animate);
   // SKYBOX HUE SHIFT (tied to Post FX toggle)
 if (postFXEnabled && outer.material && outer.material.color) {
   const t = performance.now() * 0.0001;
@@ -741,11 +863,34 @@ if (postFXEnabled && outer.material && outer.material.color) {
   sphere.rotation.y += velY;
   sphere.rotation.x += velX;
 
-  fieldGroup.rotation.y += 0.01;
+  
+fieldGroup.rotation.y += 0.01;
+
+// dual band logic (non-destructive)
+const bandMode = document.getElementById("bandMode");
+if(bandMode && bandMode.value === "2" && fieldGroup.visible){
+  reverseFieldGroup.visible = true;
+  reverseFieldGroup.rotation.y -= 0.01;
+} else {
+  reverseFieldGroup.visible = false;
+}
+
 
   fieldMaterial.uniforms.time.value += 0.02;
   fogMaterial.uniforms.time.value += 0.02;
   postMat.uniforms.time.value += 0.02;
+  if(skyMaterial.uniforms){
+    if(typeof outerWire !== 'undefined'){
+      outerWire.position.copy(camera.position);
+      if(typeof outerWire2 !== 'undefined'){
+        outerWire2.position.copy(camera.position);
+        outerWire2.rotation.copy(outerWire.rotation);
+      }
+      outerWire.rotation.copy(outer.rotation);
+    }
+    skyMaterial.uniforms.time.value += 0.02;
+    skyMaterial.uniforms.lightPos.value.copy(sphere.position);
+  }
 
   fieldMaterial.uniforms.fogInfluence.value = (fogSphere.visible && fieldGroup.visible) ? 1.0 : 0.0;
 
