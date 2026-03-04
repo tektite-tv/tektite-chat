@@ -289,7 +289,13 @@ void main(){
       vec3 col = vec3(r, g, b);
 
       // slow hue shift
-      col = hueRotateYIQ(col, time * hueSpeed);
+      
+      // slow hue shift (disabled near screen center so inner sphere stays normal)
+      float dcenter = distance(uv, vec2(0.5));
+      if(dcenter > 0.30){
+        col = hueRotateYIQ(col, time * hueSpeed);
+      }
+
 
       // light vignette (darken edges slightly, keep it subtle)
       vec2 p = uv - 0.5;
