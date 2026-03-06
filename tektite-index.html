@@ -199,8 +199,20 @@ button:hover{
     }
 }
 
-/* FIX: remove internal scrollbars */
-html,body{overflow-x:hidden;}
+
+/* SCROLLBARS BE GONE */
+html,body{
+    overflow:hidden;
+    scrollbar-width:none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar{
+    display:none;
+}
+#viewer{
+    overflow:hidden;
+}
+
 #content,.main,.grid-container,#grid{
 overflow:visible !important;
 height:auto !important;
