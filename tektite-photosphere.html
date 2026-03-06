@@ -27,14 +27,6 @@ select, button { margin-top:10px; display:block; width: 100%; }
 </head>
 <body>
 
-<style>
-/* ensure overlay UI stays above WebGL canvas */
-#overlay-container { position: relative; z-index: 10000; }
-#overlay-container .topbar { position: fixed; z-index: 10001; }
-#overlay-container .sidebar { position: fixed; z-index: 10002; }
-</style>
-
-
 <div id="overlay-container"></div>
 <script>
 fetch("overlay.html")
