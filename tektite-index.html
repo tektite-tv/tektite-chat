@@ -244,33 +244,14 @@ let posts = [];
 let visible = 9;
 let view = "grid";
 
+
 async function fetchFeedText(){
-    const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(FEED_URL)}`,
-        `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(FEED_URL)}`
-    ];
-
-    let lastError = null;
-
-    for(const url of proxies){
-        try{
-            const res = await fetch(url);
-            if(!res.ok) throw new Error(`HTTP ${res.status}`);
-
-            if(url.includes("rss2json")){
-                const data = await res.json();
-                if(!data.items) throw new Error("RSS2JSON returned no items");
-                return convertRss2JsonToXml(data);
-            }
-
-            return await res.text();
-        }catch(err){
-            lastError = err;
-        }
-    }
-
-    throw lastError || new Error("Could not load feed");
+    const url = "https://api.allorigins.win/raw?url=" + encodeURIComponent(FEED_URL);
+    const res = await fetch(url);
+    if(!res.ok) throw new Error("Feed request failed: " + res.status);
+    return await res.text();
 }
+
 
 function convertRss2JsonToXml(data){
     const itemsXml = data.items.map(item => {
