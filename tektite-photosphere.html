@@ -27,6 +27,16 @@ select, button { margin-top:10px; display:block; width: 100%; }
 </head>
 <body>
 
+<div id="overlay-container"></div>
+<script>
+fetch("/overlay.html")
+.then(res => res.text())
+.then(html => {
+  document.getElementById("overlay-container").innerHTML = html;
+});
+</script>
+
+
 <div id="menu">
   <div><b>Options</b></div>
 
