@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>theinternetisdead.org</title>
+
+<style>
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:"Courier New", monospace;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="overlay-container"></div>
+
+<script>
+fetch("overlay.html")
+.then(res => res.text())
+.then(html => {
+    document.getElementById("overlay-container").innerHTML = html;
+});
+</script>
+
+</body>
+</html>
