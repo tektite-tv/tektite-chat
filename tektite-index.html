@@ -198,6 +198,14 @@ button:hover{
         margin-top:60px;
     }
 }
+
+/* FIX: remove internal scrollbars */
+html,body{overflow-x:hidden;}
+#content,.main,.grid-container,#grid{
+overflow:visible !important;
+height:auto !important;
+max-height:none !important;
+}
 </style>
 </head>
 
