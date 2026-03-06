@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>theinternetisdead.org</title>
+
+<style>
+body{
+    margin:0;
+    background:black;
+    color:#00ff88;
+    font-family:"Courier New", monospace;
+}
+
+header{
+    padding:20px;
+    border-bottom:2px solid #00ff88;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+h1{
+    margin:0;
+    font-size:20px;
+}
+
+.controls button{
+    margin-left:10px;
+}
+
+button{
+    background:black;
+    color:#00ff88;
+    border:2px solid #00ff88;
+    padding:6px 12px;
+    font-family:"Courier New", monospace;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#002211;
+}
+
+#posts{
+    padding:30px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+}
+
+.list{
+    display:block;
+}
+
+.post{
+    border:2px solid #00ff88;
+    padding:15px;
+    cursor:pointer;
+}
+
+.post:hover{
+    background:#001a11;
+}
+
+.post-title{
+    font-size:16px;
+}
+
+.post-date{
+    font-size:12px;
+    opacity:0.7;
+}
+
+#loadMore{
+    display:block;
+    margin:30px auto;
+}
+
+#viewer{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:black;
+    padding:40px;
+    overflow:auto;
+    display:none;
+}
+
+#viewerClose{
+    position:fixed;
+    top:20px;
+    right:20px;
+}
+
+#viewerContent{
+    max-width:900px;
+    margin:auto;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+
+<header>
+<h1>Tektite Posts</h1>
+
+<div class="controls">
+<button id="listBtn">LIST</button>
+<button id="gridBtn">GRID</button>
+</div>
+</header>
+
+<div id="posts" class="grid"></div>
+
+<button id="loadMore" style="display:none">LOAD MORE</button>
+
+<div id="viewer">
+<button id="viewerClose">CLOSE</button>
+<div id="viewerContent"></div>
+</div>
+
+<script>
+let posts=[]
+let visible=9
+let view="grid"
+
+async function loadPosts(){
+    const res=await fetch("/posts/index.json")
+    posts=await res.json()
+    renderPosts()
+}
+
+function renderPosts(){
+    const container=document.getElementById("posts")
+    container.className=view
+    container.innerHTML=""
+
+    const slice=posts.slice(0,visible)
+
+    slice.forEach(post=>{
+        const div=document.createElement("div")
+        div.className="post"
+
+        div.innerHTML=`
+        <div class="post-title">${post.title}</div>
+        <div class="post-date">${post.date}</div>
+        `
+
+        div.onclick=()=>openPost(post.file)
+
+        container.appendChild(div)
+    })
+
+    const loadBtn=document.getElementById("loadMore")
+
+    if(posts.length>visible){
+        loadBtn.style.display="block"
+    }else{
+        loadBtn.style.display="none"
+    }
+}
+
+async function openPost(file){
+    const res=await fetch("/posts/"+file)
+    const md=await res.text()
+    const html=marked.parse(md)
+
+    document.getElementById("viewerContent").innerHTML=html
+    document.getElementById("viewer").style.display="block"
+}
+
+document.getElementById("viewerClose").onclick=()=>{
+    document.getElementById("viewer").style.display="none"
+}
+
+document.getElementById("loadMore").onclick=()=>{
+    visible+=9
+    renderPosts()
+}
+
+document.getElementById("gridBtn").onclick=()=>{
+    view="grid"
+    renderPosts()
+}
+
+document.getElementById("listBtn").onclick=()=>{
+    view="list"
+    renderPosts()
+}
+
+loadPosts()
+</script>
+
+</body>
+</html>
