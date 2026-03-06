@@ -10,6 +10,23 @@ body{
     background:#111;
     font-family:"Courier New", monospace;
 }
+
+/* iframe sits behind overlay */
+#main-frame{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    border:none;
+    z-index:0;
+}
+
+/* overlay stays above iframe */
+#overlay-container{
+    position:relative;
+    z-index:10;
+}
 </style>
 
 </head>
@@ -17,6 +34,8 @@ body{
 <body>
 
 <div id="overlay-container"></div>
+
+<iframe id="main-frame" src="/tektite-index.html"></iframe>
 
 <script>
 
