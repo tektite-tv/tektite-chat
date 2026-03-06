@@ -371,31 +371,29 @@ function stripHtml(html){
     return (div.textContent || div.innerText || "").trim();
 }
 
+
 async function loadPosts(){
     const status = document.getElementById("status");
-
     try{
-        const xmlText = await fetchFeedText();
-        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
-        const entries = [...xml.getElementsByTagName("entry")];
+        const url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(FEED_URL);
+        const res = await fetch(url);
+        const data = await res.json();
 
-        posts = entries.map(entry => {
-            const title = entry.getElementsByTagName("title")[0]?.textContent || "Untitled";
-            const published = entry.getElementsByTagName("published")[0]?.textContent || "";
-            const link = entry.getElementsByTagName("link")[0]?.getAttribute("href") || "";
-            const videoId = entry.getElementsByTagNameNS("http://www.youtube.com/xml/schemas/2015", "videoId")[0]?.textContent || extractVideoId(link);
-            const description = entry.getElementsByTagNameNS("http://search.yahoo.com/mrss/", "description")[0]?.textContent || "";
-            const thumb = entry.getElementsByTagNameNS("http://search.yahoo.com/mrss/", "thumbnail")[0]?.getAttribute("url") || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+        if(!data.items){
+            throw new Error("Invalid RSS response");
+        }
 
+        posts = data.items.map(item => {
+            const videoId = (item.link.match(/v=([^&]+)/)||[])[1] || "";
             return {
-                title,
-                date: published,
-                link,
+                title: item.title || "Untitled",
+                date: item.pubDate || "",
+                link: item.link || "",
                 videoId,
-                description,
-                thumb
+                description: item.description || "",
+                thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
             };
-        }).filter(post => post.link);
+        });
 
         filteredPosts = posts;
         status.style.display = posts.length ? "none" : "block";
@@ -404,9 +402,10 @@ async function loadPosts(){
     }catch(err){
         console.error(err);
         status.style.display = "block";
-        status.textContent = "FAILED TO LOAD YOUTUBE FEED. CHECK PROXY / CORS / FEED ACCESS.";
+        status.textContent = "FAILED TO LOAD YOUTUBE FEED.";
     }
 }
+
 
 function renderPosts(){
     const container = document.getElementById("posts");
