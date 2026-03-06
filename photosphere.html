@@ -1135,6 +1135,39 @@ window.addEventListener("DOMContentLoaded", () => {
 
 <input type="file" id="sphereFile" accept="image/*" style="display:none;">
 <input type="file" id="skyboxFile" accept="image/*" style="display:none;">
+
+<script>
+
+/* ===== FORCE ESC MENU ABOVE WEBGL CANVAS ===== */
+
+window.addEventListener("DOMContentLoaded", ()=>{
+
+  const menu = document.getElementById("menu");
+
+  if(!menu) return;
+
+  /* create overlay layer */
+  const uiLayer = document.createElement("div");
+
+  uiLayer.style.position = "fixed";
+  uiLayer.style.top = "0";
+  uiLayer.style.left = "0";
+  uiLayer.style.width = "100%";
+  uiLayer.style.height = "100%";
+  uiLayer.style.zIndex = "10000";
+  uiLayer.style.pointerEvents = "none";
+
+  document.body.appendChild(uiLayer);
+
+  /* move menu into overlay layer */
+  uiLayer.appendChild(menu);
+
+  /* allow interaction */
+  menu.style.pointerEvents = "auto";
+
+});
+
+</script>
 </body>
 
 </html>
