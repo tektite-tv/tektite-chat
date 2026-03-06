@@ -14,8 +14,11 @@ body{
 }
 
 header{
-padding:2px 10px;
-min-height:18px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:6px 20px;
+gap:20px;
 }
 
 h1{
@@ -174,8 +177,11 @@ button:hover{
 
 @media (max-width: 640px){
     header{
-padding:2px 10px;
-min-height:18px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:6px 20px;
+gap:20px;
 }
 
     .controls button{font-size:18px;padding:10px 18px;
@@ -241,24 +247,42 @@ font-family:"Courier New", monospace;
 opacity:0.5;
 }
 
+
+.header-left{
+display:flex;
+align-items:center;
+gap:14px;
+}
+
+.header-right{
+display:flex;
+align-items:center;
+gap:14px;
+}
+
+.controls{
+display:flex;
+gap:14px;
+}
+
 </style>
 </head>
 
 <body>
 
 <header>
-<h1 class="channel-title">
+<div class="header-left"><h1 class="channel-title">
 <a href="https://youtube.com/@Honestly_Thomas" target="_blank" style="display:flex;align-items:center;gap:10px;color:#00ff88;text-decoration:none;">
 <img src="/images/oldtube.png" style="height:160px;width:auto;image-rendering:pixelated;transform:scale(0.45);transform-origin:left center;">
 <span>Honestly Thomas Uploads</span>
 </a>
-</h1>
+</h1></div>
 
-<div class="controls">
+<div class="header-right"><div class="controls">
 <input id="searchBox" placeholder="Search Videos..." class="searchInput">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
-</div>
+</div></div>
 </header>
 
 <div id="posts" class="grid"></div>
