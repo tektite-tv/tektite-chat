@@ -5,37 +5,37 @@
 <title>theinternetisdead.org</title>
 
 <style>
+
 body{
     margin:0;
     background:#111;
     font-family:"Courier New", monospace;
 }
 
-/* iframe that loads the photosphere */
-#photosphere-frame{
-    position:absolute;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    border:none;
-    z-index:0;
-}
-
-/* overlay stays above the photosphere */
+/* overlay container */
 #overlay-container{
     position:relative;
     z-index:1000;
 }
+
+/* photosphere iframe BELOW overlay */
+#photosphere-frame{
+    display:block;
+    width:100%;
+    height:100vh;
+    border:none;
+}
+
 </style>
 
 </head>
 
 <body>
 
+<!-- overlay loads first -->
 <div id="overlay-container"></div>
 
-<!-- Photosphere content -->
+<!-- photosphere loads BELOW it -->
 <iframe id="photosphere-frame" src="/photosphere.html"></iframe>
 
 <script>
