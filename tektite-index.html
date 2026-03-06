@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <title>theinternetisdead.org</title>
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+
 <style>
 body{
     margin:0;
@@ -40,6 +42,19 @@ button{
 
 button:hover{
     background:#002211;
+}
+
+/* PURPLE EDITOR BUTTON */
+#editorBtn{
+    background:#220044;
+    border:2px solid #aa66ff;
+    color:#ffffff;
+    padding:12px 24px;
+    font-size:16px;
+}
+
+#editorBtn:hover{
+    background:#330066;
 }
 
 #posts{
@@ -102,9 +117,26 @@ button:hover{
     max-width:900px;
     margin:auto;
 }
+
+/* EDITOR AREA */
+#editorContainer{
+    display:none;
+    width:100%;
+    height:100%;
+}
+
+.CodeMirror{
+    background:black;
+    color:#00ff88;
+}
+
+.editor-toolbar{
+    background:black;
+}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js"></script>
 </head>
 
 <body>
@@ -115,10 +147,15 @@ button:hover{
 <div class="controls">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
+<button id="editorBtn">EDITOR</button>
 </div>
 </header>
 
 <div id="posts" class="grid"></div>
+
+<div id="editorContainer">
+<textarea id="markdownEditor"></textarea>
+</div>
 
 <button id="loadMore" style="display:none">LOAD MORE</button>
 
@@ -131,6 +168,8 @@ button:hover{
 let posts=[]
 let visible=9
 let view="grid"
+let editorOpen=false
+let easyMDE=null
 
 async function loadPosts(){
     const res=await fetch("/posts/index.json")
@@ -139,6 +178,8 @@ async function loadPosts(){
 }
 
 function renderPosts(){
+    if(editorOpen) return
+
     const container=document.getElementById("posts")
     container.className=view
     container.innerHTML=""
@@ -194,6 +235,46 @@ document.getElementById("gridBtn").onclick=()=>{
 document.getElementById("listBtn").onclick=()=>{
     view="list"
     renderPosts()
+}
+
+/* EDITOR TOGGLE */
+
+document.getElementById("editorBtn").onclick=()=>{
+
+    editorOpen=!editorOpen
+
+    const btn=document.getElementById("editorBtn")
+    const posts=document.getElementById("posts")
+    const editor=document.getElementById("editorContainer")
+
+    if(editorOpen){
+
+        btn.innerText="CLOSE"
+
+        posts.style.display="none"
+        document.getElementById("loadMore").style.display="none"
+
+        editor.style.display="block"
+
+        if(!easyMDE){
+            easyMDE=new EasyMDE({
+                element:document.getElementById("markdownEditor"),
+                spellChecker:false,
+                autosave:true,
+                previewRender:(plainText)=>marked.parse(plainText)
+            })
+        }
+
+    }else{
+
+        btn.innerText="EDITOR"
+
+        editor.style.display="none"
+        posts.style.display=""
+
+        renderPosts()
+    }
+
 }
 
 loadPosts()
