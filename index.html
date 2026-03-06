@@ -8,7 +8,6 @@
 body{
     margin:0;
     background:#111;
-    color:white;
     font-family:"Courier New", monospace;
 }
 </style>
@@ -20,11 +19,18 @@ body{
 <div id="overlay-container"></div>
 
 <script>
+
 fetch("overlay.html")
 .then(res => res.text())
-.then(html => {
+.then(html=>{
     document.getElementById("overlay-container").innerHTML = html;
 });
+
+function toggleSidebar(){
+    const sidebar=document.getElementById("sidebar");
+    sidebar.classList.toggle("open");
+}
+
 </script>
 
 </body>
