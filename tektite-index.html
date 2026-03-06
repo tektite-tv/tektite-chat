@@ -228,6 +228,23 @@ max-height:none !important;
     width:200px;
 }
 
+
+.searchInput{
+background:#4b0076;
+color:#39ff14;
+border:2px solid #00ff88;
+padding:6px 10px;
+font-family:"Courier New", monospace;
+opacity:0.5;
+width:220px;
+}
+
+.searchInput::placeholder{
+color:#39ff14;
+font-family:"Courier New", monospace;
+opacity:0.5;
+}
+
 </style>
 </head>
 
@@ -236,13 +253,13 @@ max-height:none !important;
 <header>
 <h1 class="channel-title">
 <a href="https://youtube.com/@Honestly_Thomas" target="_blank" style="display:flex;align-items:center;gap:10px;color:#00ff88;text-decoration:none;">
-<img src="/images/oldtube.png" style="height:56px;width:auto;image-rendering:pixelated;">
+<img src="/images/oldtube.png" style="height:112px;width:auto;image-rendering:pixelated;transform:scale(0.5);transform-origin:left center;">
 <span>Honestly Thomas Uploads</span>
 </a>
 </h1>
 
 <div class="controls">
-<input id="searchBox" placeholder="Search uploads..." />
+<input id="searchBox" placeholder="Search Videos..." class="searchInput">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
 </div>
