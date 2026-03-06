@@ -2,15 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Overlay</title>
 
 <style>
-body{
-    margin:0;
-    font-family:"Courier New", monospace;
-    background:transparent;
-    color:white;
-}
 
 .topbar{
     height:60px;
@@ -31,11 +24,6 @@ body{
 .logo{
     margin-left:15px;
     height:40px;
-}
-
-.logo a{
-    display:block;
-    height:100%;
 }
 
 .logo img{
@@ -59,10 +47,6 @@ body{
     left:0;
 }
 
-.sidebar .topbar{
-    background:#3b0066;
-}
-
 .sidebar-menu{
     padding:20px;
 }
@@ -79,49 +63,45 @@ body{
     font-weight:bold;
 }
 
-.sidebar-menu a:hover{
-    background:#00cc00;
-}
 </style>
 </head>
 
 <body>
 
 <div class="topbar">
+
 <div class="hamburger" onclick="toggleSidebar()">☰</div>
 
 <div class="logo">
 <a href="/">
-<img src="/images/deadlogo-green.png" alt="theinternetisdead.org">
+<img src="/images/deadlogo-green.png">
 </a>
 </div>
+
 </div>
 
 <div id="sidebar" class="sidebar">
 
 <div class="topbar">
+
 <div class="hamburger" onclick="toggleSidebar()">✕</div>
 
 <div class="logo">
 <a href="/">
-<img src="/images/deadlogo-green.png" alt="theinternetisdead.org">
+<img src="/images/deadlogo-green.png">
 </a>
 </div>
+
 </div>
 
 <div class="sidebar-menu">
+
 <a href="/tektite-photosphere.html">Tektite's Photosphere</a>
 <a href="/tektite-video-editor.html">Tektite's Video Editor</a>
-</div>
 
 </div>
 
-<script>
-function toggleSidebar(){
-    const sidebar=document.getElementById("sidebar");
-    sidebar.classList.toggle("open");
-}
-</script>
+</div>
 
 </body>
 </html>
