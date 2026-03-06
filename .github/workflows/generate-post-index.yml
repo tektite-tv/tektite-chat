@@ -1,0 +1,56 @@
+name: Generate Posts Index
+
+on:
+push:
+paths:
+- "posts/*.md"
+
+jobs:
+build-index:
+runs-on: ubuntu-latest
+
+```
+permissions:
+  contents: write
+
+steps:
+  - name: Checkout repo
+    uses: actions/checkout@v4
+
+  - name: Generate index.json
+    run: |
+      python << 'EOF'
+      import os, json, datetime
+
+      posts_dir = "posts"
+      files = [f for f in os.listdir(posts_dir) if f.endswith(".md")]
+
+      posts = []
+
+      for f in files:
+          path = os.path.join(posts_dir, f)
+          stat = os.stat(path)
+
+          title = f.replace(".md","").replace("-"," ").title()
+          date = datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%Y-%m-%d")
+
+          posts.append({
+              "title": title,
+              "date": date,
+              "file": f
+          })
+
+      posts.sort(key=lambda x: x["date"], reverse=True)
+
+      with open(os.path.join(posts_dir,"index.json"),"w") as out:
+          json.dump(posts, out, indent=2)
+      EOF
+
+  - name: Commit index.json
+    run: |
+      git config user.name github-actions
+      git config user.email github-actions@github.com
+      git add posts/index.json
+      git commit -m "auto update posts index" || exit 0
+      git push
+```
