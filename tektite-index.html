@@ -7,7 +7,7 @@
 
 <style>
 
-/* Hide scrollbars but KEEP scrolling */
+/* Hide scrollbars but keep scrolling */
 html,body{
 background:black;
 color:#00ff00;
@@ -90,7 +90,7 @@ padding:20px;
 
 .grid{
 display:grid;
-grid-template-columns:repeat(var(--cols,3),1fr);
+grid-template-columns:repeat(3,1fr);
 gap:20px;
 }
 
@@ -125,7 +125,13 @@ opacity:.7;
 
 #loadMore{
 display:block;
-margin:20px auto;
+margin:40px auto 60px auto;
+padding:12px 30px;
+font-size:18px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+cursor:pointer;
 }
 
 .status{
@@ -169,16 +175,15 @@ let posts=[];
 let filtered=[];
 let view="grid";
 let visible=9;
-let cols=3;
 
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
-
-document.documentElement.style.setProperty("--cols",cols);
+const loadBtn=document.getElementById("loadMore");
 
 async function loadPosts(){
 try{
+
 const r=await fetch(FEED);
 const j=await r.json();
 
@@ -201,6 +206,7 @@ statusEl.textContent="FAILED TO LOAD FEED";
 }
 
 function render(){
+
 postsEl.className=view;
 postsEl.innerHTML="";
 
@@ -222,7 +228,17 @@ el.onclick=()=>window.open(p.link,"_blank");
 
 postsEl.appendChild(el);
 });
+
+/* hide load more if no more videos */
+if(visible >= filtered.length) {
+loadBtn.style.display="none";
+} else {
+loadBtn.style.display="block";
 }
+
+}
+
+/* LIST VIEW */
 
 document.getElementById("listBtn").onclick=()=>{
 view="list";
@@ -230,24 +246,40 @@ visible=3;
 render();
 };
 
+/* GRID VIEW */
+
 document.getElementById("gridBtn").onclick=()=>{
 view="grid";
 visible=9;
-document.documentElement.style.setProperty("--cols",cols);
 render();
 };
 
-document.getElementById("loadMore").onclick=()=>{
-if(view==="list") visible+=3;
-else visible+=cols;
+/* LOAD MORE */
+
+loadBtn.onclick=()=>{
+
+if(view==="list") {
+visible += 3;
+} else {
+visible += 9; /* extend grid by 3x3 */
+}
+
 render();
+
 };
+
+/* SEARCH */
 
 searchInput.addEventListener("input",()=>{
+
 const q=searchInput.value.toLowerCase();
+
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-visible=view==="list"?3:cols*cols;
+
+visible=view==="list" ? 3 : 9;
+
 render();
+
 });
 
 document.addEventListener("DOMContentLoaded",loadPosts);
