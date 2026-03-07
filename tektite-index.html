@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -364,8 +365,16 @@ gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
 }
 
 loadBtn.onclick=()=>{
-if(view==="list") visible+=3;
-else visible+=gridSize*gridSize;
+if(view==="list"){
+visible+=3;
+}else{
+if(gridSize<10){
+gridSize++;
+slider.value=gridSize;
+visible=gridSize*gridSize;
+updatePreview();
+}
+}
 render();
 }
 
