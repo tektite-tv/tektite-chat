@@ -717,22 +717,9 @@ position:relative;
 <div id="posts" class="grid"></div>
 <div id="status" class="status">LOADING YOUTUBE FEED...</div>
 
-<div id="refreshContainer" style="display:flex;justify-content:center;margin-top:20px;">
-<button id="refreshBtn" style="
-width:120px;
-height:120px;
-font-family:'Courier New', monospace;
-font-size:20px;
-background:black;
-color:#00ff00;
-border:3px solid #00ff00;
-cursor:pointer;
-">
-REFRESH
-</button>
-</div>
 
-<button id="loadMore" style="display:none">LOAD MORE</button>
+
+<button id="loadMore">Load More</button>
 
 <div id="viewer">
 <button id="viewerClose">CLOSE</button>
@@ -800,6 +787,67 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+</script>
+
+
+<script>
+
+let currentCols = 3;
+let visibleListCount = 9;
+
+const loadBtn = document.getElementById("loadMore");
+const postsContainer = document.getElementById("posts");
+
+function updateLoadButton(totalPosts, viewMode){
+    if(viewMode === "grid"){
+        if(currentCols >= 10 || currentCols*currentCols >= totalPosts){
+            loadBtn.textContent = "Show Less";
+        }else{
+            loadBtn.textContent = "Load More";
+        }
+    }else{
+        if(visibleListCount >= totalPosts){
+            loadBtn.textContent = "Show Less";
+        }else{
+            loadBtn.textContent = "Load More";
+        }
+    }
+}
+
+function handleLoadMore(){
+
+    const viewMode = postsContainer.classList.contains("list") ? "list" : "grid";
+    const posts = document.querySelectorAll(".post");
+    const total = posts.length;
+
+    if(loadBtn.textContent === "Show Less"){
+        currentCols = 3;
+        visibleListCount = 9;
+        document.documentElement.style.setProperty("--cols", currentCols);
+        renderPosts && renderPosts();
+        loadBtn.textContent = "Load More";
+        return;
+    }
+
+    if(viewMode === "grid"){
+        if(currentCols < 10){
+            currentCols++;
+            document.documentElement.style.setProperty("--cols", currentCols);
+            renderPosts && renderPosts();
+        }
+    }else{
+        visibleListCount += 3;
+        renderPosts && renderPosts();
+    }
+
+    updateLoadButton(total, viewMode);
+}
+
+if(loadBtn){
+    loadBtn.style.display = "block";
+    loadBtn.addEventListener("click", handleLoadMore);
+}
+
 </script>
 
 </body>
