@@ -650,6 +650,19 @@ width:420px !important;
 height:auto !important;
 }
 
+
+/* search dim effect */
+.dimmed{
+opacity:0.18;
+filter:grayscale(70%);
+transition:opacity .2s ease;
+}
+
+.highlight{
+opacity:1 !important;
+filter:none !important;
+}
+
 </style>
 </head>
 
@@ -663,7 +676,7 @@ height:auto !important;
 
 <div class="channelHeader">
     <img src="/images/oldtube.png" class="channelLogo">
-    <span class="channelTitle">Honestly Thomas (Tektite) — YouTube</span>
+    <span class="channelTitle">Honestly Thomas (Tektite)</span>
 </div>
 
 
@@ -1077,6 +1090,42 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof loadPosts === "function") loadPosts();
 });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+
+const searchInput = document.getElementById("videoSearch");
+if(!searchInput) return;
+
+searchInput.addEventListener("input",()=>{
+
+const q = searchInput.value.toLowerCase().trim();
+const posts = document.querySelectorAll(".post");
+
+if(q===""){
+posts.forEach(p=>p.classList.remove("dimmed","highlight"));
+return;
+}
+
+posts.forEach(post=>{
+
+const text = post.innerText.toLowerCase();
+
+if(text.includes(q)){
+post.classList.remove("dimmed");
+post.classList.add("highlight");
+}else{
+post.classList.remove("highlight");
+post.classList.add("dimmed");
+}
+
+});
+
+});
+
+});
+</script>
+
 </body>
 
 </html>
