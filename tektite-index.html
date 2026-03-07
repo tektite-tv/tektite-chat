@@ -17,68 +17,115 @@ scrollbar-width:none;
 }
 html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;}
 
-header{display:flex;align-items:center;justify-content:space-between;padding:6px 20px;background:rgba(75,0,118,.5);}
+header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:6px 20px;
+background:rgba(75,0,118,.5);
+}
+
 .channelHeader{display:flex;align-items:center;gap:18px;}
 .channelLogo{height:120px;}
 .channelTitle{font-size:26px;font-weight:bold;}
+
 .controls{display:flex;align-items:center;gap:12px;position:relative;}
 
-#videoSearch{width:360px;height:40px;border:2px solid #00ff00;background:black;color:#00ff00;padding:0 12px;font-family:"Courier New",monospace;}
-button{height:40px;padding:0 16px;border:2px solid #00ff00;background:black;color:#00ff00;cursor:pointer;font-family:"Courier New",monospace;}
+#videoSearch{
+width:360px;height:40px;
+border:2px solid #00ff00;
+background:black;color:#00ff00;
+padding:0 12px;
+font-family:"Courier New",monospace;
+}
+
+button{
+height:40px;padding:0 16px;
+border:2px solid #00ff00;
+background:black;color:#00ff00;
+cursor:pointer;
+font-family:"Courier New",monospace;
+}
+
 button:hover{background:#001a00;}
 
-/* GRID MENU */
 #gridMenu{
 position:absolute;
 top:50px;
 right:0;
 background:black;
 border:2px solid #00ff00;
-padding:20px;
+padding:25px;
 display:none;
-flex-direction:column;
-align-items:center;
-gap:16px;
 }
 
-.sliderContainer{
+#gridControl{
+position:relative;
+width:220px;
+height:220px;
 display:flex;
-gap:40px;
 align-items:center;
 justify-content:center;
 }
 
-input[type=range]{
-width:120px;
-transform:rotate(-45deg);
-}
-
 #gridPreview{
 display:grid;
-grid-template-columns:repeat(10,12px);
-grid-template-rows:repeat(10,12px);
+grid-template-columns:repeat(10,16px);
+grid-template-rows:repeat(10,16px);
 gap:2px;
 }
 
 .gridCell{
-width:12px;
-height:12px;
-background:transparent;
+width:16px;
+height:16px;
 border:1px solid purple;
+background:transparent;
 }
 
-.gridCell.active{
-background:#00ff00;
+.gridCell.active{background:#00ff00;}
+
+#widthSlider{
+position:absolute;
+bottom:-35px;
+left:0;
+width:180px;
 }
 
-/* POSTS */
+#heightSlider{
+position:absolute;
+left:-35px;
+top:0;
+height:180px;
+writing-mode:bt-lr;
+transform:rotate(270deg);
+}
+
 #posts{padding:20px;}
+
 .grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);gap:20px;}
 
-.list .post{display:flex;align-items:center;gap:16px;margin-bottom:16px;border:2px solid #00ff00;padding:10px;}
-.grid .post{border:2px solid #00ff00;padding:10px;cursor:pointer;}
+.list .post{
+display:flex;
+align-items:center;
+gap:16px;
+margin-bottom:16px;
+border:2px solid #00ff00;
+padding:10px;
+}
 
-.thumb-grid{aspect-ratio:16/9;overflow:hidden;border:2px solid #00ff00;margin-bottom:10px;}
+.grid .post{
+border:2px solid #00ff00;
+padding:10px;
+cursor:pointer;
+}
+
+.thumb-grid{
+aspect-ratio:16/9;
+overflow:hidden;
+border:2px solid #00ff00;
+margin-bottom:10px;
+}
+
 .thumb-grid img{width:100%;height:100%;object-fit:cover;}
 
 .thumb-list{width:160px;border:2px solid #00ff00;}
@@ -87,12 +134,40 @@ background:#00ff00;
 .post-title{font-size:16px;}
 .post-date{font-size:12px;opacity:.7;}
 
-#loadMore{display:block;margin:40px auto 60px auto;padding:12px 30px;font-size:18px;border:2px solid #00ff00;background:black;color:#00ff00;cursor:pointer;}
+#loadMore{
+display:block;
+margin:40px auto 60px auto;
+padding:12px 30px;
+font-size:18px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+cursor:pointer;
+}
 
-/* LIGHTBOX */
-#lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;z-index:9999;}
-#lightbox iframe{width:80vw;height:45vw;max-height:80vh;border:2px solid #00ff00;}
-#lightboxClose{position:absolute;top:20px;right:20px;font-size:28px;cursor:pointer;}
+#lightbox{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+background:rgba(0,0,0,0.9);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+}
+
+#lightbox iframe{
+width:80vw;height:45vw;
+max-height:80vh;
+border:2px solid #00ff00;
+}
+
+#lightboxClose{
+position:absolute;
+top:20px;right:20px;
+font-size:28px;
+cursor:pointer;
+}
 
 .status{text-align:center;padding:10px;}
 </style>
@@ -101,6 +176,7 @@ background:#00ff00;
 <body>
 
 <header>
+
 <div class="channelHeader">
 <img src="/images/oldtube.png" class="channelLogo">
 <div class="channelTitle">Honestly Thomas (Tektite)</div>
@@ -113,16 +189,19 @@ background:#00ff00;
 
 <div id="gridMenu">
 
-<div class="sliderContainer">
-<input type="range" min="1" max="10" value="3" id="gridWSlider">
-<input type="range" min="1" max="10" value="3" id="gridHSlider">
-</div>
+<div id="gridControl">
+
+<input type="range" min="1" max="10" value="3" id="widthSlider">
+<input type="range" min="1" max="10" value="3" id="heightSlider">
 
 <div id="gridPreview"></div>
 
 </div>
 
 </div>
+
+</div>
+
 </header>
 
 <div id="posts" class="grid"></div>
@@ -145,10 +224,9 @@ encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNE
 let posts=[];
 let filtered=[];
 let view="grid";
-let visible=9;
-
 let gridW=3;
 let gridH=3;
+let visible=gridW*gridH;
 
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
@@ -157,22 +235,22 @@ const loadBtn=document.getElementById("loadMore");
 const gridMenu=document.getElementById("gridMenu");
 const gridBtn=document.getElementById("gridBtn");
 
-const gridPreview=document.getElementById("gridPreview");
-const gridWSlider=document.getElementById("gridWSlider");
-const gridHSlider=document.getElementById("gridHSlider");
+const preview=document.getElementById("gridPreview");
+const widthSlider=document.getElementById("widthSlider");
+const heightSlider=document.getElementById("heightSlider");
 
 const lightbox=document.getElementById("lightbox");
 const frame=document.getElementById("lightboxFrame");
 
 /* build preview grid */
+
 for(let i=0;i<100;i++){
-let cell=document.createElement("div");
-cell.className="gridCell";
-gridPreview.appendChild(cell);
+let c=document.createElement("div");
+c.className="gridCell";
+preview.appendChild(c);
 }
 
 function updatePreview(){
-
 let cells=document.querySelectorAll(".gridCell");
 
 cells.forEach((c,i)=>{
@@ -181,18 +259,26 @@ let y=Math.floor(i/10);
 
 if(x<gridW && y<gridH) c.classList.add("active");
 else c.classList.remove("active");
-
 });
-
 }
 
-gridWSlider.oninput=()=>{gridW=parseInt(gridWSlider.value);visible=gridW*gridH;updatePreview();render();}
-gridHSlider.oninput=()=>{gridH=parseInt(gridHSlider.value);visible=gridW*gridH;updatePreview();render();}
+widthSlider.oninput=()=>{
+gridW=parseInt(widthSlider.value);
+visible=gridW*gridH;
+updatePreview();
+render();
+}
 
-/* FEED */
+heightSlider.oninput=()=>{
+gridH=parseInt(heightSlider.value);
+visible=gridW*gridH;
+updatePreview();
+render();
+}
 
 async function loadPosts(){
 try{
+
 const r=await fetch(FEED);
 const j=await r.json();
 
@@ -205,13 +291,16 @@ id:(v.link.match(/v=([^&]+)/)||[])[1]
 }));
 
 filtered=posts;
+
 statusEl.style.display="none";
 updatePreview();
 render();
 
 }catch(e){
+
 console.error(e);
 statusEl.textContent="FAILED TO LOAD FEED";
+
 }
 }
 
@@ -220,11 +309,15 @@ frame.src="https://www.youtube.com/embed/"+id;
 lightbox.style.display="flex";
 }
 
-document.getElementById("lightboxClose").onclick=()=>{lightbox.style.display="none";frame.src="";}
+document.getElementById("lightboxClose").onclick=()=>{
+lightbox.style.display="none";
+frame.src="";
+}
 
 function render(){
 postsEl.className=view;
 postsEl.style.gridTemplateColumns="repeat("+gridW+",1fr)";
+
 postsEl.innerHTML="";
 
 const data=filtered.slice(0,visible);
@@ -235,15 +328,17 @@ const el=document.createElement("div");
 el.className="post";
 
 if(view==="grid"){
+
 el.innerHTML=`
 <div class="thumb-grid">
 <img src="${p.thumb}">
 </div>
-<div class="post-title">${p.title}</div>
-`;
+<div class="post-title">${p.title}</div>`;
+
 el.onclick=()=>openVideo(p.id);
-}
-else{
+
+}else{
+
 el.innerHTML=`
 <div class="thumb-list">
 <img src="${p.thumb}">
@@ -251,10 +346,11 @@ el.innerHTML=`
 <div>
 <div class="post-title">${p.title}</div>
 <div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
-</div>
-`;
+</div>`;
+
 el.querySelector("img").onclick=()=>openVideo(p.id);
 el.querySelector(".post-title").onclick=()=>openVideo(p.id);
+
 }
 
 postsEl.appendChild(el);
@@ -263,16 +359,23 @@ postsEl.appendChild(el);
 
 if(visible>=filtered.length) loadBtn.style.display="none";
 else loadBtn.style.display="block";
-
 }
 
-/* BUTTONS */
-
-document.getElementById("listBtn").onclick=()=>{view="list";visible=3;gridMenu.style.display="none";render();}
+document.getElementById("listBtn").onclick=()=>{
+view="list";
+visible=3;
+gridMenu.style.display="none";
+render();
+}
 
 gridBtn.onclick=()=>{
-if(view!=="grid"){view="grid";visible=gridW*gridH;render();}
-else{gridMenu.style.display=gridMenu.style.display==="flex"?"none":"flex";}
+if(view!=="grid"){
+view="grid";
+visible=gridW*gridH;
+render();
+}else{
+gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
+}
 }
 
 loadBtn.onclick=()=>{
