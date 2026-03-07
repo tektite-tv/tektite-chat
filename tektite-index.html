@@ -313,6 +313,14 @@ cursor:pointer;
 .gridDropdown button:hover{background:#002211;}
 .grid{display:grid;gap:20px;}
 
+
+button, #gridBtn, #listBtn{
+height:44px;
+display:inline-flex;
+align-items:center;
+justify-content:center;
+}
+
 </style>
 </head>
 
@@ -606,6 +614,17 @@ document.querySelectorAll("#gridDropdown button").forEach(btn=>{
   };
 });
 
+
+
+// ensure grid button returns to grid view if currently list
+document.getElementById("gridBtn").addEventListener("click", ()=>{
+  const postsEl = document.getElementById("posts");
+  if(postsEl.classList.contains("list")){
+    postsEl.classList.remove("list");
+    postsEl.classList.add("grid");
+  }
+});
+
 loadPosts();
 };
 
@@ -623,6 +642,17 @@ document.querySelectorAll("#gridDropdown button").forEach(btn=>{
     document.getElementById("posts").style.setProperty("--cols", gridCols);
     document.getElementById("gridDropdown").style.display="none";
   };
+});
+
+
+
+// ensure grid button returns to grid view if currently list
+document.getElementById("gridBtn").addEventListener("click", ()=>{
+  const postsEl = document.getElementById("posts");
+  if(postsEl.classList.contains("list")){
+    postsEl.classList.remove("list");
+    postsEl.classList.add("grid");
+  }
 });
 
 loadPosts();
