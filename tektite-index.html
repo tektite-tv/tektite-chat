@@ -507,7 +507,6 @@ align-items:center;
 justify-content:center;
 }
 
-#searchPanel{
 width:900px;
 max-width:90vw;
 background:rgba(20,0,32,0.5);
@@ -520,7 +519,6 @@ align-items:center;
 gap:20px;
 }
 
-#searchPanel input{
 width:100%;
 max-width:700px;
 height:60px;
@@ -570,16 +568,12 @@ font-size:1.5em;
 
 
 /* FORCE lime colors for lightbox search input and outline */
-#searchPanel input,
-#searchPanel input:focus,
-#searchPanel input::placeholder{
 color:#00FF00 !important;
 border:2px solid #00FF00 !important;
 background:black !important;
 font-weight:bold !important;
 }
 
-#searchPanel{
 border:3px solid #00FF00 !important;
 }
 
@@ -620,7 +614,7 @@ border:3px solid #00FF00 !important;
 </h1></div>
 
 <div class="header-right"><div class="controls">
-<input id="searchBox" placeholder="Search Videos..." class="searchInput">
+<input id="searchBox" id="searchInput" placeholder="Search Videos..." class="searchInput">
 <button id="listBtn">LIST</button>
 
 <div class="gridMenu">
@@ -946,9 +940,7 @@ loadPosts();
 
 
 <div id="searchLightbox">
-  <div id="searchPanel">
-    <input id="lightboxSearch" placeholder="Search Videos...">
-    <div id="searchResults"></div>
+  
   </div>
 </div>
 
@@ -997,6 +989,28 @@ window.addEventListener('load',()=>{
  if(bodyText.includes("FAILED TO LOAD YOUTUBE FEED")){
    showRSSRefresh();
  }
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded",function(){
+ const input=document.getElementById("searchInput");
+ if(!input) return;
+
+ input.addEventListener("input",function(){
+   const q=input.value.toLowerCase();
+   const cards=document.querySelectorAll(".video-card, .card, .video-item");
+
+   cards.forEach(c=>{
+      const txt=c.innerText.toLowerCase();
+      if(txt.includes(q)){
+         c.style.display="";
+      }else{
+         c.style.display="none";
+      }
+   });
+ });
 });
 </script>
 
