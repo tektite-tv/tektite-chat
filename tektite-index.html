@@ -61,10 +61,9 @@ display:none;
 }
 
 #gridControl{
-position:relative;
 width:220px;
-height:220px;
 display:flex;
+flex-direction:column;
 align-items:center;
 justify-content:center;
 }
@@ -85,20 +84,9 @@ background:transparent;
 
 .gridCell.active{background:#00ff00;}
 
-#sizeSliderBottom{
-position:absolute;
-bottom:-35px;
-left:0;
-width:180px;
-}
-
-#sizeSliderLeft{
-position:absolute;
-left:-35px;
-top:0;
-height:180px;
-writing-mode:bt-lr;
-transform:rotate(270deg);
+#sizeSlider{
+width:200px;
+margin-bottom:12px;
 }
 
 #posts{padding:20px;}
@@ -192,8 +180,7 @@ cursor:pointer;
 
 <div id="gridControl">
 
-<input type="range" min="1" max="10" value="3" id="sizeSliderBottom">
-<input type="range" min="1" max="10" value="3" id="sizeSliderLeft">
+<input type="range" min="3" max="10" value="3" id="sizeSlider">
 
 <div id="gridPreview"></div>
 
@@ -237,8 +224,7 @@ const gridMenu=document.getElementById("gridMenu");
 const gridBtn=document.getElementById("gridBtn");
 
 const preview=document.getElementById("gridPreview");
-const sliderBottom=document.getElementById("sizeSliderBottom");
-const sliderLeft=document.getElementById("sizeSliderLeft");
+const slider=document.getElementById("sizeSlider");
 
 const lightbox=document.getElementById("lightbox");
 const frame=document.getElementById("lightboxFrame");
@@ -267,8 +253,7 @@ else c.classList.remove("active");
 function updateSize(v){
 
 gridSize=parseInt(v);
-sliderBottom.value=v;
-sliderLeft.value=v;
+slider.value=v;
 
 visible=gridSize*gridSize;
 
@@ -277,8 +262,7 @@ render();
 
 }
 
-sliderBottom.oninput=()=>updateSize(sliderBottom.value);
-sliderLeft.oninput=()=>updateSize(sliderLeft.value);
+slider.oninput=()=>updateSize(slider.value);
 
 async function loadPosts(){
 try{
