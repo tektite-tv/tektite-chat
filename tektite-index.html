@@ -299,10 +299,8 @@ gap:14px;
 display:flex;
 align-items:center;
 gap:16px;
-width:100%;
-
-display:flex;
-gap:14px;
+position:relative;
+z-index:50;
 }
 
 
@@ -381,11 +379,8 @@ font-size:1.5em;
 display:flex;
 align-items:center;
 gap:16px;
-width:100%;
-
-display:flex;
-align-items:stretch;
-height:100%;
+position:relative;
+z-index:50;
 }
 
 .controls button,
@@ -422,12 +417,8 @@ font-size:1.5em;
 display:flex;
 align-items:center;
 gap:16px;
-width:100%;
-
-display:flex;
-align-items:center;
-gap:16px;
-height:54px;
+position:relative;
+z-index:50;
 }
 
 .controls input{
@@ -440,6 +431,8 @@ background:black;
 color:#00FF00;
 font-weight:bold;
 flex:1;
+position:relative;
+z-index:60;
 }
 .controls input:focus{
 outline:none;
@@ -467,6 +460,8 @@ background:black;
 color:#00FF00;
 font-weight:bold;
 flex:1;
+position:relative;
+z-index:60;
 }
 .controls input:focus{
 outline:none;
@@ -488,10 +483,10 @@ width:100vw;
 height:100vh;
 background:rgba(0,0,0,0.5);
 display:none;
-z-index:9999;
+z-index:10;
+pointer-events:none;
 align-items:center;
 justify-content:center;
-padding:0;
 }
 
 #searchPanel{
@@ -911,7 +906,7 @@ const lightboxInput=document.getElementById('lightboxSearch');
 const results=document.getElementById('searchResults');
 
 searchInput.addEventListener('focus',()=>{
-lightbox.style.display='flex';
+lightbox.style.display='flex'; lightbox.style.pointerEvents='auto';
 lightboxInput.focus();
 });
 
