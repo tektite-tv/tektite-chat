@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -188,6 +187,18 @@ display:none;
 line-height:1.4;
 }
 
+
+#closeVideo{
+font-size:22px;
+color:#00ff00;
+text-align:center;
+cursor:pointer;
+margin:12px 0;
+}
+#closeVideo:hover{
+text-decoration:underline;
+}
+
 #videoMeta{
 margin-top:18px;
 font-size:14px;
@@ -246,7 +257,7 @@ cursor:pointer;
 <div id="lightbox">
 <div id="videoTitle"></div>
 <iframe id="lightboxFrame" src="" allowfullscreen></iframe>
-<div id="videoExcerpt"></div>
+<div id="closeVideo">[CLOSE VIDEO]</div>
 <div id="videoMeta"></div>
 <div id="videoFull"></div>
 </div>
@@ -357,8 +368,7 @@ let clean = (description||"")
 
 let firstLine = clean.split("\n")[0];
 
-document.getElementById("videoExcerpt").innerHTML =
-firstLine + "... <a id='readMore'>[READ MORE]</a>";
+
 
 document.getElementById("videoMeta").innerHTML =
 new Date(date).toLocaleString();
@@ -376,6 +386,11 @@ document.getElementById("videoFull").style.display="block";
 },0);
 
 lightbox.style.display="flex";
+
+document.getElementById("closeVideo").onclick = ()=>{
+lightbox.style.display="none";
+frame.src="";
+};
 }
 
 
