@@ -7,7 +7,6 @@
 
 <style>
 
-/* Hide scrollbars but keep scrolling */
 html,body{
 background:black;
 color:#00ff00;
@@ -19,9 +18,7 @@ scrollbar-width:none;
 }
 
 html::-webkit-scrollbar,
-body::-webkit-scrollbar{
-display:none;
-}
+body::-webkit-scrollbar{display:none;}
 
 /* HEADER */
 
@@ -31,33 +28,15 @@ align-items:center;
 justify-content:space-between;
 padding:6px 20px;
 background:rgba(75,0,118,.5);
-box-sizing:border-box;
 }
 
-.channelHeader{
-display:flex;
-align-items:center;
-gap:18px;
-}
+.channelHeader{display:flex;align-items:center;gap:18px;}
 
-.channelLogo{
-height:120px;
-width:auto;
-image-rendering:pixelated;
-}
+.channelLogo{height:120px;width:auto;}
 
-.channelTitle{
-font-size:26px;
-font-weight:bold;
-color:#00ff00;
-line-height:1.1;
-}
+.channelTitle{font-size:26px;font-weight:bold;}
 
-.controls{
-display:flex;
-align-items:center;
-gap:12px;
-}
+.controls{display:flex;align-items:center;gap:12px;}
 
 #videoSearch{
 width:360px;
@@ -65,28 +44,25 @@ height:40px;
 border:2px solid #00ff00;
 background:black;
 color:#00ff00;
-font-family:"Courier New",monospace;
 padding:0 12px;
+font-family:"Courier New",monospace;
 }
 
 button{
 height:40px;
 padding:0 16px;
-font-size:15px;
+border:2px solid #00ff00;
 background:black;
 color:#00ff00;
-border:2px solid #00ff00;
-font-family:"Courier New",monospace;
 cursor:pointer;
+font-family:"Courier New",monospace;
 }
 
 button:hover{background:#001a00;}
 
-/* VIDEO AREA */
+/* POSTS */
 
-#posts{
-padding:20px;
-}
+#posts{padding:20px;}
 
 .grid{
 display:grid;
@@ -94,34 +70,45 @@ grid-template-columns:repeat(3,1fr);
 gap:20px;
 }
 
-.post{
+.list .post{
+display:flex;
+align-items:center;
+gap:16px;
+margin-bottom:16px;
+border:2px solid #00ff00;
+padding:10px;
+}
+
+.grid .post{
 border:2px solid #00ff00;
 padding:10px;
 cursor:pointer;
 }
 
-.thumb-wrap{
+/* THUMBNAILS */
+
+.thumb-grid{
 aspect-ratio:16/9;
 overflow:hidden;
 border:2px solid #00ff00;
 margin-bottom:10px;
 }
 
-.thumb-wrap img{
-width:100%;
-height:100%;
-object-fit:cover;
+.thumb-grid img{width:100%;height:100%;object-fit:cover;}
+
+.thumb-list{
+width:160px;
+flex-shrink:0;
+border:2px solid #00ff00;
 }
 
-.post-title{
-font-size:16px;
-margin-bottom:6px;
-}
+.thumb-list img{width:100%;display:block;}
 
-.post-date{
-font-size:12px;
-opacity:.7;
-}
+.post-title{font-size:16px;}
+
+.post-date{font-size:12px;opacity:.7;}
+
+/* LOAD MORE */
 
 #loadMore{
 display:block;
@@ -134,10 +121,37 @@ color:#00ff00;
 cursor:pointer;
 }
 
-.status{
-text-align:center;
-padding:10px;
+/* LIGHTBOX */
+
+#lightbox{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.9);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
 }
+
+#lightbox iframe{
+width:80vw;
+height:45vw;
+max-height:80vh;
+border:2px solid #00ff00;
+}
+
+#lightboxClose{
+position:absolute;
+top:20px;
+right:20px;
+font-size:28px;
+cursor:pointer;
+}
+
+.status{text-align:center;padding:10px;}
 
 </style>
 </head>
@@ -164,6 +178,11 @@ padding:10px;
 
 <button id="loadMore">Load More</button>
 
+<div id="lightbox">
+<div id="lightboxClose">✕</div>
+<iframe id="lightboxFrame" src="" allowfullscreen></iframe>
+</div>
+
 <script>
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
@@ -181,6 +200,9 @@ const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
 const loadBtn=document.getElementById("loadMore");
 
+const lightbox=document.getElementById("lightbox");
+const frame=document.getElementById("lightboxFrame");
+
 async function loadPosts(){
 try{
 
@@ -191,7 +213,8 @@ posts=j.items.map(v=>({
 title:v.title,
 date:v.pubDate,
 link:v.link,
-thumb:v.thumbnail
+thumb:v.thumbnail,
+id:(v.link.match(/v=([^&]+)/)||[])[1]
 }));
 
 filtered=posts;
@@ -200,45 +223,69 @@ statusEl.style.display="none";
 render();
 
 }catch(e){
+
 console.error(e);
 statusEl.textContent="FAILED TO LOAD FEED";
+
 }
 }
+
+function openVideo(id){
+frame.src="https://www.youtube.com/embed/"+id;
+lightbox.style.display="flex";
+}
+
+document.getElementById("lightboxClose").onclick=()=>{
+lightbox.style.display="none";
+frame.src="";
+};
 
 function render(){
-
 postsEl.className=view;
 postsEl.innerHTML="";
 
 const data=filtered.slice(0,visible);
 
 data.forEach(p=>{
+
 const el=document.createElement("div");
 el.className="post";
 
+if(view==="grid"){
 el.innerHTML=`
-<div class="thumb-wrap">
+<div class="thumb-grid">
 <img src="${p.thumb}">
 </div>
 <div class="post-title">${p.title}</div>
-<div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
 `;
 
-el.onclick=()=>window.open(p.link,"_blank");
+el.onclick=()=>openVideo(p.id);
+
+}else{
+
+el.innerHTML=`
+<div class="thumb-list">
+<img src="${p.thumb}">
+</div>
+<div>
+<div class="post-title">${p.title}</div>
+<div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
+</div>
+`;
+
+el.querySelector("img").onclick=()=>openVideo(p.id);
+el.querySelector(".post-title").onclick=()=>openVideo(p.id);
+
+}
 
 postsEl.appendChild(el);
+
 });
 
-/* hide load more if no more videos */
-if(visible >= filtered.length) {
-loadBtn.style.display="none";
-} else {
-loadBtn.style.display="block";
-}
+if(visible>=filtered.length) loadBtn.style.display="none";
+else loadBtn.style.display="block";
 
 }
-
-/* LIST VIEW */
 
 document.getElementById("listBtn").onclick=()=>{
 view="list";
@@ -246,29 +293,20 @@ visible=3;
 render();
 };
 
-/* GRID VIEW */
-
 document.getElementById("gridBtn").onclick=()=>{
 view="grid";
 visible=9;
 render();
 };
 
-/* LOAD MORE */
-
 loadBtn.onclick=()=>{
 
-if(view==="list") {
-visible += 3;
-} else {
-visible += 9; /* extend grid by 3x3 */
-}
+if(view==="list") visible+=3;
+else visible+=9;
 
 render();
 
 };
-
-/* SEARCH */
 
 searchInput.addEventListener("input",()=>{
 
@@ -276,7 +314,7 @@ const q=searchInput.value.toLowerCase();
 
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
 
-visible=view==="list" ? 3 : 9;
+visible=view==="list"?3:9;
 
 render();
 
