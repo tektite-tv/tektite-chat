@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,21 +147,30 @@ align-items:center;
 justify-content:flex-start;
 z-index:99999;
 padding-top:120px;
+overflow:auto;
+}
+
+#videoTitle{
+font-size:22px;
+margin-bottom:12px;
+text-align:center;
+max-width:90vw;
 }
 
 #lightbox iframe{
 width:96vw;
 height:calc(96vw * 9 / 16);
-max-height:calc(100vh - 200px);
+max-height:60vh;
 border:2px solid #00ff00;
 }
 
-#videoTitle{
-margin-top:12px;
-font-size:18px;
-color:#00ff00;
+#videoMeta{
+margin-top:14px;
+font-size:14px;
+opacity:.8;
 text-align:center;
-max-width:90vw;
+max-width:80vw;
+line-height:1.4;
 }
 
 #lightboxClose{
@@ -210,7 +220,7 @@ cursor:pointer;
 <button id="loadMore">Load More</button>
 
 <div id="lightbox">
-<div id="lightboxClose">✕</div>
+
 <iframe id="lightboxFrame" src="" allowfullscreen></iframe>
 <div id="videoTitle"></div>
 </div>
@@ -288,6 +298,7 @@ title:v.title,
 date:v.pubDate,
 link:v.link,
 thumb:v.thumbnail,
+ description:v.description,
 id:(v.link.match(/v=([^&]+)/)||[])[1]
 }));
 
@@ -305,9 +316,11 @@ statusEl.textContent="FAILED TO LOAD FEED";
 }
 }
 
-function openVideo(id,title){
+function openVideo(id,title,date,description){
 frame.src="https://www.youtube.com/embed/"+id;
 document.getElementById("videoTitle").textContent=title;
+document.getElementById("videoMeta").innerHTML=
+new Date(date).toLocaleString()+"<br><br>"+(description||"");
 lightbox.style.display="flex";
 }
 
@@ -336,7 +349,7 @@ el.innerHTML=`
 </div>
 <div class="post-title">${p.title}</div>`;
 
-el.onclick=()=>openVideo(p.id,p.title);
+el.onclick=()=>openVideo(p.id,p.title,p.date,p.description);
 }
 else{
 el.innerHTML=`
@@ -348,8 +361,8 @@ el.innerHTML=`
 <div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
 </div>`;
 
-el.querySelector("img").onclick=()=>openVideo(p.id,p.title);
-el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title);
+el.querySelector("img").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
+el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
 }
 
 postsEl.appendChild(el);
