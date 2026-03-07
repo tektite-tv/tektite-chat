@@ -1,4 +1,3 @@
-<!-- v49: fixed searchBox->videoSearch bug, preserved working RSS loader -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,1126 +6,235 @@
 <title>theinternetisdead.org</title>
 
 <style>
-body{margin:0;padding:0;
-    margin:0;
-    background:black;
-    color:#00ff00;
-    font-family:"Courier New", monospace;
-}
-
-
-
-header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-height:120px;
-max-height:120px;
-padding:0 20px;
-margin:0;
-background:rgba(75,0,118,0.5);
-box-sizing:border-box;
-}
-
-
-
-h1{
-    margin:0;
-    font-size:20px;
-}
-
-.controls button{
-height:54px;
-min-height:54px;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:0 24px;
-}
-
-button{font-size:18px;padding:10px 18px;
-    background:black;
-    color:#00ff00;
-    border:2px solid #00ff00;
-    padding:6px 12px;
-    font-family:"Courier New", monospace;
-    cursor:pointer;
-}
-
-button:hover{
-    background:#002211;
-}
-
-
-#posts{
-padding:6px 16px;
-margin:0;
-}
-
-
-.grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);
-    gap:20px;
-}
-
-.list{
-    display:block;
-}
-
-.list 
-.post{
-border:2px solid #00ff00;
-padding:15px;
-cursor:pointer;
-background:black;
-overflow:hidden;
-}
-
-
-
-.post{
-border:2px solid #00ff00;
-padding:15px;
-cursor:pointer;
-background:black;
-overflow:hidden;
-}
-
-
-.post:hover{
-    background:#001a11;
-}
-
-
-.thumb-wrap{
-width:100%;
-aspect-ratio:16/9;
-overflow:hidden;
-border:2px solid #00ff00;
-margin-bottom:12px;
-background:#001006;
-}
-
-
-.thumb-wrap img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-    display:block;
-}
-
-.post-title{
-    font-size:16px;
-    line-height:1.35;
-    margin-bottom:10px;
-    word-break:break-word;
-}
-
-.post-date{
-    font-size:12px;
-    opacity:0.7;
-    margin-bottom:10px;
-}
-
-.post-meta{
-    font-size:12px;
-    opacity:0.8;
-}
-
-#loadMore{
-    display:block;
-    margin:30px auto;
-}
-
-#viewer{
-    position:fixed;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    background:black;
-    padding:40px;
-    overflow:auto;
-    display:none;
-    z-index:9999;
-    box-sizing:border-box;
-}
-
-#viewerClose{
-    position:fixed;
-    top:20px;
-    right:20px;
-    z-index:10000;
-}
-
-#viewerContent{
-    max-width:1000px;
-    margin:40px auto 0;
-}
-
-.video-embed{
-    width:100%;
-    aspect-ratio:16/9;
-    border:2px solid #00ff00;
-    margin-bottom:20px;
-    background:black;
-}
-
-.viewer-title{
-    font-size:24px;
-    margin:0 0 14px;
-}
-
-.viewer-meta,
-.viewer-desc,
-.viewer-link{
-    margin-bottom:14px;
-    line-height:1.5;
-}
-
-.viewer-link a{
-    color:#00ff00;
-}
-
-
-.status{
-padding:10px 0;
-text-align:center;
-}
-
-
-@media (max-width: 900px){
-    .grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);
-    }
-}
-
-@media (max-width: 640px){
-    
-
-header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-height:120px;
-max-height:120px;
-padding:0 20px;
-margin:0;
-background:rgba(75,0,118,0.5);
-box-sizing:border-box;
-}
-
-
-
-    .controls button{
-height:54px;
-min-height:54px;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:0 24px;
-}
-
-    .grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);
-    }
-
-    #viewer{
-        padding:20px;
-    }
-
-    #viewerContent{
-        margin-top:0;
-    }
-}
-
-
-/* SCROLLBARS BE GONE */
-html,body{margin:0;padding:0;
-    overflow:auto;
-    scrollbar-width:none;
-}
-html::-webkit-scrollbar,
-body::-webkit-scrollbar{
-    display:none;
-}
-#viewer{
-    overflow:auto;
-}
-
-#content,.main,.grid-container,#grid{
-overflow:visible !important;
-height:auto !important;
-max-height:none !important;
-}
-
-.search input{
-    background:black;
-    color:#00ff00;
-    border:2px solid #00ff00;
-    padding:6px 10px;
-    font-family:"Courier New", monospace;
-    width:200px;
-}
-
-
-.searchInput{width:360px;font-size:18px;height:42px;
-background:#4b0076;
-color:#39ff14;
-border:2px solid #00ff00;
-padding:4px 12px;
-font-family:"Courier New", monospace;
-opacity:0.5;
-width:220px;
-}
-
-.searchInput::placeholder{
-color:#39ff14;
-font-family:"Courier New", monospace;
-opacity:0.5;
-}
-
-
-.header-left{
-display:flex;
-align-items:center;
-gap:14px;
-}
-
-.header-right{
-display:flex;
-align-items:center;
-gap:14px;
-}
-
-.controls{
-display:flex;
-align-items:center;
-gap:16px;
-position:relative;
-z-index:50;
-}
-
-
-.topbar{
-height:200px;
-max-height:200px;
-display:flex;
-align-items:center;
-padding:0 20px;
-}
-
-.gridMenu{position:relative;display:inline-block;}
-.gridDropdown{
-display:none;
-position:absolute;
-top:100%;
-right:0;
-background:black;
-border:2px solid #00ff00;
-z-index:50;
-}
-.gridDropdown button{
-display:block;
-width:100%;
-border:none;
-border-bottom:1px solid #00ff00;
+body{
 background:black;
 color:#00ff00;
-padding:6px 10px;
-font-family:"Courier New", monospace;
+font-family:"Courier New",monospace;
+margin:0;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:rgba(75,0,118,.5);
+padding:10px 20px;
+}
+
+.channelHeader{
+display:flex;
+align-items:center;
+gap:14px;
+}
+
+.channelLogo{
+height:120px;
+image-rendering:pixelated;
+}
+
+.controls{
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+button{
+background:black;
+color:#00ff00;
+border:2px solid #00ff00;
+font-family:"Courier New",monospace;
+padding:8px 14px;
 cursor:pointer;
 }
-.gridDropdown button:hover{background:#002211;}
-.grid{display:grid;gap:20px;}
 
+button:hover{background:#001a00;}
 
-button, #gridBtn, #listBtn{
-height:44px;
-display:inline-flex;
-align-items:center;
-justify-content:center;
-}
-
-
-#listBtn, #gridBtn{
-height:44px;
-min-height:44px;
-padding:0 18px;
-display:inline-flex;
-align-items:center;
-justify-content:center;
-font-size:16px;
-}
-
-
-.channelHeader{
-display:flex;
-align-items:center;
-gap:16px;
-}
-
-.channelLogo{
-height:144px;
-width:auto;
-image-rendering:pixelated;
-}
-
-.channelTitle{
-color:#00FF00 !important;
-font-weight:bold;
-font-size:1.5em;
-}
-
-
-.controls{
-display:flex;
-align-items:center;
-gap:16px;
-position:relative;
-z-index:50;
-}
-
-.controls button,
-.controls .gridMenu,
-.controls .gridMenu button{
-height:100%;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-
-/* Header layout fix */
-.channelHeader{
-display:flex;
-align-items:center;
-gap:16px;
-}
-
-.channelLogo{
-height:144px;
-width:auto;
-image-rendering:pixelated;
-}
-
-.channelTitle{
-color:#00FF00 !important;
-font-weight:bold;
-font-size:1.5em;
-}
-
-/* Controls height alignment */
-.controls{
-display:flex;
-align-items:center;
-gap:16px;
-position:relative;
-z-index:50;
-}
-
-.controls input{
-height:54px;
-min-height:54px;
-box-sizing:border-box;
-padding:0 14px;
-border:2px solid #00FF00;
+#videoSearch{
+border:2px solid #00ff00;
 background:black;
-color:#00FF00;
-font-weight:bold;
-flex:1;
-transition:all .15s ease;
-}
-.controls input:hover{
-background:#001a00;
-border-color:#00cc00;
-color:#00cc00;
-}
-.controls input::placeholder{
-color:#00FF00;
-opacity:1;
-font-weight:bold;
-}
-.controls input:focus{
-outline:none;
-box-shadow:0 0 8px #00FF00;
+color:#00ff00;
+padding:8px;
+width:260px;
+font-family:"Courier New",monospace;
 }
 
-.controls button{
-height:54px;
-min-height:54px;
-display:flex;
-align-items:center;
-justify-content:center;
-padding:0 24px;
+#posts{
+padding:20px;
 }
 
-
-/* Lime search box styling */
-.controls input{
-height:54px;
-min-height:54px;
-box-sizing:border-box;
-padding:0 14px;
-border:2px solid #00FF00;
-background:black;
-color:#00FF00;
-font-weight:bold;
-flex:1;
-transition:all .15s ease;
-}
-.controls input:hover{
-background:#001a00;
-border-color:#00cc00;
-color:#00cc00;
-}
-.controls input::placeholder{
-color:#00FF00;
-opacity:1;
-font-weight:bold;
-}
-.controls input:focus{
-outline:none;
-box-shadow:0 0 8px #00FF00;
-}
-
-.controls input::placeholder{
-color:#00FF00;
-font-weight:bold;
-opacity:1;
-}
-
-/* Lightbox search */
-#searchLightbox{
-position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100vh;
-background:rgba(0,0,0,0.5);
-display:none;
-z-index:10;
-pointer-events:none;
-align-items:center;
-justify-content:center;
-}
-
-width:900px;
-max-width:90vw;
-background:rgba(20,0,32,0.5);
-border:3px solid #00FF00;
-padding:30px;
-box-sizing:border-box;
-display:flex;
-flex-direction:column;
-align-items:center;
+.grid{
+display:grid;
+grid-template-columns:repeat(var(--cols,3),1fr);
 gap:20px;
 }
 
-width:100%;
-max-width:700px;
-height:60px;
-border:2px solid #00FF00;
-background:black;
-color:#00FF00;
-padding:0 16px;
-font-weight:bold;
-text-align:left;
+.list .post{
+margin-bottom:20px;
 }
 
-#searchResults{
-margin-top:20px;
-max-height:60vh;
-overflow:auto;
-}
-
-
-/* Force lime borders for cards and thumbnails */
-.video-card, .card, .videoItem, .gridItem{
-border:2px solid #00FF00 !important;
-}
-
-.video-card img, .thumb, .thumbnail{
-border:2px solid #00FF00 !important;
-}
-
-/* refresh button */
-#rssRefresh{
-display:none;
-margin:40px auto;
-width:140px;
-height:140px;
-font-size:20px;
-border:3px solid #00FF00;
-color:#00FF00;
-background:black;
+.post{
+border:2px solid #00ff00;
+padding:10px;
 cursor:pointer;
 }
 
-/* lime title */
-.channelTitle{
-color:#00FF00 !important;
-font-weight:bold;
-font-size:1.5em;
+.thumb-wrap{
+aspect-ratio:16/9;
+overflow:hidden;
+border:2px solid #00ff00;
+margin-bottom:10px;
 }
 
+.thumb-wrap img{width:100%;height:100%;object-fit:cover;}
 
-/* FORCE lime colors for lightbox search input and outline */
-color:#00FF00 !important;
-border:2px solid #00FF00 !important;
-background:black !important;
-font-weight:bold !important;
+.post-title{font-size:16px;margin-bottom:6px;}
+
+.post-date{font-size:12px;opacity:.7;}
+
+#loadMore{
+display:block;
+margin:30px auto;
 }
 
-border:3px solid #00FF00 !important;
-}
-
-
-/* --- FORCE Search button styling to match LIST/GRID --- */
-.search-box, .search-box input, .search-input {
-    border: 2px solid #00ff00 !important;
-    color: #00ff00 !important;
-    background: rgba(0,0,0,0.5) !important;
-    font-family: "Courier New", monospace !important;
-    font-weight: bold !important;
-}
-
-.search-box input::placeholder,
-.search-input::placeholder{
-    color:#00ff00 !important;
-    opacity:1 !important;
-}
-
-
-/* --- FORCE SEARCH BAR STYLE --- */
-.controls input[type="text"],
-.controls input[type="search"],
-.search-input {
-    border: 2px solid #00ff00 !important;
-    outline: none !important;
-    color: #00ff00 !important;
-    background: rgba(0,0,0,0.5) !important;
-    font-family: "Courier New", monospace !important;
-    font-weight: bold !important;
-    z-index: 100 !important;
-    position: relative !important;
-}
-
-.controls input::placeholder,
-.search-input::placeholder{
-    color:#00ff00 !important;
-    opacity:1 !important;
-}
-
-.controls{
-    position:relative !important;
-    z-index:100 !important;
-}
-
-
-/* === HARD OVERRIDE: SEARCH BAR MUST MATCH VIDEO CARD BORDERS === */
-#videoSearch{
-border:2px solid #00FF00 !important;
-color:#00FF00 !important;
-background:#000000 !important;
-opacity:1 !important;
-filter:none !important;
-outline:none !important;
-font-family:"Courier New", monospace !important;
-font-weight:bold !important;
-}
-
-#videoSearch::placeholder{
-color:#00FF00 !important;
-opacity:1 !important;
-}
-
-/* remove any inherited dimming from parents */
-.controls, .header, .topbar{
-opacity:1 !important;
-filter:none !important;
-}
-
-
-/* widen search bar but keep height */
-#videoSearch{
-width:420px !important;
-height:auto !important;
-}
-
-
-/* search dim effect */
-.dimmed{
-opacity:0.18;
-filter:grayscale(70%);
-transition:opacity .2s ease;
-}
-
-.highlight{
-opacity:1 !important;
-filter:none !important;
-}
-
+.status{text-align:center;padding:10px;}
 </style>
 </head>
 
 <body>
 
 <header>
-<div class="header-left"><h1 class="channel-title">
-<a href="https://youtube.com/@Honestly_Thomas" target="_blank" style="display:flex;align-items:center;gap:10px;color:#00ff00;text-decoration:none;">
-
-
 
 <div class="channelHeader">
-    <img src="/images/oldtube.png" class="channelLogo">
-    <span class="channelTitle">Honestly Thomas (Tektite)</span>
+<img src="/images/oldtube.png" class="channelLogo">
+<div style="font-size:22px;font-weight:bold;">Honestly Thomas (Tektite)</div>
 </div>
 
-
-</a>
-</h1></div>
-
-<div class="header-right"><div class="controls">
-<input id="videoSearch" placeholder="Search Videos..." class="searchInput">
+<div class="controls">
+<input id="videoSearch" placeholder="Search Videos...">
 <button id="listBtn">LIST</button>
-
-<div class="gridMenu">
-<button id="gridBtn">GRID ▼</button>
-<div id="gridDropdown" class="gridDropdown">
-<button data-cols="3">3x3</button>
-<button data-cols="4">4x4</button>
-<button data-cols="5">5x5</button>
-<button data-cols="6">6x6</button>
-<button data-cols="7">7x7</button>
-<button data-cols="8">8x8</button>
-<button data-cols="9">9x9</button>
-<button data-cols="10">10x10</button>
-</div>
+<button id="gridBtn">GRID</button>
 </div>
 
-</div></div>
 </header>
 
-<div id="posts" class="grid"></div>
+<div id="posts" class="list"></div>
 <div id="status" class="status">LOADING YOUTUBE FEED...</div>
 
-<div id="refreshContainer" style="display:flex;justify-content:center;margin-top:20px;">
-<button id="refreshBtn" style="
-width:120px;
-height:120px;
-font-family:'Courier New', monospace;
-font-size:20px;
-background:black;
-color:#00ff00;
-border:3px solid #00ff00;
-cursor:pointer;
-">
-REFRESH
-</button>
-</div>
-
-<button id="loadMore" style="display:none">LOAD MORE</button>
-
-<div id="viewer">
-<button id="viewerClose">CLOSE</button>
-<div id="viewerContent"></div>
-</div>
+<button id="loadMore">Load More</button>
 
 <script>
-const CHANNEL_URL = "https://youtube.com/@Honestly_Thomas";
-const CHANNEL_ID = "UCn3WLZT7k8nO24XimlJVJVQ";
-const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
 
-let posts = [];
-let filteredPosts = [];
-let visible = 9;
-let view = "grid";
+const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
+const FEED="https://api.rss2json.com/v1/api.json?rss_url="+
+encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
 
+let posts=[];
+let filtered=[];
+let view="list";
+let visible=3;
+let cols=3;
 
-async function fetchFeedText(){
-    const url = "https://api.allorigins.win/raw?url=" + encodeURIComponent(FEED_URL);
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("Feed request failed: " + res.status);
-    return await res.text();
-}
-
-
-function convertRss2JsonToXml(data){
-    const itemsXml = data.items.map(item => {
-        const videoId = extractVideoId(item.link);
-        const thumb = item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-        return `
-            <entry>
-                <title><![CDATA[${item.title || "Untitled"}]]></title>
-                <published>${item.pubDate || ""}</published>
-                <link href="${item.link || ""}" />
-                <media:group xmlns:media="http://search.yahoo.com/mrss/">
-                    <media:description><![CDATA[${escapeXmlForCdata(item.description || "")}]]></media:description>
-                    <media:thumbnail url="${thumb}" />
-                </media:group>
-                <yt:videoId xmlns:yt="http://www.youtube.com/xml/schemas/2015">${videoId || ""}</yt:videoId>
-            </entry>
-        `;
-    }).join("");
-
-    return `<?xml version="1.0" encoding="UTF-8"?><feed xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://www.youtube.com/xml/schemas/2015">${itemsXml}</feed>`;
-}
-
-function escapeHtml(str){
-    return (str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function escapeXmlForCdata(str){
-    return String(str || "").replace(/]]>/g, "]]]]><![CDATA[>");
-}
-
-function extractVideoId(url){
-    try{
-        const parsed = new URL(url);
-        return parsed.searchParams.get("v") || "";
-    }catch{
-        return "";
-    }
-}
-
-function formatDate(dateString){
-    const date = new Date(dateString);
-    if(Number.isNaN(date.getTime())) return "Unknown date";
-    return date.toLocaleDateString(undefined, {
-        year:"numeric",
-        month:"short",
-        day:"numeric"
-    });
-}
-
-function stripHtml(html){
-    const div = document.createElement("div");
-    div.innerHTML = html || "";
-    return (div.textContent || div.innerText || "").trim();
-}
-
+const postsEl=document.getElementById("posts");
+const statusEl=document.getElementById("status");
+const searchInput=document.getElementById("videoSearch");
 
 async function loadPosts(){
-    const status = document.getElementById("status");
-    try{
-        const url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(FEED_URL);
-        const res = await fetch(url);
-        const data = await res.json();
 
-        if(!data.items){
-            throw new Error("Invalid RSS response");
-        }
+try{
 
-        posts = data.items.map(item => {
-            const videoId = (item.link.match(/v=([^&]+)/)||[])[1] || "";
-            return {
-                title: item.title || "Untitled",
-                date: item.pubDate || "",
-                link: item.link || "",
-                videoId,
-                description: item.description || "",
-                thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-            };
-        });
+const r=await fetch(FEED);
+const j=await r.json();
 
-        filteredPosts = posts;
-        status.style.display = posts.length ? "none" : "block";
-        status.textContent = posts.length ? "" : "NO VIDEOS FOUND.";
-        renderPosts();
-    }catch(err){
-        console.error(err);
-        status.style.display = "block";
-        status.textContent = "FAILED TO LOAD YOUTUBE FEED.";
-    }
+posts=j.items.map(v=>({
+title:v.title,
+date:v.pubDate,
+link:v.link,
+videoId:(v.link.match(/v=([^&]+)/)||[])[1]||"",
+thumb:v.thumbnail
+}));
+
+filtered=posts;
+
+statusEl.style.display="none";
+render();
+
+}catch(e){
+
+console.error(e);
+statusEl.textContent="FAILED TO LOAD FEED";
+
 }
 
-
-function renderPosts(){
-    const container = document.getElementById("posts");
-    container.className = view;
-    container.innerHTML = "";
-
-    const source = filteredPosts.length ? filteredPosts : posts;
-    const slice = source.slice(0, visible);
-
-    slice.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "post";
-
-        const safeTitle = escapeHtml(post.title);
-        const safeDate = escapeHtml(formatDate(post.date));
-        const safeThumb = escapeHtml(post.thumb);
-        const safeVideoId = escapeHtml(post.videoId || "");
-
-        div.innerHTML = `
-            <div class="thumb-wrap">
-                <img src="${safeThumb}" alt="${safeTitle}" loading="lazy">
-            </div>
-            <div class="post-title">${safeTitle}</div>
-            <div class="post-date">${safeDate}</div>
-            <div class="post-meta">VIDEO ID: ${safeVideoId || "UNKNOWN"}</div>
-        `;
-
-        div.onclick = () => openPost(post);
-        container.appendChild(div);
-    });
-
-    const loadBtn = document.getElementById("loadMore");
-    loadBtn.style.display = posts.length > visible ? "block" : "none";
 }
 
-function openPost(post){
-    const safeTitle = escapeHtml(post.title);
-    const safeDate = escapeHtml(formatDate(post.date));
-    const safeDesc = escapeHtml(stripHtml(post.description)).replace(/\n/g, "<br>");
-    const safeLink = escapeHtml(post.link);
-    const safeVideoId = escapeHtml(post.videoId || "");
+function render(){
 
-    document.getElementById("viewerContent").innerHTML = `
-        <iframe
-            class="video-embed"
-            src="https://www.youtube.com/embed/${safeVideoId}"
-            title="${safeTitle}"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-        </iframe>
-        <h2 class="viewer-title">${safeTitle}</h2>
-        <div class="viewer-meta">PUBLISHED: ${safeDate}</div>
-        <div class="viewer-link"><a href="${safeLink}" target="_blank" rel="noopener noreferrer">OPEN ON YOUTUBE</a> | <a href="${CHANNEL_URL}" target="_blank" rel="noopener noreferrer">CHANNEL</a></div>
-        <div class="viewer-desc">${safeDesc || "NO DESCRIPTION."}</div>
-    `;
+postsEl.className=view;
+postsEl.innerHTML="";
 
-    document.getElementById("viewer").style.display = "block";
-}
+const data=filtered.slice(0,visible);
 
-document.getElementById("viewerClose").onclick = () => {
-    document.getElementById("viewer").style.display = "none";
-    document.getElementById("viewerContent").innerHTML = "";
-};
+data.forEach(p=>{
 
-document.getElementById("loadMore").onclick = () => {
-    visible += 9;
-    renderPosts();
-};
+const el=document.createElement("div");
+el.className="post";
 
-document.getElementById("gridBtn").onclick = () => {
-    view = "grid";
-    renderPosts();
-};
-
-document.getElementById("listBtn").onclick = () => {
-    view = "list";
-    renderPosts();
-};
-
-
-function applySearch(term){
-    term = term.toLowerCase().trim();
-
-    if(!term){
-        filteredPosts = posts;
-    }else{
-        filteredPosts = posts.filter(p =>
-            (p.title || "").toLowerCase().includes(term) ||
-            (p.description || "").toLowerCase().includes(term)
-        );
-    }
-
-    visible = 9;
-    renderPosts();
-}
-
-document.getElementById("videoSearch").addEventListener("input", e=>{
-    applySearch(e.target.value);
-});
-
-
-document.getElementById("refreshBtn").onclick = () => {
-    const status = document.getElementById("status");
-    status.textContent = "RELOADING FEED...";
-    
-let gridCols = 3;
-
-document.getElementById("gridBtn").onclick = () => {
-  const d = document.getElementById("gridDropdown");
-  d.style.display = d.style.display === "block" ? "none" : "block";
-};
-
-document.querySelectorAll("#gridDropdown button").forEach(btn=>{
-  btn.onclick = () => {
-    gridCols = btn.dataset.cols;
-    document.getElementById("posts").style.setProperty("--cols", gridCols);
-    document.getElementById("gridDropdown").style.display="none";
-  };
-});
-
-
-
-// ensure grid button returns to grid view if currently list
-document.getElementById("gridBtn").addEventListener("click", ()=>{
-  const postsEl = document.getElementById("posts");
-  if(postsEl.classList.contains("list")){
-    postsEl.classList.remove("list");
-    postsEl.classList.add("grid");
-  }
-});
-
-loadPosts();
-};
-
-
-let gridCols = 3;
-
-document.getElementById("gridBtn").onclick = () => {
-  const d = document.getElementById("gridDropdown");
-  d.style.display = d.style.display === "block" ? "none" : "block";
-};
-
-document.querySelectorAll("#gridDropdown button").forEach(btn=>{
-  btn.onclick = () => {
-    gridCols = btn.dataset.cols;
-    document.getElementById("posts").style.setProperty("--cols", gridCols);
-    document.getElementById("gridDropdown").style.display="none";
-  };
-});
-
-
-
-// ensure grid button returns to grid view if currently list
-document.getElementById("gridBtn").addEventListener("click", ()=>{
-  const postsEl = document.getElementById("posts");
-  if(postsEl.classList.contains("list")){
-    postsEl.classList.remove("list");
-    postsEl.classList.add("grid");
-  }
-});
-
-loadPosts();
-
-</script>
-
-
-<div id="searchLightbox">
-  
-  </div>
+el.innerHTML=`
+<div class="thumb-wrap">
+<img src="${p.thumb}">
 </div>
+<div class="post-title">${p.title}</div>
+<div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
+`;
 
-<script>
+el.onclick=()=>window.open(p.link,"_blank");
 
-const searchInput=document.querySelector('.controls input');
-const lightbox=document.getElementById('searchLightbox');
-const lightboxInput=document.getElementById('lightboxSearch');
-const results=document.getElementById('searchResults');
+postsEl.appendChild(el);
 
-searchInput.addEventListener('focus',()=>{
-lightbox.style.display='flex'; lightbox.style.pointerEvents='auto';
-lightboxInput.focus();
 });
 
-lightbox.addEventListener('click',(e)=>{
-if(e.target===lightbox) lightbox.style.display='none';
-});
-
-lightboxInput.addEventListener('input',()=>{
-const q=lightboxInput.value.toLowerCase();
-const items=[...document.querySelectorAll('.videoItem,.gridItem,.video-card')];
-results.innerHTML='';
-items.forEach(v=>{
-if(v.innerText.toLowerCase().includes(q)){
-results.appendChild(v.cloneNode(true));
-}
-});
-});
-
-</script>
-
-<script>
-function showRSSRefresh(){
- const btn=document.getElementById('rssRefresh');
- if(btn) btn.style.display='block';
 }
 
-document.getElementById('rssRefresh')?.addEventListener('click',()=>{
- location.reload();
-});
+document.getElementById("listBtn").onclick=()=>{
+view="list";
+visible=3;
+render();
+};
 
-/* detect failure message */
-window.addEventListener('load',()=>{
- const bodyText=document.body.innerText||"";
- if(bodyText.includes("FAILED TO LOAD YOUTUBE FEED")){
-   showRSSRefresh();
- }
-});
-</script>
+document.getElementById("gridBtn").onclick=()=>{
+view="grid";
+cols=3;
+visible=9;
+document.documentElement.style.setProperty("--cols",cols);
+render();
+};
 
+document.getElementById("loadMore").onclick=()=>{
 
-<script>
-document.addEventListener("DOMContentLoaded",function(){
- const input=document.getElementById("videoSearch");
- if(!input) return;
+if(view==="list") visible+=3;
+else visible+=cols;
 
- input.addEventListener("input",function(){
-   const q=input.value.toLowerCase();
-   const cards=document.querySelectorAll(".video-card, .card, .video-item");
+render();
 
-   cards.forEach(c=>{
-      const txt=c.innerText.toLowerCase();
-      if(txt.includes(q)){
-         c.style.display="";
-      }else{
-         c.style.display="none";
-      }
-   });
- });
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof loadPosts === "function") loadPosts();
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
-
-const searchInput = document.getElementById("videoSearch");
-if(!searchInput) return;
+};
 
 searchInput.addEventListener("input",()=>{
 
-const q = searchInput.value.toLowerCase().trim();
-const posts = document.querySelectorAll(".post");
+const q=searchInput.value.toLowerCase();
 
-if(q===""){
-posts.forEach(p=>p.classList.remove("dimmed","highlight"));
-return;
-}
+filtered=posts.filter(p=>
+p.title.toLowerCase().includes(q)
+);
 
-posts.forEach(post=>{
+visible=view==="list"?3:cols*cols;
 
-const text = post.innerText.toLowerCase();
-
-if(text.includes(q)){
-post.classList.remove("dimmed");
-post.classList.add("highlight");
-}else{
-post.classList.remove("highlight");
-post.classList.add("dimmed");
-}
+render();
 
 });
 
-});
+document.addEventListener("DOMContentLoaded",loadPosts);
 
-});
 </script>
 
 </body>
-
 </html>
