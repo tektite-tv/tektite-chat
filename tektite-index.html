@@ -267,8 +267,7 @@ cursor:pointer;
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
 
-const FEED="https://api.rss2json.com/v1/api.json?rss_url="+
-encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
+const FEED="https://api.allorigins.win/raw?url="+encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
 
 let posts=[];
 let filtered=[];
@@ -326,21 +325,31 @@ render();
 slider.oninput=()=>updateSize(slider.value);
 
 async function loadPosts(){
+
 try{
 
 const r = await fetch(FEED);
-if(!r.ok) throw new Error("Feed request failed");
-const j = await r.json();
-if(!j.items) throw new Error("Invalid feed");
+const xmlText = await r.text();
 
-posts=(j.items || []).map(v=>({
-title:v.title,
-date:v.pubDate,
-link:v.link,
-thumb:v.thumbnail,
- description:v.description,
-id:(v.link.match(/v=([^&]+)/)||[])[1]
-}));
+const parser = new DOMParser();
+const xml = parser.parseFromString(xmlText,"text/xml");
+
+const entries = [...xml.querySelectorAll("entry")];
+
+posts = entries.map(v=>{
+
+const id = v.querySelector("yt\:videoId").textContent;
+
+return{
+title: v.querySelector("title").textContent,
+date: v.querySelector("published").textContent,
+link: "https://youtube.com/watch?v="+id,
+thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
+description: v.querySelector("media\:description")?.textContent || "",
+id: id
+};
+
+});
 
 filtered=posts;
 
@@ -351,9 +360,10 @@ render();
 }catch(e){
 
 console.error(e);
-statusEl.textContent="YOUTUBE FEED ERROR (rss2json returned no items)";
+statusEl.textContent="FAILED TO LOAD YOUTUBE RSS";
 
 }
+
 }
 
 
