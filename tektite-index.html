@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -84,14 +85,14 @@ background:transparent;
 
 .gridCell.active{background:#00ff00;}
 
-#widthSlider{
+#sizeSliderBottom{
 position:absolute;
 bottom:-35px;
 left:0;
 width:180px;
 }
 
-#heightSlider{
+#sizeSliderLeft{
 position:absolute;
 left:-35px;
 top:0;
@@ -191,8 +192,8 @@ cursor:pointer;
 
 <div id="gridControl">
 
-<input type="range" min="1" max="10" value="3" id="widthSlider">
-<input type="range" min="1" max="10" value="3" id="heightSlider">
+<input type="range" min="1" max="10" value="3" id="sizeSliderBottom">
+<input type="range" min="1" max="10" value="3" id="sizeSliderLeft">
 
 <div id="gridPreview"></div>
 
@@ -224,9 +225,9 @@ encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNE
 let posts=[];
 let filtered=[];
 let view="grid";
-let gridW=3;
-let gridH=3;
-let visible=gridW*gridH;
+
+let gridSize=3;
+let visible=gridSize*gridSize;
 
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
@@ -236,13 +237,11 @@ const gridMenu=document.getElementById("gridMenu");
 const gridBtn=document.getElementById("gridBtn");
 
 const preview=document.getElementById("gridPreview");
-const widthSlider=document.getElementById("widthSlider");
-const heightSlider=document.getElementById("heightSlider");
+const sliderBottom=document.getElementById("sizeSliderBottom");
+const sliderLeft=document.getElementById("sizeSliderLeft");
 
 const lightbox=document.getElementById("lightbox");
 const frame=document.getElementById("lightboxFrame");
-
-/* build preview grid */
 
 for(let i=0;i<100;i++){
 let c=document.createElement("div");
@@ -251,30 +250,35 @@ preview.appendChild(c);
 }
 
 function updatePreview(){
+
 let cells=document.querySelectorAll(".gridCell");
 
 cells.forEach((c,i)=>{
 let x=i%10;
 let y=Math.floor(i/10);
 
-if(x<gridW && y<gridH) c.classList.add("active");
+if(x<gridSize && y<gridSize) c.classList.add("active");
 else c.classList.remove("active");
+
 });
+
 }
 
-widthSlider.oninput=()=>{
-gridW=parseInt(widthSlider.value);
-visible=gridW*gridH;
+function updateSize(v){
+
+gridSize=parseInt(v);
+sliderBottom.value=v;
+sliderLeft.value=v;
+
+visible=gridSize*gridSize;
+
 updatePreview();
 render();
+
 }
 
-heightSlider.oninput=()=>{
-gridH=parseInt(heightSlider.value);
-visible=gridW*gridH;
-updatePreview();
-render();
-}
+sliderBottom.oninput=()=>updateSize(sliderBottom.value);
+sliderLeft.oninput=()=>updateSize(sliderLeft.value);
 
 async function loadPosts(){
 try{
@@ -316,7 +320,7 @@ frame.src="";
 
 function render(){
 postsEl.className=view;
-postsEl.style.gridTemplateColumns="repeat("+gridW+",1fr)";
+postsEl.style.gridTemplateColumns="repeat("+gridSize+",1fr)";
 
 postsEl.innerHTML="";
 
@@ -328,7 +332,6 @@ const el=document.createElement("div");
 el.className="post";
 
 if(view==="grid"){
-
 el.innerHTML=`
 <div class="thumb-grid">
 <img src="${p.thumb}">
@@ -336,9 +339,8 @@ el.innerHTML=`
 <div class="post-title">${p.title}</div>`;
 
 el.onclick=()=>openVideo(p.id);
-
-}else{
-
+}
+else{
 el.innerHTML=`
 <div class="thumb-list">
 <img src="${p.thumb}">
@@ -350,7 +352,6 @@ el.innerHTML=`
 
 el.querySelector("img").onclick=()=>openVideo(p.id);
 el.querySelector(".post-title").onclick=()=>openVideo(p.id);
-
 }
 
 postsEl.appendChild(el);
@@ -371,23 +372,24 @@ render();
 gridBtn.onclick=()=>{
 if(view!=="grid"){
 view="grid";
-visible=gridW*gridH;
+visible=gridSize*gridSize;
 render();
-}else{
+}
+else{
 gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
 }
 }
 
 loadBtn.onclick=()=>{
 if(view==="list") visible+=3;
-else visible+=gridW*gridH;
+else visible+=gridSize*gridSize;
 render();
 }
 
 searchInput.addEventListener("input",()=>{
 const q=searchInput.value.toLowerCase();
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-visible=view==="list"?3:gridW*gridH;
+visible=view==="list"?3:gridSize*gridSize;
 render();
 });
 
