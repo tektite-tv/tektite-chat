@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -220,9 +219,9 @@ cursor:pointer;
 <button id="loadMore">Load More</button>
 
 <div id="lightbox">
-
-<iframe id="lightboxFrame" src="" allowfullscreen></iframe>
 <div id="videoTitle"></div>
+<iframe id="lightboxFrame" src="" allowfullscreen></iframe>
+<div id="videoMeta"></div>
 </div>
 
 <script>
@@ -324,10 +323,6 @@ new Date(date).toLocaleString()+"<br><br>"+(description||"");
 lightbox.style.display="flex";
 }
 
-document.getElementById("lightboxClose").onclick=()=>{
-lightbox.style.display="none";
-frame.src="";
-}
 
 function render(){
 postsEl.className=view;
