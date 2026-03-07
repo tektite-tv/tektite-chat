@@ -267,7 +267,8 @@ cursor:pointer;
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
 
-const FEED="https://api.allorigins.win/raw?url="+encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
+const FEED="https://api.rss2json.com/v1/api.json?rss_url="+
+encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
 
 let posts=[];
 let filtered=[];
@@ -324,42 +325,51 @@ render();
 
 slider.oninput=()=>updateSize(slider.value);
 
+
 async function loadPosts(){
 
 try{
 
-const r = await fetch(FEED);
+const rssURL =
+"https://api.allorigins.win/raw?url=" +
+encodeURIComponent(
+"https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID
+);
+
+const r = await fetch(rssURL);
 const xmlText = await r.text();
 
 const parser = new DOMParser();
 const xml = parser.parseFromString(xmlText,"text/xml");
 
-const entries = [...xml.querySelectorAll("entry")];
+const entries = xml.getElementsByTagName("entry");
 
-posts = entries.map(v=>{
+posts = [...entries].map(e=>{
 
-const id = v.querySelector("yt\:videoId").textContent;
+const id = e.getElementsByTagName("yt:videoId")[0].textContent;
 
-return{
-title: v.querySelector("title").textContent,
-date: v.querySelector("published").textContent,
+return {
+title: e.getElementsByTagName("title")[0].textContent,
+date: e.getElementsByTagName("published")[0].textContent,
+description:
+(e.getElementsByTagName("media:description")[0]||{}).textContent || "",
 link: "https://youtube.com/watch?v="+id,
-thumb: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`,
-description: v.querySelector("media\:description")?.textContent || "",
+thumb: "https://i.ytimg.com/vi/"+id+"/hqdefault.jpg",
 id: id
 };
 
 });
 
-filtered=posts;
+filtered = posts;
 
 statusEl.style.display="none";
+
 updatePreview();
 render();
 
-}catch(e){
+}catch(err){
 
-console.error(e);
+console.error(err);
 statusEl.textContent="FAILED TO LOAD YOUTUBE RSS";
 
 }
