@@ -13,50 +13,66 @@ font-family:"Courier New",monospace;
 margin:0;
 }
 
+/* SLIM HEADER WITHOUT SHRINKING LOGO */
+
 header{
 display:flex;
-justify-content:space-between;
 align-items:center;
+justify-content:space-between;
+padding:6px 20px; /* slimmer bar */
 background:rgba(75,0,118,.5);
-padding:10px 20px;
+box-sizing:border-box;
 }
 
 .channelHeader{
 display:flex;
 align-items:center;
-gap:14px;
+gap:18px;
 }
 
 .channelLogo{
-height:120px;
+height:120px; /* ORIGINAL SIZE PRESERVED */
+width:auto;
 image-rendering:pixelated;
+}
+
+.channelTitle{
+font-size:26px;
+font-weight:bold;
+color:#00ff00;
+line-height:1.1;
 }
 
 .controls{
 display:flex;
-gap:10px;
 align-items:center;
+gap:12px;
+}
+
+#videoSearch{
+width:360px;
+height:40px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+font-family:"Courier New",monospace;
+padding:0 12px;
 }
 
 button{
+height:40px;
+padding:0 16px;
+font-size:15px;
 background:black;
 color:#00ff00;
 border:2px solid #00ff00;
 font-family:"Courier New",monospace;
-padding:8px 14px;
 cursor:pointer;
 }
 
 button:hover{background:#001a00;}
 
-#videoSearch{
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-padding:8px;
-width:260px;
-font-family:"Courier New",monospace;
-}
+/* VIDEO AREA */
 
 #posts{
 padding:20px;
@@ -97,6 +113,7 @@ margin:30px auto;
 }
 
 .status{text-align:center;padding:10px;}
+
 </style>
 </head>
 
@@ -106,7 +123,7 @@ margin:30px auto;
 
 <div class="channelHeader">
 <img src="/images/oldtube.png" class="channelLogo">
-<div style="font-size:22px;font-weight:bold;">Honestly Thomas (Tektite)</div>
+<div class="channelTitle">Honestly Thomas (Tektite)</div>
 </div>
 
 <div class="controls">
@@ -125,6 +142,7 @@ margin:30px auto;
 <script>
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
+
 const FEED="https://api.rss2json.com/v1/api.json?rss_url="+
 encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
 
@@ -222,9 +240,7 @@ searchInput.addEventListener("input",()=>{
 
 const q=searchInput.value.toLowerCase();
 
-filtered=posts.filter(p=>
-p.title.toLowerCase().includes(q)
-);
+filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
 
 visible=view==="list"?3:cols*cols;
 
