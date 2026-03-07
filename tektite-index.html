@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -341,13 +342,19 @@ statusEl.textContent="FAILED TO LOAD FEED";
 }
 }
 
+
 function openVideo(id,title,date,description){
+
 frame.src="https://www.youtube.com/embed/"+id;
 
 document.getElementById("videoTitle").innerHTML =
 `<a href="https://youtube.com/watch?v=${id}" target="_blank" style="color:#00ff00;text-decoration:none;">${title}</a>`;
 
-let clean = (description||"").replace(/<[^>]*>/g,"");
+let clean = (description||"")
+.replace(/<br\s*\/?>/gi,"\n")
+.replace(/<[^>]*>/g,"")
+.trim();
+
 let firstLine = clean.split("\n")[0];
 
 document.getElementById("videoExcerpt").innerHTML =
@@ -357,7 +364,6 @@ document.getElementById("videoMeta").innerHTML =
 new Date(date).toLocaleString();
 
 document.getElementById("videoFull").textContent = clean;
-
 document.getElementById("videoFull").style.display="none";
 
 setTimeout(()=>{
@@ -371,6 +377,7 @@ document.getElementById("videoFull").style.display="block";
 
 lightbox.style.display="flex";
 }
+
 
 
 function render(){
