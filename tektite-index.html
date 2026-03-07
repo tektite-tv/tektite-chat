@@ -58,9 +58,7 @@ margin:0;
 }
 
 
-.grid{
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
+.grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);
     gap:20px;
 }
 
@@ -77,7 +75,7 @@ margin:0;
     padding:15px;
     cursor:pointer;
     background:black;
-    overflow:hidden;
+    overflow:auto;
 }
 
 .post:hover{
@@ -87,7 +85,7 @@ margin:0;
 .thumb-wrap{
     width:100%;
     aspect-ratio:16/9;
-    overflow:hidden;
+    overflow:auto;
     border:2px solid #00ff88;
     margin-bottom:12px;
     background:#001006;
@@ -181,8 +179,7 @@ text-align:center;
 
 
 @media (max-width: 900px){
-    .grid{
-        grid-template-columns:repeat(2,minmax(0,1fr));
+    .grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);
     }
 }
 
@@ -207,8 +204,7 @@ box-sizing:border-box;
         margin:0 10px 10px 0;
     }
 
-    .grid{
-        grid-template-columns:1fr;
+    .grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);
     }
 
     #viewer{
@@ -223,7 +219,7 @@ box-sizing:border-box;
 
 /* SCROLLBARS BE GONE */
 html,body{margin:0;padding:0;
-    overflow:hidden;
+    overflow:auto;
     scrollbar-width:none;
 }
 html::-webkit-scrollbar,
@@ -231,7 +227,7 @@ body::-webkit-scrollbar{
     display:none;
 }
 #viewer{
-    overflow:hidden;
+    overflow:auto;
 }
 
 #content,.main,.grid-container,#grid{
@@ -292,6 +288,31 @@ display:flex;
 align-items:center;
 padding:0 20px;
 }
+
+.gridMenu{position:relative;display:inline-block;}
+.gridDropdown{
+display:none;
+position:absolute;
+top:100%;
+right:0;
+background:black;
+border:2px solid #00ff88;
+z-index:50;
+}
+.gridDropdown button{
+display:block;
+width:100%;
+border:none;
+border-bottom:1px solid #00ff88;
+background:black;
+color:#00ff88;
+padding:6px 10px;
+font-family:"Courier New", monospace;
+cursor:pointer;
+}
+.gridDropdown button:hover{background:#002211;}
+.grid{display:grid;gap:20px;}
+
 </style>
 </head>
 
@@ -308,7 +329,21 @@ padding:0 20px;
 <div class="header-right"><div class="controls">
 <input id="searchBox" placeholder="Search Videos..." class="searchInput">
 <button id="listBtn">LIST</button>
-<button id="gridBtn">GRID</button>
+
+<div class="gridMenu">
+<button id="gridBtn">GRID ▼</button>
+<div id="gridDropdown" class="gridDropdown">
+<button data-cols="3">3x3</button>
+<button data-cols="4">4x4</button>
+<button data-cols="5">5x5</button>
+<button data-cols="6">6x6</button>
+<button data-cols="7">7x7</button>
+<button data-cols="8">8x8</button>
+<button data-cols="9">9x9</button>
+<button data-cols="10">10x10</button>
+</div>
+</div>
+
 </div></div>
 </header>
 
@@ -555,8 +590,40 @@ document.getElementById("searchBox").addEventListener("input", e=>{
 document.getElementById("refreshBtn").onclick = () => {
     const status = document.getElementById("status");
     status.textContent = "RELOADING FEED...";
-    loadPosts();
+    
+let gridCols = 3;
+
+document.getElementById("gridBtn").onclick = () => {
+  const d = document.getElementById("gridDropdown");
+  d.style.display = d.style.display === "block" ? "none" : "block";
 };
+
+document.querySelectorAll("#gridDropdown button").forEach(btn=>{
+  btn.onclick = () => {
+    gridCols = btn.dataset.cols;
+    document.getElementById("posts").style.setProperty("--cols", gridCols);
+    document.getElementById("gridDropdown").style.display="none";
+  };
+});
+
+loadPosts();
+};
+
+
+let gridCols = 3;
+
+document.getElementById("gridBtn").onclick = () => {
+  const d = document.getElementById("gridDropdown");
+  d.style.display = d.style.display === "block" ? "none" : "block";
+};
+
+document.querySelectorAll("#gridDropdown button").forEach(btn=>{
+  btn.onclick = () => {
+    gridCols = btn.dataset.cols;
+    document.getElementById("posts").style.setProperty("--cols", gridCols);
+    document.getElementById("gridDropdown").style.display="none";
+  };
+});
 
 loadPosts();
 
