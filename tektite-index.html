@@ -671,7 +671,7 @@ height:auto !important;
 </h1></div>
 
 <div class="header-right"><div class="controls">
-<input id="videoSearch"  id="searchBox" id="searchInput" placeholder="Search Videos..." class="searchInput">
+<input id="videoSearch" placeholder="Search Videos..." class="searchInput">
 <button id="listBtn">LIST</button>
 
 <div class="gridMenu">
@@ -1052,7 +1052,7 @@ window.addEventListener('load',()=>{
 
 <script>
 document.addEventListener("DOMContentLoaded",function(){
- const input=document.getElementById("searchInput");
+ const input=document.getElementById("videoSearch");
  if(!input) return;
 
  input.addEventListener("input",function(){
@@ -1071,5 +1071,12 @@ document.addEventListener("DOMContentLoaded",function(){
 });
 </script>
 
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof loadPosts === "function") loadPosts();
+});
+</script>
 </body>
+
 </html>
