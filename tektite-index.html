@@ -325,6 +325,7 @@ render();
 slider.oninput=()=>updateSize(slider.value);
 
 
+
 async function loadPosts(){
 
 try{
@@ -334,12 +335,16 @@ if(!r.ok) throw new Error("CSV load failed");
 
 const text = await r.text();
 
-const rows = text.trim().split("
-").slice(1);
+const rows = text
+.trim()
+.split(/
+?
+(?=(?:[^"]*"[^"]*")*[^"]*$)/)
+.slice(1);
 
 posts = rows.map(row=>{
 
-const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+const cols = row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
 
 return {
 id:cols[0],
@@ -355,9 +360,9 @@ embed:cols[8]
 
 });
 
-posts.sort((a,b)=> new Date(b.date) - new Date(a.date));
+posts.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
 
-filtered=posts;
+filtered = posts;
 
 statusEl.style.display="none";
 
@@ -370,6 +375,9 @@ console.error(e);
 statusEl.textContent="FAILED TO LOAD channel-metadata.csv";
 
 }
+
+}
+
 }
 
 }
