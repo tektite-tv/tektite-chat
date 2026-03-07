@@ -619,6 +619,27 @@ border:3px solid #00FF00 !important;
     z-index:100 !important;
 }
 
+
+/* === SEARCH BAR FIX === */
+#videoSearch{
+border:2px solid #00FF00 !important;
+color:#00FF00 !important;
+background:rgba(0,0,0,0.5) !important;
+font-family:"Courier New",monospace;
+font-weight:bold;
+padding:10px 14px;
+}
+
+#videoSearch::placeholder{
+color:#00FF00 !important;
+opacity:1;
+}
+
+/* header text fix */
+.header-title{
+white-space:nowrap;
+}
+
 </style>
 </head>
 
@@ -640,7 +661,7 @@ border:3px solid #00FF00 !important;
 </h1></div>
 
 <div class="header-right"><div class="controls">
-<input id="searchBox" id="searchInput" placeholder="Search Videos..." class="searchInput">
+<input id="videoSearch"  id="searchBox" id="searchInput" placeholder="Search Videos..." class="searchInput">
 <button id="listBtn">LIST</button>
 
 <div class="gridMenu">
@@ -1037,6 +1058,28 @@ document.addEventListener("DOMContentLoaded",function(){
       }
    });
  });
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+const search = document.getElementById("videoSearch");
+if(!search) return;
+
+search.addEventListener("input", function(){
+
+const q = search.value.toLowerCase();
+const cards = document.querySelectorAll(".video-card, .card, .video-item");
+
+cards.forEach(c=>{
+const text = c.innerText.toLowerCase();
+c.style.display = text.includes(q) ? "" : "none";
+});
+
+});
+
 });
 </script>
 
