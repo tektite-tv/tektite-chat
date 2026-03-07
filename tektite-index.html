@@ -651,16 +651,26 @@ height:auto !important;
 }
 
 
-/* search dim effect */
+
+
+
+/* search dim mode */
+
 .dimmed{
-opacity:0.18;
-filter:grayscale(70%);
+opacity:0.15;
+filter:grayscale(80%);
 transition:opacity .2s ease;
 }
 
 .highlight{
 opacity:1 !important;
 filter:none !important;
+z-index:20;
+position:relative;
+}
+
+.search-active #posts{
+position:relative;
 }
 
 </style>
@@ -729,373 +739,22 @@ REFRESH
 <div id="viewerContent"></div>
 </div>
 
-<script>
-const CHANNEL_URL = "https://youtube.com/@Honestly_Thomas";
-const CHANNEL_ID = "UCn3WLZT7k8nO24XimlJVJVQ";
-const FEED_URL = `https://www.youtube.com/feeds/videos.xml?channel_id=${CHANNEL_ID}`;
 
-let posts = [];
-let filteredPosts = [];
-let visible = 9;
-let view = "grid";
-
-
-async function fetchFeedText(){
-    const url = "https://api.allorigins.win/raw?url=" + encodeURIComponent(FEED_URL);
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("Feed request failed: " + res.status);
-    return await res.text();
-}
-
-
-function convertRss2JsonToXml(data){
-    const itemsXml = data.items.map(item => {
-        const videoId = extractVideoId(item.link);
-        const thumb = item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
-        return `
-            <entry>
-                <title><![CDATA[${item.title || "Untitled"}]]></title>
-                <published>${item.pubDate || ""}</published>
-                <link href="${item.link || ""}" />
-                <media:group xmlns:media="http://search.yahoo.com/mrss/">
-                    <media:description><![CDATA[${escapeXmlForCdata(item.description || "")}]]></media:description>
-                    <media:thumbnail url="${thumb}" />
-                </media:group>
-                <yt:videoId xmlns:yt="http://www.youtube.com/xml/schemas/2015">${videoId || ""}</yt:videoId>
-            </entry>
-        `;
-    }).join("");
-
-    return `<?xml version="1.0" encoding="UTF-8"?><feed xmlns:media="http://search.yahoo.com/mrss/" xmlns:yt="http://www.youtube.com/xml/schemas/2015">${itemsXml}</feed>`;
-}
-
-function escapeHtml(str){
-    return (str || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-function escapeXmlForCdata(str){
-    return String(str || "").replace(/]]>/g, "]]]]><![CDATA[>");
-}
-
-function extractVideoId(url){
-    try{
-        const parsed = new URL(url);
-        return parsed.searchParams.get("v") || "";
-    }catch{
-        return "";
-    }
-}
-
-function formatDate(dateString){
-    const date = new Date(dateString);
-    if(Number.isNaN(date.getTime())) return "Unknown date";
-    return date.toLocaleDateString(undefined, {
-        year:"numeric",
-        month:"short",
-        day:"numeric"
-    });
-}
-
-function stripHtml(html){
-    const div = document.createElement("div");
-    div.innerHTML = html || "";
-    return (div.textContent || div.innerText || "").trim();
-}
-
-
-async function loadPosts(){
-    const status = document.getElementById("status");
-    try{
-        const url = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(FEED_URL);
-        const res = await fetch(url);
-        const data = await res.json();
-
-        if(!data.items){
-            throw new Error("Invalid RSS response");
-        }
-
-        posts = data.items.map(item => {
-            const videoId = (item.link.match(/v=([^&]+)/)||[])[1] || "";
-            return {
-                title: item.title || "Untitled",
-                date: item.pubDate || "",
-                link: item.link || "",
-                videoId,
-                description: item.description || "",
-                thumb: item.thumbnail || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`
-            };
-        });
-
-        filteredPosts = posts;
-        status.style.display = posts.length ? "none" : "block";
-        status.textContent = posts.length ? "" : "NO VIDEOS FOUND.";
-        renderPosts();
-    }catch(err){
-        console.error(err);
-        status.style.display = "block";
-        status.textContent = "FAILED TO LOAD YOUTUBE FEED.";
-    }
-}
-
-
-function renderPosts(){
-    const container = document.getElementById("posts");
-    container.className = view;
-    container.innerHTML = "";
-
-    const source = filteredPosts.length ? filteredPosts : posts;
-    const slice = source.slice(0, visible);
-
-    slice.forEach(post => {
-        const div = document.createElement("div");
-        div.className = "post";
-
-        const safeTitle = escapeHtml(post.title);
-        const safeDate = escapeHtml(formatDate(post.date));
-        const safeThumb = escapeHtml(post.thumb);
-        const safeVideoId = escapeHtml(post.videoId || "");
-
-        div.innerHTML = `
-            <div class="thumb-wrap">
-                <img src="${safeThumb}" alt="${safeTitle}" loading="lazy">
-            </div>
-            <div class="post-title">${safeTitle}</div>
-            <div class="post-date">${safeDate}</div>
-            <div class="post-meta">VIDEO ID: ${safeVideoId || "UNKNOWN"}</div>
-        `;
-
-        div.onclick = () => openPost(post);
-        container.appendChild(div);
-    });
-
-    const loadBtn = document.getElementById("loadMore");
-    loadBtn.style.display = posts.length > visible ? "block" : "none";
-}
-
-function openPost(post){
-    const safeTitle = escapeHtml(post.title);
-    const safeDate = escapeHtml(formatDate(post.date));
-    const safeDesc = escapeHtml(stripHtml(post.description)).replace(/\n/g, "<br>");
-    const safeLink = escapeHtml(post.link);
-    const safeVideoId = escapeHtml(post.videoId || "");
-
-    document.getElementById("viewerContent").innerHTML = `
-        <iframe
-            class="video-embed"
-            src="https://www.youtube.com/embed/${safeVideoId}"
-            title="${safeTitle}"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen>
-        </iframe>
-        <h2 class="viewer-title">${safeTitle}</h2>
-        <div class="viewer-meta">PUBLISHED: ${safeDate}</div>
-        <div class="viewer-link"><a href="${safeLink}" target="_blank" rel="noopener noreferrer">OPEN ON YOUTUBE</a> | <a href="${CHANNEL_URL}" target="_blank" rel="noopener noreferrer">CHANNEL</a></div>
-        <div class="viewer-desc">${safeDesc || "NO DESCRIPTION."}</div>
-    `;
-
-    document.getElementById("viewer").style.display = "block";
-}
-
-document.getElementById("viewerClose").onclick = () => {
-    document.getElementById("viewer").style.display = "none";
-    document.getElementById("viewerContent").innerHTML = "";
-};
-
-document.getElementById("loadMore").onclick = () => {
-    visible += 9;
-    renderPosts();
-};
-
-document.getElementById("gridBtn").onclick = () => {
-    view = "grid";
-    renderPosts();
-};
-
-document.getElementById("listBtn").onclick = () => {
-    view = "list";
-    renderPosts();
-};
-
-
-function applySearch(term){
-    term = term.toLowerCase().trim();
-
-    if(!term){
-        filteredPosts = posts;
-    }else{
-        filteredPosts = posts.filter(p =>
-            (p.title || "").toLowerCase().includes(term) ||
-            (p.description || "").toLowerCase().includes(term)
-        );
-    }
-
-    visible = 9;
-    renderPosts();
-}
-
-document.getElementById("searchBox").addEventListener("input", e=>{
-    applySearch(e.target.value);
-});
-
-
-document.getElementById("refreshBtn").onclick = () => {
-    const status = document.getElementById("status");
-    status.textContent = "RELOADING FEED...";
-    
-let gridCols = 3;
-
-document.getElementById("gridBtn").onclick = () => {
-  const d = document.getElementById("gridDropdown");
-  d.style.display = d.style.display === "block" ? "none" : "block";
-};
-
-document.querySelectorAll("#gridDropdown button").forEach(btn=>{
-  btn.onclick = () => {
-    gridCols = btn.dataset.cols;
-    document.getElementById("posts").style.setProperty("--cols", gridCols);
-    document.getElementById("gridDropdown").style.display="none";
-  };
-});
-
-
-
-// ensure grid button returns to grid view if currently list
-document.getElementById("gridBtn").addEventListener("click", ()=>{
-  const postsEl = document.getElementById("posts");
-  if(postsEl.classList.contains("list")){
-    postsEl.classList.remove("list");
-    postsEl.classList.add("grid");
-  }
-});
-
-loadPosts();
-};
-
-
-let gridCols = 3;
-
-document.getElementById("gridBtn").onclick = () => {
-  const d = document.getElementById("gridDropdown");
-  d.style.display = d.style.display === "block" ? "none" : "block";
-};
-
-document.querySelectorAll("#gridDropdown button").forEach(btn=>{
-  btn.onclick = () => {
-    gridCols = btn.dataset.cols;
-    document.getElementById("posts").style.setProperty("--cols", gridCols);
-    document.getElementById("gridDropdown").style.display="none";
-  };
-});
-
-
-
-// ensure grid button returns to grid view if currently list
-document.getElementById("gridBtn").addEventListener("click", ()=>{
-  const postsEl = document.getElementById("posts");
-  if(postsEl.classList.contains("list")){
-    postsEl.classList.remove("list");
-    postsEl.classList.add("grid");
-  }
-});
-
-loadPosts();
-
-</script>
-
-
-<div id="searchLightbox">
-  
-  </div>
-</div>
-
-<script>
-
-const searchInput=document.querySelector('.controls input');
-const lightbox=document.getElementById('searchLightbox');
-const lightboxInput=document.getElementById('lightboxSearch');
-const results=document.getElementById('searchResults');
-
-searchInput.addEventListener('focus',()=>{
-lightbox.style.display='flex'; lightbox.style.pointerEvents='auto';
-lightboxInput.focus();
-});
-
-lightbox.addEventListener('click',(e)=>{
-if(e.target===lightbox) lightbox.style.display='none';
-});
-
-lightboxInput.addEventListener('input',()=>{
-const q=lightboxInput.value.toLowerCase();
-const items=[...document.querySelectorAll('.videoItem,.gridItem,.video-card')];
-results.innerHTML='';
-items.forEach(v=>{
-if(v.innerText.toLowerCase().includes(q)){
-results.appendChild(v.cloneNode(true));
-}
-});
-});
-
-</script>
-
-<script>
-function showRSSRefresh(){
- const btn=document.getElementById('rssRefresh');
- if(btn) btn.style.display='block';
-}
-
-document.getElementById('rssRefresh')?.addEventListener('click',()=>{
- location.reload();
-});
-
-/* detect failure message */
-window.addEventListener('load',()=>{
- const bodyText=document.body.innerText||"";
- if(bodyText.includes("FAILED TO LOAD YOUTUBE FEED")){
-   showRSSRefresh();
- }
-});
-</script>
 
 
 <script>
-document.addEventListener("DOMContentLoaded",function(){
- const input=document.getElementById("videoSearch");
- if(!input) return;
-
- input.addEventListener("input",function(){
-   const q=input.value.toLowerCase();
-   const cards=document.querySelectorAll(".video-card, .card, .video-item");
-
-   cards.forEach(c=>{
-      const txt=c.innerText.toLowerCase();
-      if(txt.includes(q)){
-         c.style.display="";
-      }else{
-         c.style.display="none";
-      }
-   });
- });
-});
-</script>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof loadPosts === "function") loadPosts();
-});
-</script>
-
-<script>
-document.addEventListener("DOMContentLoaded",()=>{
 
 const searchInput = document.getElementById("videoSearch");
-if(!searchInput) return;
+
+function clearSearch(){
+
+document.body.classList.remove("search-active");
+
+document.querySelectorAll(".post").forEach(p=>{
+p.classList.remove("dimmed","highlight");
+});
+
+}
 
 searchInput.addEventListener("input",()=>{
 
@@ -1103,9 +762,11 @@ const q = searchInput.value.toLowerCase().trim();
 const posts = document.querySelectorAll(".post");
 
 if(q===""){
-posts.forEach(p=>p.classList.remove("dimmed","highlight"));
+clearSearch();
 return;
 }
+
+document.body.classList.add("search-active");
 
 posts.forEach(post=>{
 
@@ -1123,7 +784,15 @@ post.classList.add("dimmed");
 
 });
 
+document.addEventListener("click",(e)=>{
+
+if(!searchInput.contains(e.target)){
+searchInput.value="";
+clearSearch();
+}
+
 });
+
 </script>
 
 </body>
