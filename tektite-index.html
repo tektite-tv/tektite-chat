@@ -274,7 +274,7 @@ let filtered=[];
 let view="grid";
 
 let gridSize=3;
-let visible=gridSize*gridSize;
+let visible=9;
 
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
@@ -456,8 +456,15 @@ render();
 gridBtn.onclick=()=>{
 if(view!=="grid"){
 view="grid";
+gridSize=3;
+slider.value=3;
 visible=gridSize*gridSize;
+updatePreview();
 render();
+}
+else{
+gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
+}
 }
 else{
 gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
