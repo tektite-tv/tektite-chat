@@ -742,57 +742,64 @@ REFRESH
 
 
 
+
+
+
 <script>
+document.addEventListener("DOMContentLoaded", () => {
 
-const searchInput = document.getElementById("videoSearch");
+  /* ensure RSS feed loads */
+  if (typeof loadPosts === "function") {
+    loadPosts();
+  }
 
-function clearSearch(){
+  const searchInput = document.getElementById("videoSearch");
 
-document.body.classList.remove("search-active");
+  function clearSearch(){
+    document.body.classList.remove("search-active");
+    document.querySelectorAll(".post").forEach(p=>{
+      p.classList.remove("dimmed","highlight");
+    });
+  }
 
-document.querySelectorAll(".post").forEach(p=>{
-p.classList.remove("dimmed","highlight");
+  if(searchInput){
+
+    searchInput.addEventListener("input",()=>{
+
+      const q = searchInput.value.toLowerCase().trim();
+      const posts = document.querySelectorAll(".post");
+
+      if(q===""){
+        clearSearch();
+        return;
+      }
+
+      document.body.classList.add("search-active");
+
+      posts.forEach(post=>{
+        const text = post.innerText.toLowerCase();
+
+        if(text.includes(q)){
+          post.classList.remove("dimmed");
+          post.classList.add("highlight");
+        }else{
+          post.classList.remove("highlight");
+          post.classList.add("dimmed");
+        }
+      });
+
+    });
+
+  }
+
+  document.addEventListener("click",(e)=>{
+    if(searchInput && !searchInput.contains(e.target)){
+      searchInput.value="";
+      clearSearch();
+    }
+  });
+
 });
-
-}
-
-searchInput.addEventListener("input",()=>{
-
-const q = searchInput.value.toLowerCase().trim();
-const posts = document.querySelectorAll(".post");
-
-if(q===""){
-clearSearch();
-return;
-}
-
-document.body.classList.add("search-active");
-
-posts.forEach(post=>{
-
-const text = post.innerText.toLowerCase();
-
-if(text.includes(q)){
-post.classList.remove("dimmed");
-post.classList.add("highlight");
-}else{
-post.classList.remove("highlight");
-post.classList.add("dimmed");
-}
-
-});
-
-});
-
-document.addEventListener("click",(e)=>{
-
-if(!searchInput.contains(e.target)){
-searchInput.value="";
-clearSearch();
-}
-
-});
-
 </script>
 
 </body>
