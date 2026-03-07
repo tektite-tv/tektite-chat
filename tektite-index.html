@@ -376,6 +376,45 @@ align-items:center;
 justify-content:center;
 }
 
+
+/* Header layout fix */
+.channelHeader{
+display:flex;
+align-items:center;
+gap:16px;
+}
+
+.channelLogo{
+height:72px;
+image-rendering:pixelated;
+}
+
+.channelTitle{
+font-family:"Courier New", monospace;
+font-size:28px;
+color:#00ff88;
+}
+
+/* Controls height alignment */
+.controls{
+display:flex;
+align-items:center;
+gap:16px;
+height:54px;
+}
+
+.controls input{
+height:54px;
+}
+
+.controls button{
+height:54px;
+display:flex;
+align-items:center;
+justify-content:center;
+padding:0 22px;
+}
+
 </style>
 </head>
 
@@ -386,7 +425,12 @@ justify-content:center;
 <a href="https://youtube.com/@Honestly_Thomas" target="_blank" style="display:flex;align-items:center;gap:10px;color:#00ff88;text-decoration:none;">
 
 
-<div class="channelHeader"><img src="/images/oldtube.png" class="channelLogo"><span class="channelTitle">Honestly Thomas Uploads</span></div>
+
+<div class="channelHeader">
+    <img src="/images/oldtube.png" class="channelLogo">
+    <span class="channelTitle">Honestly Thomas Uploads</span>
+</div>
+
 
 </a>
 </h1></div>
