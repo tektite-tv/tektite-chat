@@ -335,12 +335,9 @@ if(!r.ok) throw new Error("CSV load failed");
 
 const text = await r.text();
 
-const rows = text
-.trim()
-.split(/
+const rows = text.trim().split(/
 ?
-(?=(?:[^"]*"[^"]*")*[^"]*$)/)
-.slice(1);
+/).slice(1);
 
 posts = rows.map(row=>{
 
