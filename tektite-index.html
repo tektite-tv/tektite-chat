@@ -20,136 +20,60 @@ scrollbar-width:none;
 html::-webkit-scrollbar,
 body::-webkit-scrollbar{display:none;}
 
-/* HEADER */
-
-header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:6px 20px;
-background:rgba(75,0,118,.5);
-}
+header{display:flex;align-items:center;justify-content:space-between;padding:6px 20px;background:rgba(75,0,118,.5);}
 
 .channelHeader{display:flex;align-items:center;gap:18px;}
-
-.channelLogo{height:120px;width:auto;}
-
+.channelLogo{height:120px;}
 .channelTitle{font-size:26px;font-weight:bold;}
 
-.controls{display:flex;align-items:center;gap:12px;}
+.controls{display:flex;align-items:center;gap:12px;position:relative;}
 
-#videoSearch{
-width:360px;
-height:40px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-padding:0 12px;
-font-family:"Courier New",monospace;
-}
+#videoSearch{width:360px;height:40px;border:2px solid #00ff00;background:black;color:#00ff00;padding:0 12px;font-family:"Courier New",monospace;}
 
-button{
-height:40px;
-padding:0 16px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-cursor:pointer;
-font-family:"Courier New",monospace;
-}
+button{height:40px;padding:0 16px;border:2px solid #00ff00;background:black;color:#00ff00;cursor:pointer;font-family:"Courier New",monospace;}
 
 button:hover{background:#001a00;}
+
+#gridMenu{
+position:absolute;
+top:50px;
+right:0;
+background:black;
+border:2px solid #00ff00;
+padding:10px;
+display:none;
+flex-direction:column;
+gap:8px;
+}
+
+#gridMenu select{background:black;color:#00ff00;border:2px solid #00ff00;font-family:"Courier New",monospace;padding:4px;}
 
 /* POSTS */
 
 #posts{padding:20px;}
 
-.grid{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:20px;
-}
+.grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);gap:20px;}
 
-.list .post{
-display:flex;
-align-items:center;
-gap:16px;
-margin-bottom:16px;
-border:2px solid #00ff00;
-padding:10px;
-}
+.list .post{display:flex;align-items:center;gap:16px;margin-bottom:16px;border:2px solid #00ff00;padding:10px;}
 
-.grid .post{
-border:2px solid #00ff00;
-padding:10px;
-cursor:pointer;
-}
+.grid .post{border:2px solid #00ff00;padding:10px;cursor:pointer;}
 
-/* THUMBNAILS */
-
-.thumb-grid{
-aspect-ratio:16/9;
-overflow:hidden;
-border:2px solid #00ff00;
-margin-bottom:10px;
-}
-
+.thumb-grid{aspect-ratio:16/9;overflow:hidden;border:2px solid #00ff00;margin-bottom:10px;}
 .thumb-grid img{width:100%;height:100%;object-fit:cover;}
 
-.thumb-list{
-width:160px;
-flex-shrink:0;
-border:2px solid #00ff00;
-}
-
+.thumb-list{width:160px;border:2px solid #00ff00;}
 .thumb-list img{width:100%;display:block;}
 
 .post-title{font-size:16px;}
-
 .post-date{font-size:12px;opacity:.7;}
 
-/* LOAD MORE */
-
-#loadMore{
-display:block;
-margin:40px auto 60px auto;
-padding:12px 30px;
-font-size:18px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-cursor:pointer;
-}
+#loadMore{display:block;margin:40px auto 60px auto;padding:12px 30px;font-size:18px;border:2px solid #00ff00;background:black;color:#00ff00;cursor:pointer;}
 
 /* LIGHTBOX */
 
-#lightbox{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.9);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:9999;
-}
-
-#lightbox iframe{
-width:80vw;
-height:45vw;
-max-height:80vh;
-border:2px solid #00ff00;
-}
-
-#lightboxClose{
-position:absolute;
-top:20px;
-right:20px;
-font-size:28px;
-cursor:pointer;
-}
+#lightbox{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:none;align-items:center;justify-content:center;z-index:9999;}
+#lightbox iframe{width:80vw;height:45vw;max-height:80vh;border:2px solid #00ff00;}
+#lightboxClose{position:absolute;top:20px;right:20px;font-size:28px;cursor:pointer;}
 
 .status{text-align:center;padding:10px;}
 
@@ -169,6 +93,16 @@ cursor:pointer;
 <input id="videoSearch" placeholder="Search Videos...">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
+
+<div id="gridMenu">
+<label>Width
+<select id="gridW"></select>
+</label>
+<label>Height
+<select id="gridH"></select>
+</label>
+</div>
+
 </div>
 
 </header>
@@ -195,13 +129,40 @@ let filtered=[];
 let view="grid";
 let visible=9;
 
+let gridW=3;
+let gridH=3;
+
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
 const loadBtn=document.getElementById("loadMore");
+const gridMenu=document.getElementById("gridMenu");
+const gridBtn=document.getElementById("gridBtn");
 
 const lightbox=document.getElementById("lightbox");
 const frame=document.getElementById("lightboxFrame");
+
+for(let i=1;i<=10;i++){
+let opt1=document.createElement("option");
+opt1.value=i;opt1.text=i;
+gridW.appendChild?0:0;
+}
+
+const gridWSelect=document.getElementById("gridW");
+const gridHSelect=document.getElementById("gridH");
+
+for(let i=1;i<=10;i++){
+let o1=document.createElement("option");
+o1.value=i;o1.text=i;
+gridWSelect.appendChild(o1);
+
+let o2=document.createElement("option");
+o2.value=i;o2.text=i;
+gridHSelect.appendChild(o2);
+}
+
+gridWSelect.value=3;
+gridHSelect.value=3;
 
 async function loadPosts(){
 try{
@@ -223,10 +184,8 @@ statusEl.style.display="none";
 render();
 
 }catch(e){
-
 console.error(e);
 statusEl.textContent="FAILED TO LOAD FEED";
-
 }
 }
 
@@ -241,7 +200,10 @@ frame.src="";
 };
 
 function render(){
+
 postsEl.className=view;
+postsEl.style.gridTemplateColumns="repeat("+gridW+",1fr)";
+
 postsEl.innerHTML="";
 
 const data=filtered.slice(0,visible);
@@ -258,11 +220,9 @@ el.innerHTML=`
 </div>
 <div class="post-title">${p.title}</div>
 `;
-
 el.onclick=()=>openVideo(p.id);
-
-}else{
-
+}
+else{
 el.innerHTML=`
 <div class="thumb-list">
 <img src="${p.thumb}">
@@ -272,15 +232,15 @@ el.innerHTML=`
 <div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
 </div>
 `;
-
 el.querySelector("img").onclick=()=>openVideo(p.id);
 el.querySelector(".post-title").onclick=()=>openVideo(p.id);
-
 }
 
 postsEl.appendChild(el);
 
 });
+
+visible = view==="grid" ? gridW*gridH : visible;
 
 if(visible>=filtered.length) loadBtn.style.display="none";
 else loadBtn.style.display="block";
@@ -290,34 +250,34 @@ else loadBtn.style.display="block";
 document.getElementById("listBtn").onclick=()=>{
 view="list";
 visible=3;
+gridMenu.style.display="none";
 render();
 };
 
-document.getElementById("gridBtn").onclick=()=>{
+gridBtn.onclick=()=>{
+if(view!=="grid"){
 view="grid";
-visible=9;
+visible=gridW*gridH;
 render();
+} else {
+gridMenu.style.display = gridMenu.style.display==="flex" ? "none" : "flex";
+}
 };
+
+gridWSelect.onchange=()=>{gridW=parseInt(gridWSelect.value);visible=gridW*gridH;render();};
+gridHSelect.onchange=()=>{gridH=parseInt(gridHSelect.value);visible=gridW*gridH;render();};
 
 loadBtn.onclick=()=>{
-
 if(view==="list") visible+=3;
-else visible+=9;
-
+else visible+=gridW*gridH;
 render();
-
 };
 
 searchInput.addEventListener("input",()=>{
-
 const q=searchInput.value.toLowerCase();
-
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-
-visible=view==="list"?3:9;
-
+visible=view==="list"?3:gridW*gridH;
 render();
-
 });
 
 document.addEventListener("DOMContentLoaded",loadPosts);
