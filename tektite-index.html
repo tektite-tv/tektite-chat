@@ -11,15 +11,16 @@ background:black;
 color:#00ff00;
 font-family:"Courier New",monospace;
 margin:0;
+overflow:hidden; /* remove page scrollbars */
 }
 
-/* SLIM HEADER WITHOUT SHRINKING LOGO */
+/* HEADER */
 
 header{
 display:flex;
 align-items:center;
 justify-content:space-between;
-padding:6px 20px; /* slimmer bar */
+padding:6px 20px;
 background:rgba(75,0,118,.5);
 box-sizing:border-box;
 }
@@ -31,7 +32,7 @@ gap:18px;
 }
 
 .channelLogo{
-height:120px; /* ORIGINAL SIZE PRESERVED */
+height:120px;
 width:auto;
 image-rendering:pixelated;
 }
@@ -76,6 +77,8 @@ button:hover{background:#001a00;}
 
 #posts{
 padding:20px;
+height:calc(100vh - 150px);
+overflow:hidden; /* remove internal scrollbars */
 }
 
 .grid{
@@ -109,7 +112,7 @@ margin-bottom:10px;
 
 #loadMore{
 display:block;
-margin:30px auto;
+margin:10px auto;
 }
 
 .status{text-align:center;padding:10px;}
@@ -134,7 +137,7 @@ margin:30px auto;
 
 </header>
 
-<div id="posts" class="list"></div>
+<div id="posts" class="grid"></div>
 <div id="status" class="status">LOADING YOUTUBE FEED...</div>
 
 <button id="loadMore">Load More</button>
@@ -148,13 +151,15 @@ encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNE
 
 let posts=[];
 let filtered=[];
-let view="list";
-let visible=3;
+let view="grid"; /* GRID DEFAULT */
+let visible=9;
 let cols=3;
 
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
+
+document.documentElement.style.setProperty("--cols",cols);
 
 async function loadPosts(){
 
@@ -221,7 +226,6 @@ render();
 
 document.getElementById("gridBtn").onclick=()=>{
 view="grid";
-cols=3;
 visible=9;
 document.documentElement.style.setProperty("--cols",cols);
 render();
