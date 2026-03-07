@@ -50,9 +50,49 @@ font-family:"Courier New",monospace;
 
 button:hover{background:#001a00;}
 
+#gridMenu{
+position:absolute;
+top:50px;
+right:0;
+background:black;
+border:2px solid #00ff00;
+padding:25px;
+display:none;
+}
+
+#gridControl{
+width:220px;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+}
+
+#gridPreview{
+display:grid;
+grid-template-columns:repeat(10,16px);
+grid-template-rows:repeat(10,16px);
+gap:2px;
+}
+
+.gridCell{
+width:16px;
+height:16px;
+border:1px solid purple;
+background:transparent;
+}
+
+.gridCell.active{background:#00ff00;}
+
+#sizeSlider{
+width:200px;
+margin-bottom:12px;
+}
+
 #posts{padding:20px;}
 
 .grid{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);gap:20px;}
+
 .list .post{
 display:flex;
 align-items:center;
@@ -76,6 +116,7 @@ margin-bottom:10px;
 }
 
 .thumb-grid img{width:100%;height:100%;object-fit:cover;}
+
 .thumb-list{width:160px;border:2px solid #00ff00;}
 .thumb-list img{width:100%;display:block;}
 
@@ -105,12 +146,13 @@ flex-direction:column;
 align-items:center;
 justify-content:flex-start;
 z-index:99999;
+padding-top:0;
 }
 
 #videoTitle{
-padding-top:10px;
+padding-top:5px;
 font-size:22px;
-margin-bottom:10px;
+margin:0 0 16px 0;
 text-align:center;
 max-width:90vw;
 }
@@ -118,13 +160,60 @@ max-width:90vw;
 #lightbox iframe{
 width:min(48vw,640px);
 aspect-ratio:16/9;
+height:auto;
+display:block;
+margin:0 auto;
 border:2px solid #00ff00;
 }
 
+
+#videoExcerpt{
+font-size:22px;
+color:#00ff00;
+text-align:center;
+max-width:80vw;
+margin-top:10px;
+}
+
+#videoExcerpt a{
+color:#00ff00;
+text-decoration:none;
+cursor:pointer;
+}
+
+#videoFull{
+max-width:80vw;
+margin:10px auto;
+display:none;
+line-height:1.4;
+}
+
+
 #closeVideo{
-font-size:20px;
+font-size:22px;
+color:#00ff00;
+text-align:center;
 cursor:pointer;
 margin:12px 0;
+}
+#closeVideo:hover{
+text-decoration:underline;
+}
+
+#videoMeta{
+margin-top:18px;
+font-size:14px;
+opacity:.8;
+text-align:center;
+max-width:80vw;
+line-height:1.4;
+}
+
+#lightboxClose{
+position:absolute;
+top:20px;right:20px;
+font-size:28px;
+cursor:pointer;
 }
 
 .status{text-align:center;padding:10px;}
@@ -144,6 +233,19 @@ margin:12px 0;
 <input id="videoSearch" placeholder="Search Videos...">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
+
+<div id="gridMenu">
+
+<div id="gridControl">
+
+<input type="range" min="3" max="10" value="3" id="sizeSlider">
+
+<div id="gridPreview"></div>
+
+</div>
+
+</div>
+
 </div>
 
 </header>
@@ -157,125 +259,172 @@ margin:12px 0;
 <div id="videoTitle"></div>
 <iframe id="lightboxFrame" src="" allowfullscreen></iframe>
 <div id="closeVideo">[CLOSE VIDEO]</div>
+<div id="videoMeta"></div>
+<div id="videoFull"></div>
 </div>
 
 <script>
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
-const CACHE_KEY="yt_cache_videos";
-const CACHE_TIME=1000*60*60*6;
 
-const FEED="https://api.allorigins.win/get?url="+
-encodeURIComponent("https://www.youtube.com/feeds/videos.xml?channel_id="+CHANNEL_ID);
+
 
 let posts=[];
 let filtered=[];
-let visible=9;
 let view="grid";
+
+let gridSize=3;
+let visible=gridSize*gridSize;
 
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
-const loadBtn=document.getElementById("loadMore");
 const searchInput=document.getElementById("videoSearch");
+const loadBtn=document.getElementById("loadMore");
+const gridMenu=document.getElementById("gridMenu");
+const gridBtn=document.getElementById("gridBtn");
+
+const preview=document.getElementById("gridPreview");
+const slider=document.getElementById("sizeSlider");
+
+const lightbox=document.getElementById("lightbox");
+const frame=document.getElementById("lightboxFrame");
+
+for(let i=0;i<100;i++){
+let c=document.createElement("div");
+c.className="gridCell";
+preview.appendChild(c);
+}
+
+function updatePreview(){
+
+let cells=document.querySelectorAll(".gridCell");
+
+cells.forEach((c,i)=>{
+let x=i%10;
+let y=Math.floor(i/10);
+
+if(x<gridSize && y<gridSize) c.classList.add("active");
+else c.classList.remove("active");
+
+});
+
+}
+
+function updateSize(v){
+
+gridSize=parseInt(v);
+slider.value=v;
+
+visible=gridSize*gridSize;
+
+updatePreview();
+render();
+
+}
+
+slider.oninput=()=>updateSize(slider.value);
+
 
 async function loadPosts(){
 
-let cached=localStorage.getItem(CACHE_KEY);
-
-if(cached){
-let obj=JSON.parse(cached);
-if(Date.now()-obj.time<CACHE_TIME){
-posts=obj.data;
-filtered=posts;
-statusEl.style.display="none";
-render();
-return;
-}
-}
-
 try{
 
-const r=await fetch(FEED);
-const data=await r.json();
+const r = await fetch("/channel-metadata.csv");
+if(!r.ok) throw new Error("CSV load failed");
 
-const xml=new DOMParser().parseFromString(data.contents,"text/xml");
+const text = await r.text();
 
-posts=[...xml.querySelectorAll("entry")].map(e=>{
+const rows = text.trim().split("
+").slice(1);
 
-let link=e.querySelector("link").getAttribute("href");
-let id=link.split("v=")[1];
+posts = rows.map(row=>{
 
-return{
-title:e.querySelector("title").textContent,
-date:e.querySelector("published").textContent,
-id:id,
-thumb:`https://img.youtube.com/vi/${id}/hqdefault.jpg`
+const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+return {
+id:cols[0],
+title:(cols[1]||"").replace(/^"|"$/g,""),
+description:(cols[2]||"").replace(/^"|"$/g,""),
+date:cols[3],
+duration:cols[4],
+views:cols[5],
+thumb:cols[6],
+link:cols[7],
+embed:cols[8]
 };
 
 });
 
-posts.sort((a,b)=>new Date(b.date)-new Date(a.date));
-
-localStorage.setItem(CACHE_KEY,JSON.stringify({
-time:Date.now(),
-data:posts
-}));
+posts.sort((a,b)=> new Date(b.date) - new Date(a.date));
 
 filtered=posts;
 
 statusEl.style.display="none";
+
+updatePreview();
 render();
 
 }catch(e){
 
 console.error(e);
-statusEl.textContent="FAILED TO LOAD FEED";
+statusEl.textContent="FAILED TO LOAD channel-metadata.csv";
 
 }
 }
 
-function openVideo(id,title){
-
-document.getElementById("lightboxFrame").src=
-"https://www.youtube.com/embed/"+id;
-
-document.getElementById("videoTitle").innerHTML=
-'<a style="color:#00ff00;text-decoration:none;" target="_blank" href="https://youtube.com/watch?v='+id+'">'+title+'</a>';
-
-document.getElementById("lightbox").style.display="flex";
-
 }
 
-document.getElementById("closeVideo").onclick=()=>{
 
-document.getElementById("lightbox").style.display="none";
-document.getElementById("lightboxFrame").src="";
 
+function openVideo(id,title,date,description){
+
+frame.src="https://www.youtube.com/embed/"+id;
+
+document.getElementById("videoTitle").innerHTML =
+`<a href="https://youtube.com/watch?v=${id}" target="_blank" style="color:#00ff00;text-decoration:none;">${title}</a>`;
+
+let clean=(description||"")
+.replace(/<br\s*\/?>/gi,"\n")
+.replace(/<[^>]*>/g,"")
+.trim();
+
+document.getElementById("videoMeta").innerHTML =
+new Date(date).toLocaleString();
+
+document.getElementById("videoFull").textContent = clean;
+
+lightbox.style.display="flex";
+
+document.getElementById("closeVideo").onclick = ()=>{
+lightbox.style.display="none";
+frame.src="";
 };
 
-function render(){
+}
 
+function render(){
 postsEl.className=view;
+postsEl.style.gridTemplateColumns="repeat("+gridSize+",1fr)";
+
 postsEl.innerHTML="";
 
-filtered.slice(0,visible).forEach(p=>{
+const data=filtered.slice(0,visible);
 
-let el=document.createElement("div");
+data.forEach(p=>{
+
+const el=document.createElement("div");
 el.className="post";
 
 if(view==="grid"){
-
 el.innerHTML=`
 <div class="thumb-grid">
 <img src="${p.thumb}">
 </div>
-<div class="post-title">${p.title}</div>
-`;
+<div class="post-title">${p.title}</div>`;
 
-el.onclick=()=>openVideo(p.id,p.title);
-
-}else{
-
+el.onclick=()=>openVideo(p.id,p.title,p.date,p.description);
+}
+else{
 el.innerHTML=`
 <div class="thumb-list">
 <img src="${p.thumb}">
@@ -283,12 +432,10 @@ el.innerHTML=`
 <div>
 <div class="post-title">${p.title}</div>
 <div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
-</div>
-`;
+</div>`;
 
-el.querySelector("img").onclick=()=>openVideo(p.id,p.title);
-el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title);
-
+el.querySelector("img").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
+el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
 }
 
 postsEl.appendChild(el);
@@ -297,36 +444,45 @@ postsEl.appendChild(el);
 
 if(visible>=filtered.length) loadBtn.style.display="none";
 else loadBtn.style.display="block";
-
-}
-
-document.getElementById("gridBtn").onclick=()=>{
-view="grid";
-visible=9;
-render();
 }
 
 document.getElementById("listBtn").onclick=()=>{
 view="list";
-visible=6;
+visible=3;
+gridMenu.style.display="none";
 render();
 }
 
+gridBtn.onclick=()=>{
+if(view!=="grid"){
+view="grid";
+visible=gridSize*gridSize;
+render();
+}
+else{
+gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
+}
+}
+
 loadBtn.onclick=()=>{
-visible+=9;
+if(view==="list"){
+visible+=3;
+}else{
+if(gridSize<10){
+gridSize++;
+slider.value=gridSize;
+visible=gridSize*gridSize;
+updatePreview();
+}
+}
 render();
 }
 
 searchInput.addEventListener("input",()=>{
-
-let q=searchInput.value.toLowerCase();
-
+const q=searchInput.value.toLowerCase();
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-
-visible=9;
-
+visible=view==="list"?3:gridSize*gridSize;
 render();
-
 });
 
 document.addEventListener("DOMContentLoaded",loadPosts);
