@@ -33,6 +33,7 @@ select,input{background:#000;color:#00ff66;border:1px solid #333;font-family:mon
 
 <div id="editor">
 <div id="imageWindow">
+
 <div id="windowBar">
 <div id="leftControls">
 <select id="modeSelector">
@@ -120,21 +121,22 @@ let video=null;
 let stream=null;
 let sourceType="image";
 
+let bufferL=document.createElement("canvas");
+let bufferR=document.createElement("canvas");
+let ctxL=bufferL.getContext("2d");
+let ctxR=bufferR.getContext("2d");
+
 function currentSource(){
 return sourceType==="video"?video:original;
 }
 
-function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
-ctx.save();
-ctx.translate(dx+(flipX?dw:0),dy+(flipY?dh:0));
-ctx.scale(flipX?-1:1,flipY?-1:1);
-ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh);
-ctx.restore();
-}
+function applyEffect(ctx,type){
 
-function applyEffect(data,type,w,h){
+const w=ctx.canvas.width;
+const h=ctx.canvas.height;
 
-let d=data.data;
+let img=ctx.getImageData(0,0,w,h);
+let d=img.data;
 
 if(type==="invert"){
 for(let i=0;i<d.length;i+=4){
@@ -151,88 +153,58 @@ d[i]=d[i+1]=d[i+2]=v;
 }
 }
 
-if(type==="anaglyph"){
-for(let i=0;i<d.length;i+=4){
-d[i+1]=0;
-}
+ctx.putImageData(img,0,0);
 }
 
-if(type==="chromatic"){
-
-let copy=new Uint8ClampedArray(d);
-
-for(let y=0;y<h;y++){
-for(let x=0;x<w;x++){
-
-let i=(y*w+x)*4;
-
-let xr=Math.min(w-1,x+8);
-let xb=Math.max(0,x-8);
-
-let ir=(y*w+xr)*4;
-let ib=(y*w+xb)*4;
-
-d[i]=copy[ir];
-d[i+2]=copy[ib+2];
-
-}
-}
-
-}
-
-if(type==="blur"){
-
-let copy=new Uint8ClampedArray(d);
-
-for(let y=1;y<h-1;y++){
-for(let x=1;x<w-1;x++){
-
-let r=0,g=0,b=0,c=0;
-
-for(let dy=-1;dy<=1;dy++){
-for(let dx=-1;dx<=1;dx++){
-
-let i=((y+dy)*w+(x+dx))*4;
-
-r+=copy[i];
-g+=copy[i+1];
-b+=copy[i+2];
-c++;
-
-}
-}
-
-let ii=(y*w+x)*4;
-d[ii]=r/c;
-d[ii+1]=g/c;
-d[ii+2]=b/c;
-
-}
-}
-
-}
-
-return data;
-}
-
-function drawComparator(){
+function renderBuffers(){
 
 const src=currentSource();
 if(!src)return;
 
-ctx.drawImage(src,0,0,canvas.width,canvas.height);
+bufferL.width=canvas.width;
+bufferL.height=canvas.height;
+
+bufferR.width=canvas.width;
+bufferR.height=canvas.height;
+
+ctxL.drawImage(src,0,0,canvas.width,canvas.height);
+ctxR.drawImage(src,0,0,canvas.width,canvas.height);
+
+applyEffect(ctxL,leftEffect.value);
+applyEffect(ctxR,rightEffect.value);
+
+}
+
+function drawComparator(){
+
+renderBuffers();
 
 let split=(compareSlider.value/100)*canvas.width;
 
-let left=ctx.getImageData(0,0,split,canvas.height);
-let right=ctx.getImageData(split,0,canvas.width-split,canvas.height);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 
-left=applyEffect(left,leftEffect.value,split,canvas.height);
-right=applyEffect(right,rightEffect.value,canvas.width-split,canvas.height);
+ctx.save();
+ctx.beginPath();
+ctx.rect(0,0,split,canvas.height);
+ctx.clip();
+ctx.drawImage(bufferL,0,0);
+ctx.restore();
 
-ctx.putImageData(left,0,0);
-ctx.putImageData(right,split,0);
+ctx.save();
+ctx.beginPath();
+ctx.rect(split,0,canvas.width-split,canvas.height);
+ctx.clip();
+ctx.drawImage(bufferR,0,0);
+ctx.restore();
 
+}
+
+function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
+ctx.save();
+ctx.translate(dx+(flipX?dw:0),dy+(flipY?dh:0));
+ctx.scale(flipX?-1:1,flipY?-1:1);
+ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh);
+ctx.restore();
 }
 
 function drawMirror(){
@@ -298,24 +270,36 @@ requestAnimationFrame(loop);
 uploadBox.onclick=()=>fileInput.click();
 
 fileInput.onchange=e=>{
+
 const file=e.target.files[0];
 const reader=new FileReader();
+
 reader.onload=r=>{
+
 original.onload=()=>{
+
 canvas.width=original.width;
 canvas.height=original.height;
+
 startPanel.style.display="none";
 editor.style.display="flex";
+
 draw();
+
 };
+
 original.src=r.target.result;
+
 };
+
 reader.readAsDataURL(file);
+
 };
 
 cameraBox.onclick=async()=>{
 
 stream=await navigator.mediaDevices.getUserMedia({video:true});
+
 video=document.createElement("video");
 video.srcObject=stream;
 video.autoplay=true;
@@ -327,10 +311,12 @@ canvas.width=video.videoWidth;
 canvas.height=video.videoHeight;
 
 sourceType="video";
+
 startPanel.style.display="none";
 editor.style.display="flex";
 
 loop();
+
 };
 
 modeSelector.onchange=()=>{
@@ -351,6 +337,7 @@ compareControls.style.display="block";
 }
 
 draw();
+
 };
 
 mirrorAxis.onchange=draw;
