@@ -64,8 +64,6 @@ font-family:monospace;
 select,input{
 background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 }
-
-#compareSlider{width:100%;margin-top:8px;display:none;}
 </style>
 </head>
 
@@ -86,7 +84,6 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 <div id="leftControls">
 <select id="modeSelector">
 <option value="">Select Mode</option>
-<option value="comparator">Comparator</option>
 <option value="mirror">Mirror</option>
 </select>
 <div id="gear">⚙️</div>
@@ -94,8 +91,6 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 </div>
 
 <div id="controlsPanel">
-
-<div id="mirrorControls">
 
 Mirror Axis<br>
 <select id="mirrorAxis">
@@ -111,10 +106,7 @@ Invert Halves
 
 </div>
 
-</div>
-
 <canvas id="canvas"></canvas>
-<input type="range" id="compareSlider" min="0" max="100" value="50">
 
 </div>
 </div>
@@ -184,7 +176,9 @@ video.autoplay=true
 video.muted=true
 video.playsInline=true
 
-video.onloadedmetadata=()=>{
+await video.play()
+
+video.addEventListener("playing",()=>{
 
 sourceType="video"
 
@@ -196,12 +190,12 @@ editor.style.display="flex"
 
 requestAnimationFrame(renderLoop)
 
-}
+})
 
 }
 
 function currentSource(){
-return sourceType==="video" ? video : original
+return sourceType==="video"?video:original
 }
 
 function drawSource(){
@@ -211,7 +205,7 @@ ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height)
 
 function renderLoop(){
 
-if(sourceType==="video"){
+if(sourceType==="video" && video.readyState>=2){
 
 if(modeSelector.value==="mirror"){
 renderMirror()
@@ -219,9 +213,9 @@ renderMirror()
 drawSource()
 }
 
-requestAnimationFrame(renderLoop)
-
 }
+
+requestAnimationFrame(renderLoop)
 
 }
 
