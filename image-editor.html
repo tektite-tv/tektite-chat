@@ -19,7 +19,6 @@ height:100vh;
 
 #container{
 text-align:center;
-position:relative;
 }
 
 #uploadBox{
@@ -54,18 +53,21 @@ input[type=range]{
 width:80%;
 }
 
-#closeBtn{
-position:absolute;
-top:-10px;
-right:-10px;
-background:#222;
-border:1px solid #666;
-color:white;
-font-size:16px;
-width:30px;
-height:30px;
-cursor:pointer;
+#actions{
 display:none;
+margin-top:15px;
+font-family:"Courier New", monospace;
+color:#00ff66;
+}
+
+.actionBtn{
+cursor:pointer;
+padding:8px 16px;
+display:inline-block;
+}
+
+.actionBtn:hover{
+text-decoration:underline;
 }
 </style>
 </head>
@@ -73,8 +75,6 @@ display:none;
 <body>
 
 <div id="container">
-
-<button id="closeBtn">X</button>
 
 <div id="uploadBox">
 Drop Image<br>or Click
@@ -118,6 +118,11 @@ Right Effect:
 
 <canvas id="canvas"></canvas>
 
+<div id="actions">
+<span class="actionBtn" id="saveBtn">[Save]</span>
+<span class="actionBtn" id="closeBtn">[CLOSE]</span>
+</div>
+
 </div>
 
 <script>
@@ -126,11 +131,16 @@ const uploadBox = document.getElementById("uploadBox");
 const fileInput = document.getElementById("fileInput");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
+
 const slider = document.getElementById("slider");
 const controls = document.getElementById("controls");
+const actions = document.getElementById("actions");
+
 const leftEffect = document.getElementById("leftEffect");
 const rightEffect = document.getElementById("rightEffect");
+
 const generateBtn = document.getElementById("generate");
+const saveBtn = document.getElementById("saveBtn");
 const closeBtn = document.getElementById("closeBtn");
 
 let original = new Image();
@@ -173,7 +183,7 @@ rightCanvas.height=original.height;
 uploadBox.style.display="none";
 canvas.style.display="block";
 controls.style.display="block";
-closeBtn.style.display="block";
+actions.style.display="block";
 
 generateEffects();
 };
@@ -184,18 +194,9 @@ original.src=e.target.result;
 reader.readAsDataURL(file);
 }
 
-closeBtn.onclick=()=>{
-
-canvas.style.display="none";
-controls.style.display="none";
-closeBtn.style.display="none";
-uploadBox.style.display="flex";
-
-ctx.clearRect(0,0,canvas.width,canvas.height);
-fileInput.value="";
-};
-
 generateBtn.onclick=generateEffects;
+
+slider.oninput=renderSlider;
 
 function generateEffects(){
 
@@ -204,8 +205,6 @@ applyEffect(rightEffect.value,rightCtx);
 
 renderSlider();
 }
-
-slider.oninput=renderSlider;
 
 function renderSlider(){
 
@@ -228,6 +227,27 @@ ctx.drawImage(leftCanvas,0,0);
 
 ctx.restore();
 }
+
+saveBtn.onclick=()=>{
+
+const link=document.createElement("a");
+link.download="edited-image.png";
+link.href=canvas.toDataURL("image/png");
+link.click();
+
+};
+
+closeBtn.onclick=()=>{
+
+canvas.style.display="none";
+controls.style.display="none";
+actions.style.display="none";
+uploadBox.style.display="flex";
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+fileInput.value="";
+
+};
 
 function applyEffect(type,targetCtx){
 
