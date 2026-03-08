@@ -103,30 +103,44 @@ width:200px;
 
 /* DIVIDER */
 
-#divider{
+#dividerLine{
 position:absolute;
 top:34px;
-bottom:0;
-left:0;
-right:0;
+bottom:-30px;
+width:5px;
+background:rgba(255,255,255,0);
+left:50%;
+z-index:6;
 pointer-events:none;
-z-index:5;
 }
+
+#dividerLine:hover{
+background:rgba(255,255,255,0.5);
+}
+
+/* HANDLE */
 
 #dividerHandle{
-position:absolute;
-top:0;
-bottom:0;
-width:5px;
-left:50%;
-background:rgba(255,255,255,0);
+width:28px;
+height:28px;
+border-radius:50%;
+background:#4b0076;
+border:2px solid white;
+display:flex;
+align-items:center;
+justify-content:center;
 cursor:ew-resize;
-pointer-events:auto;
-z-index:6;
+position:absolute;
+bottom:-40px;
+left:50%;
+transform:translateX(-50%);
+z-index:8;
 }
 
-#dividerHandle:hover{
-background:rgba(255,255,255,0.5);
+#dividerHandle::after{
+content:"↔";
+font-size:14px;
+color:white;
 }
 
 /* ACTIONS */
@@ -134,7 +148,7 @@ background:rgba(255,255,255,0.5);
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
-margin-top:10px;
+margin-top:60px;
 }
 
 #actions span{
@@ -190,9 +204,8 @@ Drop Image<br>or Click
 
 </div>
 
-<div id="divider">
+<div id="dividerLine"></div>
 <div id="dividerHandle"></div>
-</div>
 
 <canvas id="canvas"></canvas>
 
@@ -224,6 +237,8 @@ const saveBtn=document.getElementById("saveBtn")
 const closeBtn=document.getElementById("closeBtn")
 
 const filenameLabel=document.getElementById("filename")
+
+const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
 
 let original=new Image()
@@ -274,7 +289,7 @@ filenameLabel.textContent=file.name
 uploadBox.style.display="none"
 editor.style.display="flex"
 
-dividerHandle.style.left=(canvas.clientWidth*split)+"px"
+updateDivider()
 
 generateEffects()
 
@@ -333,7 +348,17 @@ ctx.restore()
 
 }
 
-/* DIVIDER DRAG */
+/* DIVIDER */
+
+function updateDivider(){
+
+const rect=canvas.getBoundingClientRect()
+const pos=rect.width*split
+
+dividerLine.style.left=pos+"px"
+dividerHandle.style.left=pos+"px"
+
+}
 
 dividerHandle.addEventListener("mousedown",()=>{
 dragging=true
@@ -352,8 +377,7 @@ const rect=canvas.getBoundingClientRect()
 split=(e.clientX-rect.left)/rect.width
 split=Math.max(0,Math.min(1,split))
 
-dividerHandle.style.left=(rect.width*split)+"px"
-
+updateDivider()
 renderSplit()
 
 })
@@ -369,7 +393,7 @@ link.click()
 
 }
 
-/* CLOSE + RESET */
+/* CLOSE */
 
 closeBtn.onclick=()=>{
 
