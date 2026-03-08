@@ -18,6 +18,13 @@ align-items:center;
 justify-content:center;
 }
 
+#startPanel{
+display:flex;
+gap:20px;
+}
+
+/* UPLOAD */
+
 #uploadBox{
 width:280px;
 height:280px;
@@ -28,6 +35,22 @@ justify-content:center;
 cursor:pointer;
 text-align:center;
 }
+
+/* CAMERA */
+
+#cameraBox{
+width:280px;
+height:280px;
+border:3px dashed red;
+background:rgba(255,0,0,0.5);
+display:flex;
+align-items:center;
+justify-content:center;
+cursor:pointer;
+text-align:center;
+}
+
+/* EDITOR */
 
 #editor{
 display:none;
@@ -158,8 +181,9 @@ padding:6px 12px;
 
 <body>
 
-<div id="uploadBox">
-Drop Image<br>or Click
+<div id="startPanel">
+<div id="uploadBox">Drop Image<br>or Click</div>
+<div id="cameraBox">Enable Camera</div>
 </div>
 
 <input type="file" id="fileInput" hidden>
@@ -223,6 +247,8 @@ Drop Image<br>or Click
 <script>
 
 const uploadBox=document.getElementById("uploadBox")
+const cameraBox=document.getElementById("cameraBox")
+const startPanel=document.getElementById("startPanel")
 const fileInput=document.getElementById("fileInput")
 const editor=document.getElementById("editor")
 
@@ -245,6 +271,8 @@ const saveBtn=document.getElementById("saveBtn")
 const closeBtn=document.getElementById("closeBtn")
 
 let original=new Image()
+let videoStream=null
+let video=null
 
 let leftCanvas=document.createElement("canvas")
 let rightCanvas=document.createElement("canvas")
@@ -279,15 +307,9 @@ original.onload=()=>{
 canvas.width=original.width
 canvas.height=original.height
 
-leftCanvas.width=original.width
-rightCanvas.width=original.width
-
-leftCanvas.height=original.height
-rightCanvas.height=original.height
-
 filenameLabel.textContent=file.name
 
-uploadBox.style.display="none"
+startPanel.style.display="none"
 editor.style.display="flex"
 
 drawOriginal()
@@ -299,6 +321,37 @@ original.src=e.target.result
 }
 
 reader.readAsDataURL(file)
+
+}
+
+/* CAMERA */
+
+cameraBox.onclick=async ()=>{
+
+videoStream=await navigator.mediaDevices.getUserMedia({video:true})
+
+video=document.createElement("video")
+video.srcObject=videoStream
+video.play()
+
+video.onloadedmetadata=()=>{
+
+canvas.width=video.videoWidth
+canvas.height=video.videoHeight
+
+startPanel.style.display="none"
+editor.style.display="flex"
+
+requestAnimationFrame(drawCamera)
+
+}
+
+}
+
+function drawCamera(){
+
+ctx.drawImage(video,0,0,canvas.width,canvas.height)
+requestAnimationFrame(drawCamera)
 
 }
 
@@ -409,13 +462,14 @@ link.click()
 closeBtn.onclick=()=>{
 
 editor.style.display="none"
-uploadBox.style.display="flex"
+startPanel.style.display="flex"
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
-original.src=""
-
-filenameLabel.textContent=""
+if(videoStream){
+videoStream.getTracks().forEach(t=>t.stop())
+videoStream=null
+}
 
 modeSelector.value=""
 gear.style.display="none"
@@ -425,10 +479,10 @@ controlsPanel.style.display="none"
 
 function applyEffect(type,targetCtx){
 
-const w=original.width
-const h=original.height
+const w=canvas.width
+const h=canvas.height
 
-targetCtx.drawImage(original,0,0)
+targetCtx.drawImage(canvas,0,0)
 
 let imgData=targetCtx.getImageData(0,0,w,h)
 let d=imgData.data
