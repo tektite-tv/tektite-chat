@@ -63,9 +63,11 @@ font-family:monospace;
 color:#00ff66;
 }
 
-#hamburger{
-cursor:pointer;
-font-size:18px;
+#modeSelector{
+background:#000;
+color:#00ff66;
+border:1px solid #333;
+font-family:monospace;
 }
 
 #filename{
@@ -80,25 +82,6 @@ max-height:60vh;
 display:block;
 position:relative;
 z-index:1;
-}
-
-/* MENU */
-
-#menu{
-position:absolute;
-top:34px;
-left:0;
-background:#000;
-border:1px solid #333;
-padding:12px;
-display:none;
-font-family:monospace;
-z-index:7;
-}
-
-#menu select{
-margin-top:6px;
-width:200px;
 }
 
 /* DIVIDER */
@@ -176,31 +159,12 @@ Drop Image<br>or Click
 <div id="imageWindow">
 
 <div id="windowBar">
-<div id="hamburger">☰</div>
+
+<select id="modeSelector">
+<option value="comparator">Comparator</option>
+</select>
+
 <div id="filename"></div>
-</div>
-
-<div id="menu">
-
-<div>Left Effect</div>
-<select id="leftEffect">
-<option value="original">Original</option>
-<option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Anaglyph</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="blur">Blur</option>
-</select>
-
-<div style="margin-top:10px;">Right Effect</div>
-<select id="rightEffect">
-<option value="original">Original</option>
-<option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Anaglyph</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="blur">Blur</option>
-</select>
 
 </div>
 
@@ -227,12 +191,6 @@ const editor=document.getElementById("editor")
 const canvas=document.getElementById("canvas")
 const ctx=canvas.getContext("2d")
 
-const leftEffect=document.getElementById("leftEffect")
-const rightEffect=document.getElementById("rightEffect")
-
-const hamburger=document.getElementById("hamburger")
-const menu=document.getElementById("menu")
-
 const saveBtn=document.getElementById("saveBtn")
 const closeBtn=document.getElementById("closeBtn")
 
@@ -240,6 +198,8 @@ const filenameLabel=document.getElementById("filename")
 
 const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
+
+const modeSelector=document.getElementById("modeSelector")
 
 let original=new Image()
 
@@ -289,9 +249,7 @@ filenameLabel.textContent=file.name
 uploadBox.style.display="none"
 editor.style.display="flex"
 
-updateDivider()
-
-generateEffects()
+runMode()
 
 }
 
@@ -303,30 +261,27 @@ reader.readAsDataURL(file)
 
 }
 
-/* MENU */
+/* MODE SYSTEM */
 
-hamburger.onclick=(e)=>{
-e.stopPropagation()
-menu.style.display=menu.style.display==="block"?"none":"block"
+modeSelector.onchange=runMode
+
+function runMode(){
+
+if(modeSelector.value==="comparator"){
+generateComparator()
 }
 
-document.addEventListener("click",(e)=>{
-if(!menu.contains(e.target) && e.target!==hamburger){
-menu.style.display="none"
 }
-})
 
-/* EFFECT AUTO UPDATE */
+/* COMPARATOR */
 
-leftEffect.onchange=generateEffects
-rightEffect.onchange=generateEffects
+function generateComparator(){
 
-function generateEffects(){
-
-applyEffect(leftEffect.value,leftCtx)
-applyEffect(rightEffect.value,rightCtx)
+leftCtx.drawImage(original,0,0)
+rightCtx.drawImage(original,0,0)
 
 renderSplit()
+updateDivider()
 
 }
 
@@ -409,75 +364,9 @@ leftCanvas.height=0
 rightCanvas.width=0
 rightCanvas.height=0
 
-leftEffect.value="original"
-rightEffect.value="original"
-
 filenameLabel.textContent=""
 
 fileInput.value=""
-
-}
-
-/* EFFECT ENGINE */
-
-function applyEffect(type,targetCtx){
-
-const w=original.width
-const h=original.height
-
-targetCtx.drawImage(original,0,0)
-
-let imgData=targetCtx.getImageData(0,0,w,h)
-let d=imgData.data
-
-if(type==="invert"){
-for(let i=0;i<d.length;i+=4){
-d[i]=255-d[i]
-d[i+1]=255-d[i+1]
-d[i+2]=255-d[i+2]
-}
-}
-
-if(type==="grayscale"){
-for(let i=0;i<d.length;i+=4){
-let v=(d[i]+d[i+1]+d[i+2])/3
-d[i]=d[i+1]=d[i+2]=v
-}
-}
-
-if(type==="anaglyph"){
-for(let i=0;i<d.length;i+=4){
-d[i+1]=0
-}
-}
-
-if(type==="chromatic"){
-
-let copy=new Uint8ClampedArray(d)
-
-let offsetR=12
-let offsetB=-12
-
-for(let y=0;y<h;y++){
-for(let x=0;x<w;x++){
-
-let i=(y*w+x)*4
-
-let xr=Math.min(w-1,Math.max(0,x+offsetR))
-let xb=Math.min(w-1,Math.max(0,x+offsetB))
-
-let ir=(y*w+xr)*4
-let ib=(y*w+xb)*4
-
-d[i]=copy[ir]
-d[i+2]=copy[ib+2]
-
-}
-}
-
-}
-
-targetCtx.putImageData(imgData,0,0)
 
 }
 
