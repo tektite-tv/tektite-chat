@@ -18,14 +18,12 @@ align-items:center;
 justify-content:flex-start;
 }
 
-/* START PANEL */
 #startPanel{
 display:flex;
 gap:20px;
 margin-top:20px;
 }
 
-/* BUTTON BOXES */
 #uploadBox,#cameraBox{
 width:260px;
 height:260px;
@@ -36,16 +34,9 @@ cursor:pointer;
 text-align:center;
 }
 
-#uploadBox{
-border:3px dashed #777;
-}
+#uploadBox{border:3px dashed #777;}
+#cameraBox{border:3px dashed red;background:rgba(255,0,0,0.5);}
 
-#cameraBox{
-border:3px dashed red;
-background:rgba(255,0,0,0.5);
-}
-
-/* EDITOR */
 #editor{
 display:none;
 flex-direction:column;
@@ -53,7 +44,6 @@ align-items:center;
 width:100%;
 }
 
-/* WINDOW */
 #imageWindow{
 background:#000;
 border:1px solid #444;
@@ -64,7 +54,6 @@ max-height:75vh;
 position:relative;
 }
 
-/* WINDOW BAR */
 #windowBar{
 height:32px;
 background:#4b0076;
@@ -98,14 +87,12 @@ text-align:center;
 display:none;
 }
 
-/* CANVAS */
 canvas{
 max-width:92vw;
 max-height:65vh;
 display:block;
 }
 
-/* CONTROL PANEL */
 #controlsPanel{
 position:absolute;
 top:34px;
@@ -125,44 +112,30 @@ border:1px solid #333;
 font-family:monospace;
 }
 
-/* DIVIDER */
 #dividerLine{
 position:absolute;
 top:34px;
 bottom:-30px;
-width:5px;
-background:rgba(255,255,255,0);
+width:2px;
+background:#fff;
 left:50%;
 z-index:6;
-pointer-events:none;
 display:none;
 }
 
 #dividerHandle{
-width:28px;
-height:28px;
+width:20px;
+height:20px;
 border-radius:50%;
 background:#4b0076;
 border:2px solid white;
-display:flex;
-align-items:center;
-justify-content:center;
-cursor:ew-resize;
 position:absolute;
-bottom:-40px;
+bottom:-30px;
 left:50%;
 transform:translateX(-50%);
-z-index:8;
 display:none;
 }
 
-#dividerHandle::after{
-content:"↔";
-font-size:14px;
-color:white;
-}
-
-/* ACTIONS */
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
@@ -209,8 +182,6 @@ padding:6px 12px;
 Left Effect<br>
 <select id="leftEffect">
 <option value="original">Original</option>
-<option value="chromatic">Chromatic</option>
-<option value="anaglyph">Anaglyph</option>
 <option value="grayscale">Grayscale</option>
 <option value="invert">Invert</option>
 </select><br><br>
@@ -218,32 +189,25 @@ Left Effect<br>
 Right Effect<br>
 <select id="rightEffect">
 <option value="original">Original</option>
-<option value="chromatic">Chromatic</option>
-<option value="anaglyph">Anaglyph</option>
 <option value="grayscale">Grayscale</option>
 <option value="invert">Invert</option>
 </select>
-
 </div>
 
 <div id="mirrorControls" style="display:none">
 
 <b>Mirror Controls</b><br><br>
 
-Mirror Source<br>
-<select id="mirrorSource">
-<option value="left">Left → Right</option>
-<option value="right">Right → Left</option>
-</select><br><br>
-
-Flip Type<br>
-<select id="mirrorFlip">
-<option value="horizontal">Horizontal</option>
+Mirror Axis<br>
+<select id="mirrorAxis">
 <option value="vertical">Vertical</option>
+<option value="horizontal">Horizontal</option>
 </select><br><br>
 
-Feather<br>
-<input type="range" id="mirrorFeather" min="0" max="100" value="0">
+<label>
+<input type="checkbox" id="mirrorInvert">
+Invert Halves
+</label>
 
 </div>
 
@@ -275,17 +239,19 @@ const canvas=document.getElementById("canvas")
 const ctx=canvas.getContext("2d")
 
 const dividerLine=document.getElementById("dividerLine")
-const dividerHandle=document.getElementById("dividerHandle")
 
 const modeSelector=document.getElementById("modeSelector")
 const gear=document.getElementById("gear")
 const controlsPanel=document.getElementById("controlsPanel")
 
+const comparatorControls=document.getElementById("comparatorControls")
+const mirrorControls=document.getElementById("mirrorControls")
+
 const leftEffect=document.getElementById("leftEffect")
 const rightEffect=document.getElementById("rightEffect")
 
-const mirrorSource=document.getElementById("mirrorSource")
-const mirrorFlip=document.getElementById("mirrorFlip")
+const mirrorAxis=document.getElementById("mirrorAxis")
+const mirrorInvert=document.getElementById("mirrorInvert")
 
 let sourceType="image"
 let original=new Image()
@@ -298,22 +264,12 @@ let rightCanvas=document.createElement("canvas")
 let leftCtx=leftCanvas.getContext("2d")
 let rightCtx=rightCanvas.getContext("2d")
 
-let split=0.5
-let dragging=false
-
 /* UPLOAD */
 uploadBox.onclick=()=>fileInput.click()
 
 fileInput.onchange=e=>{
-loadFile(e.target.files[0])
-}
-
-function loadFile(file){
-
 const reader=new FileReader()
-
-reader.onload=e=>{
-
+reader.onload=r=>{
 original.onload=()=>{
 
 sourceType="image"
@@ -332,13 +288,9 @@ editor.style.display="flex"
 drawSource()
 
 }
-
-original.src=e.target.result
-
+original.src=r.target.result
 }
-
-reader.readAsDataURL(file)
-
+reader.readAsDataURL(e.target.files[0])
 }
 
 /* CAMERA */
@@ -359,21 +311,15 @@ sourceType="video"
 canvas.width=video.videoWidth
 canvas.height=video.videoHeight
 
-leftCanvas.width=canvas.width
-rightCanvas.width=canvas.width
-leftCanvas.height=canvas.height
-rightCanvas.height=canvas.height
-
 startPanel.style.display="none"
 editor.style.display="flex"
 
 requestAnimationFrame(loop)
 
 }
-
 }
 
-/* SOURCE DRAW */
+/* DRAW SOURCE */
 function drawSource(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
@@ -391,13 +337,9 @@ function loop(){
 
 if(sourceType==="video"){
 
-if(modeSelector.value==="comparator"){
-generateComparator()
-}
-else if(modeSelector.value==="mirror"){
+if(modeSelector.value==="mirror"){
 renderMirror()
-}
-else{
+}else{
 drawSource()
 }
 
@@ -410,41 +352,30 @@ requestAnimationFrame(loop)
 /* MODE SWITCH */
 modeSelector.onchange=()=>{
 
-dividerLine.style.display="none"
-dividerHandle.style.display="none"
+controlsPanel.style.display="none"
+gear.style.display="none"
 
-document.getElementById("comparatorControls").style.display="none"
-document.getElementById("mirrorControls").style.display="none"
+comparatorControls.style.display="none"
+mirrorControls.style.display="none"
+dividerLine.style.display="none"
 
 if(modeSelector.value==="comparator"){
 
 gear.style.display="block"
 dividerLine.style.display="block"
-dividerHandle.style.display="flex"
-
-document.getElementById("comparatorControls").style.display="block"
+comparatorControls.style.display="block"
 
 generateComparator()
 
 }
 
-else if(modeSelector.value==="mirror"){
+if(modeSelector.value==="mirror"){
 
 gear.style.display="block"
 dividerLine.style.display="block"
-dividerHandle.style.display="flex"
-
-document.getElementById("mirrorControls").style.display="block"
+mirrorControls.style.display="block"
 
 renderMirror()
-
-}
-
-else{
-
-gear.style.display="none"
-controlsPanel.style.display="none"
-drawSource()
 
 }
 
@@ -469,20 +400,12 @@ rightCtx.drawImage(source,0,0,canvas.width,canvas.height)
 applyEffect(leftEffect.value,leftCtx)
 applyEffect(rightEffect.value,rightCtx)
 
-renderSplit()
-updateDivider()
-
-}
-
-function renderSplit(){
-
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
 ctx.drawImage(rightCanvas,0,0)
 
 ctx.save()
-ctx.beginPath()
-ctx.rect(0,0,canvas.width*split,canvas.height)
+ctx.rect(0,0,canvas.width/2,canvas.height)
 ctx.clip()
 ctx.drawImage(leftCanvas,0,0)
 ctx.restore()
@@ -490,76 +413,71 @@ ctx.restore()
 }
 
 /* MIRROR MODE */
+mirrorAxis.onchange=renderMirror
+mirrorInvert.onchange=renderMirror
+
 function renderMirror(){
 
 let source = sourceType==="video" ? video : original
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
-let axis = canvas.width * split
+let axisX = canvas.width/2
+let axisY = canvas.height/2
 
-ctx.drawImage(source,0,0)
+if(mirrorAxis.value==="vertical"){
+
+if(!mirrorInvert.checked){
+
+ctx.drawImage(source,0,0,axisX,canvas.height,0,0,axisX,canvas.height)
 
 ctx.save()
-
-if(mirrorFlip.value==="horizontal"){
-
-ctx.translate(axis*2,0)
+ctx.translate(canvas.width,0)
 ctx.scale(-1,1)
-
-}
-
-else{
-
-ctx.translate(0,canvas.height*2)
-ctx.scale(1,-1)
-
-}
-
-ctx.drawImage(source,0,0)
-
+ctx.drawImage(source,0,0,axisX,canvas.height,0,0,axisX,canvas.height)
 ctx.restore()
 
+}else{
+
+ctx.save()
+ctx.translate(axisX,0)
+ctx.scale(-1,1)
+ctx.drawImage(source,0,0,axisX,canvas.height,0,0,axisX,canvas.height)
+ctx.restore()
+
+ctx.drawImage(source,0,0,axisX,canvas.height,axisX,0,axisX,canvas.height)
+
 }
 
-/* SLIDER */
-function updateDivider(){
-
-const rect=canvas.getBoundingClientRect()
-const pos=rect.width*split
-
-dividerLine.style.left=pos+"px"
-dividerHandle.style.left=pos+"px"
-
 }
 
-dividerHandle.addEventListener("mousedown",()=>{
-dragging=true
-})
-
-document.addEventListener("mouseup",()=>{
-dragging=false
-})
-
-document.addEventListener("mousemove",(e)=>{
-
-if(!dragging) return
-
-const rect=canvas.getBoundingClientRect()
-
-split=(e.clientX-rect.left)/rect.width
-split=Math.max(0,Math.min(1,split))
-
-if(modeSelector.value==="mirror"){
-renderMirror()
-}
 else{
-renderSplit()
+
+if(!mirrorInvert.checked){
+
+ctx.drawImage(source,0,0,canvas.width,axisY,0,0,canvas.width,axisY)
+
+ctx.save()
+ctx.translate(0,canvas.height)
+ctx.scale(1,-1)
+ctx.drawImage(source,0,0,canvas.width,axisY,0,0,canvas.width,axisY)
+ctx.restore()
+
+}else{
+
+ctx.save()
+ctx.translate(0,axisY)
+ctx.scale(1,-1)
+ctx.drawImage(source,0,0,canvas.width,axisY,0,0,canvas.width,axisY)
+ctx.restore()
+
+ctx.drawImage(source,0,0,canvas.width,axisY,0,axisY,canvas.width,axisY)
+
 }
 
-updateDivider()
+}
 
-})
+}
 
 /* EFFECT ENGINE */
 function applyEffect(type,targetCtx){
@@ -582,37 +500,6 @@ if(type==="grayscale"){
 for(let i=0;i<d.length;i+=4){
 let v=(d[i]+d[i+1]+d[i+2])/3
 d[i]=d[i+1]=d[i+2]=v
-}
-}
-
-if(type==="anaglyph"){
-for(let i=0;i<d.length;i+=4){
-d[i+1]=0
-}
-}
-
-if(type==="chromatic"){
-
-let copy=new Uint8ClampedArray(d)
-
-let offsetR=12
-let offsetB=-12
-
-for(let y=0;y<h;y++){
-for(let x=0;x<w;x++){
-
-let i=(y*w+x)*4
-
-let xr=Math.min(w-1,Math.max(0,x+offsetR))
-let xb=Math.min(w-1,Math.max(0,x+offsetB))
-
-let ir=(y*w+xr)*4
-let ib=(y*w+xb)*4
-
-d[i]=copy[ir]
-d[i+2]=copy[ib+2]
-
-}
 }
 }
 
