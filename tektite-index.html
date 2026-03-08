@@ -512,46 +512,6 @@ cubeContainer.style.display="none";
 
 }
 
-function initCube(){
-
-cubeContainer.innerHTML="";
-
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x000000);
-
-const camera=new THREE.PerspectiveCamera(
-70,
-cubeContainer.clientWidth/cubeContainer.clientHeight,
-0.1,
-1000
-);
-
-const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(
-cubeContainer.clientWidth,
-cubeContainer.clientHeight
-);
-
-cubeContainer.appendChild(renderer.domElement);
-
-
-camera.position.z=3;
-
-const light=new THREE.AmbientLight(0xffffff,1);
-scene.add(light);
-
-const materials=[];
-
-for(let i=0;i<6;i++){
-
-let video=filtered[i];
-
-if(video){
-let texture=new THREE.TextureLoader().load(video.thumb);
-materials.push(new THREE.MeshBasicMaterial({map:texture}));
-}else{
-materials.push(new THREE.MeshBasicMaterial({color:0x000000}));
-}
 
 }
 
@@ -608,6 +568,148 @@ if(hits.length){
 
 let face=Math.floor(hits[0].faceIndex/2);
 let video=filtered[face];
+
+if(video){
+openVideo(video.id,video.title,video.date,video.description);
+}
+
+}
+
+});
+
+function animate(){
+requestAnimationFrame(animate);
+renderer.render(scene,camera);
+}
+
+animate();
+
+}
+
+
+
+function initCube(){
+
+cubeContainer.innerHTML="";
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x000000);
+
+const camera=new THREE.PerspectiveCamera(
+70,
+cubeContainer.clientWidth/cubeContainer.clientHeight,
+0.1,
+1000
+);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(cubeContainer.clientWidth,cubeContainer.clientHeight);
+cubeContainer.appendChild(renderer.domElement);
+
+camera.position.z=3;
+
+const light=new THREE.AmbientLight(0xffffff,1);
+scene.add(light);
+
+const materials=[];
+
+function buildFaceTexture(faceIndex){
+
+let canvas=document.createElement("canvas");
+canvas.width=1024;
+canvas.height=1024;
+
+let ctx=canvas.getContext("2d");
+let cell=canvas.width/gridSize;
+
+for(let y=0;y<gridSize;y++){
+for(let x=0;x<gridSize;x++){
+
+let videoIndex=faceIndex*(gridSize*gridSize)+(y*gridSize+x);
+let v=filtered[videoIndex];
+if(!v) continue;
+
+let img=new Image();
+img.crossOrigin="anonymous";
+img.src=v.thumb;
+
+img.onload=()=>{
+ctx.drawImage(img,x*cell,y*cell,cell,cell);
+};
+
+}
+}
+
+return new THREE.CanvasTexture(canvas);
+}
+
+for(let i=0;i<6;i++){
+materials.push(
+new THREE.MeshBasicMaterial({
+map: buildFaceTexture(i)
+})
+);
+}
+
+const geometry=new THREE.BoxGeometry(2,2,2);
+const cube=new THREE.Mesh(geometry,materials);
+scene.add(cube);
+
+let isDragging=false;
+let prevX=0;
+let prevY=0;
+
+renderer.domElement.addEventListener("mousedown",e=>{
+isDragging=true;
+prevX=e.clientX;
+prevY=e.clientY;
+});
+
+window.addEventListener("mouseup",()=>{
+isDragging=false;
+});
+
+window.addEventListener("mousemove",e=>{
+
+if(!isDragging) return;
+
+let dx=e.clientX-prevX;
+let dy=e.clientY-prevY;
+
+cube.rotation.y += dx * 0.01;
+cube.rotation.x += dy * 0.01;
+
+prevX=e.clientX;
+prevY=e.clientY;
+
+});
+
+renderer.domElement.addEventListener("click",e=>{
+
+const rect=renderer.domElement.getBoundingClientRect();
+
+const mouse=new THREE.Vector2(
+((e.clientX-rect.left)/rect.width)*2-1,
+-((e.clientY-rect.top)/rect.height)*2+1
+);
+
+const raycaster=new THREE.Raycaster();
+raycaster.setFromCamera(mouse,camera);
+
+const hits=raycaster.intersectObject(cube);
+
+if(hits.length){
+
+let face=Math.floor(hits[0].faceIndex/2);
+
+let uv=hits[0].uv;
+
+let cellX=Math.floor(uv.x*gridSize);
+let cellY=Math.floor((1-uv.y)*gridSize);
+
+let index=face*(gridSize*gridSize)+cellY*gridSize+cellX;
+
+let video=filtered[index];
 
 if(video){
 openVideo(video.id,video.title,video.date,video.description);
