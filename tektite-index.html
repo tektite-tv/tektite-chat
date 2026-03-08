@@ -332,28 +332,21 @@ async function loadPosts(){
 try{
 
 const r = await fetch("/data/videos.json");
-if(!r.ok) throw new Error("videos.json load failed");
+if(!r.ok) throw new Error("videos.json failed");
 
 const data = await r.json();
 
-// yt-dlp JSON structure
-const entries = data.entries || data;
+posts = (data.entries || []).map(v => ({
 
-posts = entries.map(v => {
-
-return {
 id: v.id,
 title: v.title || "",
 description: v.description || "",
-date: v.upload_date || "",
-duration: v.duration || "",
-views: v.view_count || "",
-thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`
-};
+date: "",
+duration: v.duration || 0,
+views: v.view_count || 0,
+thumb: (v.thumbnails && v.thumbnails[3] ? v.thumbnails[3].url : `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`)
 
-});
-
-posts.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
+}));
 
 filtered = posts;
 
@@ -371,6 +364,105 @@ statusEl.textContent="FAILED TO LOAD /data/videos.json";
 
 }
 
+
+}
+
+}
+
+}
+
+
+
+function openVideo(id,title,date,description){
+
+frame.src="https://www.youtube.com/embed/"+id;
+
+document.getElementById("videoTitle").innerHTML =
+`<a href="https://youtube.com/watch?v=${id}" target="_blank" style="color:#00ff00;text-decoration:none;">${title}</a>`;
+
+let clean=(description||"")
+.replace(/<br\s*\/?>/gi,"\n")
+.replace(/<[^>]*>/g,"")
+.trim();
+
+document.getElementById("videoMeta").innerHTML =
+new Date(date).toLocaleString();
+
+document.getElementById("videoFull").textContent = clean;
+
+lightbox.style.display="flex";
+
+document.getElementById("closeVideo").onclick = ()=>{
+lightbox.style.display="none";
+frame.src="";
+};
+
+}
+
+function render(){
+postsEl.className=view;
+postsEl.style.gridTemplateColumns="repeat("+gridSize+",1fr)";
+
+postsEl.innerHTML="";
+
+const data=filtered.slice(0,visible);
+
+data.forEach(p=>{
+
+const el=document.createElement("div");
+el.className="post";
+
+if(view==="grid"){
+el.innerHTML=`
+<div class="thumb-grid">
+<img src="${p.thumb}">
+</div>
+<div class="post-title">${p.title}</div>`;
+
+el.onclick=()=>openVideo(p.id,p.title,p.date,p.description);
+}
+else{
+el.innerHTML=`
+<div class="thumb-list">
+<img src="${p.thumb}">
+</div>
+<div>
+<div class="post-title">${p.title}</div>
+<div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
+</div>`;
+
+el.querySelector("img").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
+el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
+}
+
+postsEl.appendChild(el);
+
+});
+
+if(visible>=filtered.length) loadBtn.style.display="none";
+else loadBtn.style.display="block";
+}
+
+document.getElementById("listBtn").onclick=()=>{
+view="list";
+visible=3;
+gridMenu.style.display="none";
+render();
+}
+
+gridBtn.onclick=()=>{
+if(view!=="grid"){
+view="grid";
+gridSize=3;
+slider.value=3;
+visible=gridSize*gridSize;
+updatePreview();
+render();
+}
+else{
+gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
+}
+}
 else{
 gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
 }
