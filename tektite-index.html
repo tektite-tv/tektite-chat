@@ -233,7 +233,7 @@ cursor:pointer;
 <input id="videoSearch" placeholder="Search Videos...">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
-<button id="modeBtn">2D</button>
+<button id="modeBtn" disabled>2D</button>
 
 <div id="gridMenu">
 
@@ -252,7 +252,7 @@ cursor:pointer;
 </header>
 
 <div id="posts" class="grid"></div>
-<div id="cubeContainer" style="display:none;width:100%;height:70vh;"></div>
+<div id="cubeContainer" style="display:none;width:100%;height:70vh;position:relative;"></div>
 <div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
 
 <button id="loadMore">Load More</button>
@@ -265,7 +265,7 @@ cursor:pointer;
 <div id="videoFull"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script>
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
@@ -354,6 +354,7 @@ thumb: (v.thumbnails && v.thumbnails[3] ? v.thumbnails[3].url : `https://i.ytimg
 filtered = posts;
 
 statusEl.style.display="none";
+modeBtn.disabled=false;
 
 updatePreview();
 render();
@@ -485,7 +486,18 @@ let mode="2d";
 const cubeContainer=document.getElementById("cubeContainer");
 const modeBtn=document.getElementById("modeBtn");
 
+function shuffle(arr){
+let a=[...arr];
+for(let i=a.length-1;i>0;i--){
+let j=Math.floor(Math.random()*(i+1));
+[a[i],a[j]]=[a[j],a[i]];
+}
+return a;
+}
+
 modeBtn.onclick=()=>{
+
+if(!filtered.length) return;
 
 if(mode==="2d"){
 mode="3d";
@@ -500,15 +512,6 @@ cubeContainer.style.display="none";
 postsEl.style.display="";
 }
 
-}
-
-function shuffle(arr){
-let a=[...arr];
-for(let i=a.length-1;i>0;i--){
-let j=Math.floor(Math.random()*(i+1));
-[a[i],a[j]]=[a[j],a[i]];
-}
-return a;
 }
 
 function buildCube(){
@@ -562,7 +565,6 @@ ctx.drawImage(img,x*cell,y*cell,cell,cell);
 }
 
 return new THREE.CanvasTexture(canvas);
-
 }
 
 for(let f=0;f<6;f++){
