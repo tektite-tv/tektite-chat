@@ -519,6 +519,7 @@ function buildCube(){
 cubeContainer.innerHTML="";
 
 const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x000000);
 
 const camera=new THREE.PerspectiveCamera(
 70,
@@ -531,7 +532,10 @@ const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(cubeContainer.clientWidth,cubeContainer.clientHeight);
 cubeContainer.appendChild(renderer.domElement);
 
-camera.position.z=3;
+camera.position.z=6;
+
+const light=new THREE.AmbientLight(0xffffff,1);
+scene.add(light);
 
 let shuffled=shuffle(filtered);
 
@@ -543,6 +547,8 @@ let canvas=document.createElement("canvas");
 canvas.width=1024;
 canvas.height=1024;
 let ctx=canvas.getContext("2d");
+
+let texture=new THREE.CanvasTexture(canvas);
 
 let cell=canvas.width/gridSize;
 
@@ -559,12 +565,13 @@ img.src=v.thumb;
 
 img.onload=()=>{
 ctx.drawImage(img,x*cell,y*cell,cell,cell);
+texture.needsUpdate=true;
 };
 
 }
 }
 
-return new THREE.CanvasTexture(canvas);
+return texture;
 }
 
 for(let f=0;f<6;f++){
@@ -572,7 +579,7 @@ materials.push(new THREE.MeshBasicMaterial({map:buildFaceTexture(f)}));
 }
 
 const cube=new THREE.Mesh(
-new THREE.BoxGeometry(2,2,2),
+new THREE.BoxGeometry(4,4,4),
 materials
 );
 
@@ -636,6 +643,12 @@ openVideo(video.id,video.title,video.date,video.description);
 
 }
 
+});
+
+window.addEventListener("resize",()=>{
+renderer.setSize(cubeContainer.clientWidth,cubeContainer.clientHeight);
+camera.aspect=cubeContainer.clientWidth/cubeContainer.clientHeight;
+camera.updateProjectionMatrix();
 });
 
 function animate(){
