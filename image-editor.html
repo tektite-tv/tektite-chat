@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,7 +16,6 @@ height:100%;
 display:flex;
 flex-direction:column;
 align-items:center;
-justify-content:flex-start;
 }
 
 #startPanel{display:flex;gap:20px;margin-top:20px;}
@@ -39,8 +39,8 @@ max-width:92vw;max-height:75vh;position:relative;
 
 #windowBar{
 height:32px;background:#4b0076;
-display:flex;align-items:center;justify-content:space-between;
-padding:0 10px;font-family:monospace;color:#00ff66;
+display:flex;align-items:center;padding:0 10px;
+font-family:monospace;color:#00ff66;
 }
 
 #leftControls{display:flex;gap:8px;align-items:center;}
@@ -66,13 +66,6 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 }
 
 #compareSlider{width:100%;margin-top:8px;display:none;}
-
-#actions{
-font-family:"Courier New", monospace;color:#00ff66;
-margin-top:40px;padding-bottom:40px;
-}
-
-#actions span{cursor:pointer;padding:6px 12px;}
 </style>
 </head>
 
@@ -102,35 +95,7 @@ margin-top:40px;padding-bottom:40px;
 
 <div id="controlsPanel">
 
-<div id="comparatorControls">
-
-<b>Comparator Controls</b><br><br>
-
-Left Effect<br>
-<select id="leftEffect">
-<option value="original">Original</option>
-<option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Anaglyph</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="blur">Blur</option>
-</select><br><br>
-
-Right Effect<br>
-<select id="rightEffect">
-<option value="original">Original</option>
-<option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Anaglyph</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="blur">Blur</option>
-</select>
-
-</div>
-
-<div id="mirrorControls" style="display:none">
-
-<b>Mirror Controls</b><br><br>
+<div id="mirrorControls">
 
 Mirror Axis<br>
 <select id="mirrorAxis">
@@ -152,15 +117,10 @@ Invert Halves
 <input type="range" id="compareSlider" min="0" max="100" value="50">
 
 </div>
-
-<div id="actions">
-<span id="saveBtn">[Save]</span>
-<span id="closeBtn">[CLOSE]</span>
-</div>
-
 </div>
 
 <script>
+
 const uploadBox=document.getElementById("uploadBox")
 const cameraBox=document.getElementById("cameraBox")
 const startPanel=document.getElementById("startPanel")
@@ -174,92 +134,70 @@ const modeSelector=document.getElementById("modeSelector")
 const gear=document.getElementById("gear")
 const controlsPanel=document.getElementById("controlsPanel")
 
-const comparatorControls=document.getElementById("comparatorControls")
-const mirrorControls=document.getElementById("mirrorControls")
-
-const compareSlider=document.getElementById("compareSlider")
-
-const leftEffect=document.getElementById("leftEffect")
-const rightEffect=document.getElementById("rightEffect")
-
 const mirrorAxis=document.getElementById("mirrorAxis")
 const mirrorInvert=document.getElementById("mirrorInvert")
-
-const saveBtn=document.getElementById("saveBtn")
-const closeBtn=document.getElementById("closeBtn")
 
 let sourceType="image"
 let original=new Image()
 let video=null
 let videoStream=null
 
-let leftCanvas=document.createElement("canvas")
-let rightCanvas=document.createElement("canvas")
-
-let leftCtx=leftCanvas.getContext("2d")
-let rightCtx=rightCanvas.getContext("2d")
-
 uploadBox.onclick=()=>fileInput.click()
 
 fileInput.onchange=e=>{
-const file=e.target.files[0]
-if(!file) return
 
 const reader=new FileReader()
+
 reader.onload=r=>{
+
 original.onload=()=>{
+
 sourceType="image"
 
 canvas.width=original.width
 canvas.height=original.height
 
-leftCanvas.width=canvas.width
-rightCanvas.width=canvas.width
-leftCanvas.height=canvas.height
-rightCanvas.height=canvas.height
-
 startPanel.style.display="none"
 editor.style.display="flex"
 
 drawSource()
+
 }
+
 original.src=r.target.result
+
 }
-reader.readAsDataURL(file)
+
+reader.readAsDataURL(e.target.files[0])
+
 }
 
 cameraBox.onclick=async ()=>{
-try{
+
 videoStream=await navigator.mediaDevices.getUserMedia({
 video:{width:{ideal:4096},height:{ideal:2160}}
 })
 
 video=document.createElement("video")
 video.srcObject=videoStream
+video.autoplay=true
 video.muted=true
 video.playsInline=true
-await video.play()
 
 video.onloadedmetadata=()=>{
+
 sourceType="video"
 
 canvas.width=video.videoWidth
 canvas.height=video.videoHeight
 
-leftCanvas.width=canvas.width
-rightCanvas.width=canvas.width
-leftCanvas.height=canvas.height
-rightCanvas.height=canvas.height
-
 startPanel.style.display="none"
 editor.style.display="flex"
 
-requestAnimationFrame(loop)
+requestAnimationFrame(renderLoop)
+
 }
-}catch(err){
-console.error(err)
-alert("Could not access camera.")
-}
+
 }
 
 function currentSource(){
@@ -271,111 +209,60 @@ ctx.clearRect(0,0,canvas.width,canvas.height)
 ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height)
 }
 
-function loop(){
+function renderLoop(){
+
 if(sourceType==="video"){
-if(modeSelector.value==="comparator"){
-generateComparator()
-}else if(modeSelector.value==="mirror"){
+
+if(modeSelector.value==="mirror"){
 renderMirror()
 }else{
 drawSource()
 }
-requestAnimationFrame(loop)
+
+requestAnimationFrame(renderLoop)
+
 }
+
 }
 
 modeSelector.onchange=()=>{
-controlsPanel.style.display="none"
-gear.style.display="none"
-compareSlider.style.display="none"
-comparatorControls.style.display="none"
-mirrorControls.style.display="none"
 
-if(modeSelector.value==="comparator"){
+gear.style.display="none"
+controlsPanel.style.display="none"
+
+if(modeSelector.value==="mirror"){
 gear.style.display="block"
-compareSlider.style.display="block"
-comparatorControls.style.display="block"
-if(sourceType==="image") generateComparator()
-}else if(modeSelector.value==="mirror"){
-gear.style.display="block"
-mirrorControls.style.display="block"
 renderMirror()
 }else{
 drawSource()
 }
+
 }
 
 gear.onclick=()=>{
-controlsPanel.style.display =
-controlsPanel.style.display==="block" ? "none" : "block"
-}
 
-compareSlider.oninput=()=>{ if(sourceType==="image") generateComparator() }
-leftEffect.onchange=()=>{ if(sourceType==="image") generateComparator() }
-rightEffect.onchange=()=>{ if(sourceType==="image") generateComparator() }
+controlsPanel.style.display =
+controlsPanel.style.display==="block"?"none":"block"
+
+}
 
 mirrorAxis.onchange=renderMirror
 mirrorInvert.onchange=renderMirror
 
-saveBtn.onclick=()=>{
-const link=document.createElement("a")
-link.download="edited-image.png"
-link.href=canvas.toDataURL("image/png")
-link.click()
-}
+function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
 
-closeBtn.onclick=()=>{
-if(videoStream){
-videoStream.getTracks().forEach(t=>t.stop())
-videoStream=null
-video=null
-}
-editor.style.display="none"
-startPanel.style.display="flex"
-controlsPanel.style.display="none"
-gear.style.display="none"
-compareSlider.style.display="none"
-comparatorControls.style.display="none"
-mirrorControls.style.display="none"
-modeSelector.value=""
-fileInput.value=""
-ctx.clearRect(0,0,canvas.width,canvas.height)
-sourceType="image"
-original=new Image()
-}
-
-/* COMPARATOR */
-function generateComparator(){
-let source=currentSource()
-
-leftCtx.clearRect(0,0,canvas.width,canvas.height)
-rightCtx.clearRect(0,0,canvas.width,canvas.height)
-
-leftCtx.drawImage(source,0,0,canvas.width,canvas.height)
-rightCtx.drawImage(source,0,0,canvas.width,canvas.height)
-
-applyEffect(leftEffect.value,leftCtx)
-applyEffect(rightEffect.value,rightCtx)
-
-let split=compareSlider.value/100
-let splitX=canvas.width*split
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-ctx.drawImage(leftCanvas,0,0,splitX,canvas.height,0,0,splitX,canvas.height)
-ctx.drawImage(rightCanvas,splitX,0,canvas.width-splitX,canvas.height,splitX,0,canvas.width-splitX,canvas.height)
-}
-
-/* MIRROR */
-function drawQuad(source, sx, sy, sw, sh, dx, dy, dw, dh, flipX=false, flipY=false){
 ctx.save()
-ctx.translate(dx + (flipX ? dw : 0), dy + (flipY ? dh : 0))
-ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
-ctx.drawImage(source, sx, sy, sw, sh, 0, 0, dw, dh)
+ctx.translate(dx+(flipX?dw:0),dy+(flipY?dh:0))
+ctx.scale(flipX?-1:1,flipY?-1:1)
+ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh)
 ctx.restore()
+
 }
 
 function renderMirror(){
-let source=currentSource()
+
+let src=currentSource()
+
 let w=canvas.width
 let h=canvas.height
 let hw=w/2
@@ -383,127 +270,45 @@ let hh=h/2
 
 ctx.clearRect(0,0,w,h)
 
-if(mirrorAxis.value==="vertical"){
+if(mirrorAxis.value==="both"){
+
+quad(src,0,0,hw,hh,0,0,hw,hh,false,false)
+quad(src,0,0,hw,hh,hw,0,hw,hh,true,false)
+
 if(!mirrorInvert.checked){
-drawQuad(source,0,0,hw,h,0,0,hw,h,false,false)
-drawQuad(source,0,0,hw,h,hw,0,hw,h,true,false)
+
+quad(src,0,0,hw,hh,0,hh,hw,hh,false,true)
+quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true)
+
 }else{
-drawQuad(source,0,0,hw,h,0,0,hw,h,true,false)
-drawQuad(source,0,0,hw,h,hw,0,hw,h,false,false)
+
+quad(src,0,0,hw,hh,0,hh,hw,hh,true,true)
+quad(src,0,0,hw,hh,hw,hh,hw,hh,false,true)
+
 }
+
 return
+
+}
+
+if(mirrorAxis.value==="vertical"){
+
+quad(src,0,0,hw,h,0,0,hw,h,false,false)
+quad(src,0,0,hw,h,hw,0,hw,h,true,false)
+return
+
 }
 
 if(mirrorAxis.value==="horizontal"){
-if(!mirrorInvert.checked){
-drawQuad(source,0,0,w,hh,0,0,w,hh,false,false)
-drawQuad(source,0,0,w,hh,0,hh,w,hh,false,true)
-}else{
-drawQuad(source,0,0,w,hh,0,0,w,hh,false,true)
-drawQuad(source,0,0,w,hh,0,hh,w,hh,false,false)
-}
+
+quad(src,0,0,w,hh,0,0,w,hh,false,false)
+quad(src,0,0,w,hh,0,hh,w,hh,false,true)
 return
+
 }
 
-if(mirrorAxis.value==="both"){
-/*
-unchecked:
-TL none, TR flipX, BL flipY, BR flipXY
-
-checked:
-TL none, TR flipX, BL flipXY, BR flipY
-This keeps the top row the same and swaps the bottom-row flip orientation.
-*/
-drawQuad(source,0,0,hw,hh,0,0,hw,hh,false,false)
-drawQuad(source,0,0,hw,hh,hw,0,hw,hh,true,false)
-
-if(!mirrorInvert.checked){
-drawQuad(source,0,0,hw,hh,0,hh,hw,hh,false,true)
-drawQuad(source,0,0,hw,hh,hw,hh,hw,hh,true,true)
-}else{
-drawQuad(source,0,0,hw,hh,0,hh,hw,hh,true,true)
-drawQuad(source,0,0,hw,hh,hw,hh,hw,hh,false,true)
-}
-}
 }
 
-/* EFFECTS */
-function applyEffect(type,targetCtx){
-const w=canvas.width
-const h=canvas.height
-
-let imgData=targetCtx.getImageData(0,0,w,h)
-let d=imgData.data
-
-if(type==="invert"){
-for(let i=0;i<d.length;i+=4){
-d[i]=255-d[i]
-d[i+1]=255-d[i+1]
-d[i+2]=255-d[i+2]
-}
-}
-
-if(type==="grayscale"){
-for(let i=0;i<d.length;i+=4){
-let v=(d[i]+d[i+1]+d[i+2])/3
-d[i]=d[i+1]=d[i+2]=v
-}
-}
-
-if(type==="anaglyph"){
-for(let i=0;i<d.length;i+=4){
-d[i+1]=0
-}
-}
-
-if(type==="chromatic"){
-let copy=new Uint8ClampedArray(d)
-let offsetR=12
-let offsetB=-12
-
-for(let y=0;y<h;y++){
-for(let x=0;x<w;x++){
-let i=(y*w+x)*4
-
-let xr=Math.min(w-1,Math.max(0,x+offsetR))
-let xb=Math.min(w-1,Math.max(0,x+offsetB))
-
-let ir=(y*w+xr)*4
-let ib=(y*w+xb)*4
-
-d[i]=copy[ir]
-d[i+2]=copy[ib+2]
-}
-}
-}
-
-if(type==="blur"){
-let copy=new Uint8ClampedArray(d)
-
-for(let y=1;y<h-1;y++){
-for(let x=1;x<w-1;x++){
-let i=(y*w+x)*4
-let sumR=0,sumG=0,sumB=0,count=0
-
-for(let dy=-1;dy<=1;dy++){
-for(let dx=-1;dx<=1;dx++){
-let ii=((y+dy)*w+(x+dx))*4
-sumR+=copy[ii]
-sumG+=copy[ii+1]
-sumB+=copy[ii+2]
-count++
-}
-}
-
-d[i]=sumR/count
-d[i+1]=sumG/count
-d[i+2]=sumB/count
-}
-}
-}
-
-targetCtx.putImageData(imgData,0,0)
-}
 </script>
 
 </body>
