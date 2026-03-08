@@ -17,7 +17,6 @@ height:100%;
 display:flex;
 align-items:center;
 justify-content:center;
-overflow:hidden;
 }
 
 #uploadBox{
@@ -37,6 +36,20 @@ flex-direction:column;
 align-items:center;
 }
 
+/* RAINBOW OVERFLOW (outside image window) */
+
+#rainbowOverflow{
+position:fixed;
+top:0;
+left:0;
+width:0;
+height:0;
+pointer-events:none;
+z-index:2;
+}
+
+/* WINDOW */
+
 #imageWindow{
 background:#000;
 border:1px solid #444;
@@ -44,6 +57,7 @@ display:flex;
 flex-direction:column;
 max-width:95vw;
 position:relative;
+z-index:3;
 }
 
 #windowBar{
@@ -125,14 +139,6 @@ font-size:14px;
 color:white;
 }
 
-#rainbowOverflow{
-position:absolute;
-top:34px;
-pointer-events:none;
-z-index:3;
-height:0;
-}
-
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
@@ -157,6 +163,8 @@ text-decoration:underline;
 <input type="file" id="fileInput" hidden>
 
 <div id="editor">
+
+<div id="rainbowOverflow"></div>
 
 <div id="imageWindow">
 
@@ -191,7 +199,6 @@ text-decoration:underline;
 
 <div id="dividerLine"></div>
 <div id="dividerHandle"></div>
-<div id="rainbowOverflow"></div>
 
 <canvas id="canvas"></canvas>
 
@@ -241,6 +248,7 @@ let dragging=false
 
 uploadBox.onclick=()=>fileInput.click()
 uploadBox.ondragover=e=>e.preventDefault()
+
 uploadBox.ondrop=e=>{
 e.preventDefault()
 loadFile(e.dataTransfer.files[0])
@@ -338,6 +346,7 @@ dividerHandle.style.left=pos+"px"
 function updateRainbow(){
 
 rainbowOverflow.style.width="0px"
+rainbowOverflow.style.height="0px"
 rainbowOverflow.style.background="none"
 
 const rect=canvas.getBoundingClientRect()
@@ -347,10 +356,13 @@ if(split>1 && leftEffect.value==="chromatic"){
 let start=rect.right
 let width=window.innerWidth-start
 
-rainbowOverflow.style.left=rect.width+"px"
+rainbowOverflow.style.left=start+"px"
+rainbowOverflow.style.top=rect.top+"px"
 rainbowOverflow.style.width=width+"px"
 rainbowOverflow.style.height=rect.height+"px"
-rainbowOverflow.style.background="linear-gradient(to right, red, orange, yellow, lime, cyan, blue, magenta)"
+
+rainbowOverflow.style.background=
+"linear-gradient(to right, red, orange, yellow, lime, cyan, blue, magenta)"
 
 }
 
@@ -358,16 +370,20 @@ if(split<0 && rightEffect.value==="chromatic"){
 
 let width=rect.left
 
-rainbowOverflow.style.left=-width+"px"
+rainbowOverflow.style.left="0px"
+rainbowOverflow.style.top=rect.top+"px"
 rainbowOverflow.style.width=width+"px"
 rainbowOverflow.style.height=rect.height+"px"
-rainbowOverflow.style.background="linear-gradient(to left, red, orange, yellow, lime, cyan, blue, magenta)"
+
+rainbowOverflow.style.background=
+"linear-gradient(to left, red, orange, yellow, lime, cyan, blue, magenta)"
 
 }
 
 }
 
 dividerHandle.addEventListener("mousedown",()=>dragging=true)
+
 document.addEventListener("mouseup",()=>dragging=false)
 
 document.addEventListener("mousemove",(e)=>{
