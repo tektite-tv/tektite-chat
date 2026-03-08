@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -100,20 +99,29 @@ margin-top:6px;
 width:200px;
 }
 
-/* DIVIDER */
+/* DIVIDER OVERLAY */
 
 #divider{
 position:absolute;
 top:34px;
 bottom:0;
-width:5px;
-background:rgba(255,255,255,0);
-cursor:ew-resize;
-left:50%;
-z-index:4;
+left:0;
+right:0;
+pointer-events:none;
 }
 
-#divider:hover{
+#dividerHandle{
+position:absolute;
+top:0;
+bottom:0;
+width:5px;
+left:50%;
+background:rgba(255,255,255,0);
+cursor:ew-resize;
+pointer-events:auto;
+}
+
+#dividerHandle:hover{
 background:rgba(255,255,255,0.5);
 }
 
@@ -178,7 +186,9 @@ Drop Image<br>or Click
 
 </div>
 
-<div id="divider"></div>
+<div id="divider">
+<div id="dividerHandle"></div>
+</div>
 
 <canvas id="canvas"></canvas>
 
@@ -210,7 +220,7 @@ const saveBtn=document.getElementById("saveBtn")
 const closeBtn=document.getElementById("closeBtn")
 
 const filenameLabel=document.getElementById("filename")
-const divider=document.getElementById("divider")
+const dividerHandle=document.getElementById("dividerHandle")
 
 let original=new Image()
 
@@ -260,7 +270,7 @@ filenameLabel.textContent=file.name
 uploadBox.style.display="none"
 editor.style.display="flex"
 
-divider.style.left=(canvas.width*split)+"px"
+dividerHandle.style.left=(canvas.width*split)+"px"
 
 generateEffects()
 
@@ -321,7 +331,7 @@ ctx.restore()
 
 /* DIVIDER DRAG */
 
-divider.addEventListener("mousedown",()=>{
+dividerHandle.addEventListener("mousedown",()=>{
 dragging=true
 })
 
@@ -336,10 +346,9 @@ if(!dragging) return
 const rect=canvas.getBoundingClientRect()
 
 split=(e.clientX-rect.left)/rect.width
-
 split=Math.max(0,Math.min(1,split))
 
-divider.style.left=(split*rect.width)+"px"
+dividerHandle.style.left=(split*rect.width)+"px"
 
 renderSplit()
 
