@@ -18,6 +18,8 @@ align-items:center;
 justify-content:center;
 }
 
+/* UPLOAD */
+
 #uploadBox{
 width:280px;
 height:280px;
@@ -29,11 +31,15 @@ cursor:pointer;
 text-align:center;
 }
 
+/* EDITOR */
+
 #editor{
 display:none;
 flex-direction:column;
 align-items:center;
 }
+
+/* WINDOW */
 
 #imageWindow{
 background:#000;
@@ -43,6 +49,8 @@ flex-direction:column;
 max-width:95vw;
 position:relative;
 }
+
+/* WINDOW BAR */
 
 #windowBar{
 height:32px;
@@ -55,24 +63,30 @@ font-family:monospace;
 color:#00ff66;
 }
 
-select{
-background:#000;
-color:#00ff66;
-border:1px solid #333;
-font-family:monospace;
+#leftControls{
+display:flex;
+gap:8px;
+align-items:center;
+}
+
+#hamburger,#gear{
+cursor:pointer;
+font-size:18px;
+width:24px;
+text-align:center;
+}
+
+#gear{
+display:none;
 }
 
 #filename{
 opacity:.85;
 }
 
-canvas{
-max-width:92vw;
-max-height:60vh;
-display:block;
-}
+/* DROPDOWNS */
 
-#modePanel{
+#modeMenu{
 position:absolute;
 top:34px;
 left:0;
@@ -84,6 +98,35 @@ z-index:10;
 font-family:monospace;
 }
 
+#controlsPanel{
+position:absolute;
+top:34px;
+left:120px;
+background:#000;
+border:1px solid #333;
+padding:10px;
+display:none;
+z-index:10;
+font-family:monospace;
+}
+
+select{
+background:#000;
+color:#00ff66;
+border:1px solid #333;
+font-family:monospace;
+}
+
+/* IMAGE */
+
+canvas{
+max-width:92vw;
+max-height:60vh;
+display:block;
+}
+
+/* DIVIDER */
+
 #dividerLine{
 position:absolute;
 top:34px;
@@ -93,6 +136,7 @@ background:rgba(255,255,255,0);
 left:50%;
 z-index:6;
 pointer-events:none;
+display:none;
 }
 
 #dividerHandle{
@@ -110,6 +154,7 @@ bottom:-40px;
 left:50%;
 transform:translateX(-50%);
 z-index:8;
+display:none;
 }
 
 #dividerHandle::after{
@@ -117,6 +162,8 @@ content:"↔";
 font-size:14px;
 color:white;
 }
+
+/* ACTIONS */
 
 #actions{
 font-family:"Courier New", monospace;
@@ -146,16 +193,26 @@ Drop Image<br>or Click
 
 <div id="windowBar">
 
-<select id="modeSelector">
-<option value="">Select Mode</option>
-<option value="comparator">Comparator</option>
-</select>
+<div id="leftControls">
+<div id="hamburger">☰</div>
+<div id="gear">⚙️</div>
+</div>
 
 <div id="filename"></div>
 
 </div>
 
-<div id="modePanel">
+<div id="modeMenu">
+
+<div>Select Mode</div>
+<select id="modeSelector">
+<option value="">None</option>
+<option value="comparator">Comparator</option>
+</select>
+
+</div>
+
+<div id="controlsPanel">
 
 <div><b>Comparator Controls</b></div>
 
@@ -202,19 +259,24 @@ const editor=document.getElementById("editor")
 const canvas=document.getElementById("canvas")
 const ctx=canvas.getContext("2d")
 
-const saveBtn=document.getElementById("saveBtn")
-const closeBtn=document.getElementById("closeBtn")
-
 const filenameLabel=document.getElementById("filename")
 
 const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
 
+const hamburger=document.getElementById("hamburger")
+const gear=document.getElementById("gear")
+
+const modeMenu=document.getElementById("modeMenu")
+const controlsPanel=document.getElementById("controlsPanel")
+
 const modeSelector=document.getElementById("modeSelector")
-const modePanel=document.getElementById("modePanel")
 
 const leftEffect=document.getElementById("leftEffect")
 const rightEffect=document.getElementById("rightEffect")
+
+const saveBtn=document.getElementById("saveBtn")
+const closeBtn=document.getElementById("closeBtn")
 
 let original=new Image()
 
@@ -226,6 +288,8 @@ let rightCtx=rightCanvas.getContext("2d")
 
 let split=0.5
 let dragging=false
+
+/* UPLOAD */
 
 uploadBox.onclick=()=>fileInput.click()
 
@@ -284,11 +348,25 @@ dividerHandle.style.display="none"
 
 }
 
+/* MENUS */
+
+hamburger.onclick=()=>{
+modeMenu.style.display = modeMenu.style.display==="block" ? "none":"block"
+}
+
+gear.onclick=()=>{
+controlsPanel.style.display = controlsPanel.style.display==="block" ? "none":"block"
+}
+
+/* MODE */
+
 modeSelector.onchange=()=>{
+
+modeMenu.style.display="none"
 
 if(modeSelector.value==="comparator"){
 
-modePanel.style.display="block"
+gear.style.display="block"
 
 dividerLine.style.display="block"
 dividerHandle.style.display="flex"
@@ -297,12 +375,15 @@ generateComparator()
 
 }else{
 
-modePanel.style.display="none"
+gear.style.display="none"
+controlsPanel.style.display="none"
 drawOriginal()
 
 }
 
 }
+
+/* EFFECTS */
 
 leftEffect.onchange=generateComparator
 rightEffect.onchange=generateComparator
@@ -364,6 +445,8 @@ renderSplit()
 
 })
 
+/* SAVE */
+
 saveBtn.onclick=()=>{
 
 const link=document.createElement("a")
@@ -372,6 +455,8 @@ link.href=canvas.toDataURL()
 link.click()
 
 }
+
+/* CLOSE */
 
 closeBtn.onclick=()=>{
 
@@ -382,16 +467,11 @@ ctx.clearRect(0,0,canvas.width,canvas.height)
 
 original.src=""
 
-leftCanvas.width=0
-leftCanvas.height=0
-rightCanvas.width=0
-rightCanvas.height=0
-
 filenameLabel.textContent=""
 
-fileInput.value=""
-
 modeSelector.value=""
+gear.style.display="none"
+controlsPanel.style.display="none"
 
 }
 
@@ -429,6 +509,7 @@ d[i+1]=0
 if(type==="chromatic"){
 
 let copy=new Uint8ClampedArray(d)
+
 let offsetR=12
 let offsetB=-12
 
