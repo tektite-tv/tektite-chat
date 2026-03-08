@@ -459,21 +459,17 @@ render();
 }
 
 gridBtn.onclick=()=>{
-
-if(view !== "grid"){
+if(view!=="grid"){
 view="grid";
 gridSize=3;
 slider.value=3;
 visible=gridSize*gridSize;
-gridMenu.style.display="none";
 updatePreview();
 render();
 }
 else{
-gridMenu.style.display =
-gridMenu.style.display === "block" ? "none" : "block";
+gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
 }
-
 }
 else{
 gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
