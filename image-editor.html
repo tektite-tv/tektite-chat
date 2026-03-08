@@ -42,6 +42,7 @@ border:1px solid #444;
 display:flex;
 flex-direction:column;
 max-width:95vw;
+position:relative;
 }
 
 /* TOP CHROME */
@@ -78,21 +79,19 @@ display:block;
 
 #menu{
 position:absolute;
+top:34px;
+left:0;
 background:#000;
 border:1px solid #333;
 padding:12px;
 display:none;
 font-family:monospace;
+z-index:5;
 }
 
-#menu select,
-#menu input{
+#menu select{
 margin-top:6px;
 width:200px;
-}
-
-#menu button{
-margin-top:10px;
 }
 
 /* SLIDER */
@@ -138,6 +137,30 @@ text-decoration:underline;
 <div id="filename"></div>
 </div>
 
+<div id="menu">
+
+<div>Left Effect</div>
+<select id="leftEffect">
+<option value="original">Original</option>
+<option value="chromatic">Chromatic Aberration</option>
+<option value="anaglyph">Anaglyph</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+<option value="blur">Blur</option>
+</select>
+
+<div style="margin-top:10px;">Right Effect</div>
+<select id="rightEffect">
+<option value="original">Original</option>
+<option value="chromatic">Chromatic Aberration</option>
+<option value="anaglyph">Anaglyph</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+<option value="blur">Blur</option>
+</select>
+
+</div>
+
 <canvas id="canvas"></canvas>
 
 </div>
@@ -151,41 +174,17 @@ text-decoration:underline;
 
 </div>
 
-<div id="menu">
-
-<div>Left Effect</div>
-<select id="leftEffect">
-<option value="original">Original</option>
-<option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Anaglyph</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="blur">Blur</option>
-</select>
-
-<div>Right Effect</div>
-<select id="rightEffect">
-<option value="original">Original</option>
-<option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Anaglyph</option>
-<option value="grayscale">Grayscale</option>
-<option value="invert">Invert</option>
-<option value="blur">Blur</option>
-</select>
-
-<button id="generate">Generate</button>
-
-</div>
-
 <script>
 
 const uploadBox=document.getElementById("uploadBox")
 const fileInput=document.getElementById("fileInput")
 const editor=document.getElementById("editor")
+
 const canvas=document.getElementById("canvas")
 const ctx=canvas.getContext("2d")
 
 const slider=document.getElementById("slider")
+
 const leftEffect=document.getElementById("leftEffect")
 const rightEffect=document.getElementById("rightEffect")
 
@@ -254,16 +253,25 @@ reader.readAsDataURL(file)
 
 }
 
-/* MENU */
+/* MENU TOGGLE */
 
-hamburger.onclick=()=>{
-menu.style.display=
-menu.style.display==="block"?"none":"block"
+hamburger.onclick=(e)=>{
+e.stopPropagation()
+menu.style.display=menu.style.display==="block"?"none":"block"
 }
 
-/* EFFECTS */
+/* CLOSE MENU WHEN CLICKING OUTSIDE */
 
-document.getElementById("generate").onclick=generateEffects
+document.addEventListener("click",(e)=>{
+if(!menu.contains(e.target) && e.target!==hamburger){
+menu.style.display="none"
+}
+})
+
+/* EFFECT AUTO UPDATE */
+
+leftEffect.onchange=generateEffects
+rightEffect.onchange=generateEffects
 slider.oninput=renderSlider
 
 function generateEffects(){
