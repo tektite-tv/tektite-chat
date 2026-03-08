@@ -1,329 +1,409 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Image Effects Comparator</title>
+<title>Tektite Image Editor</title>
 
 <style>
-html, body{
+
+html,body{
 margin:0;
 padding:0;
-height:100%;
 background:#111;
 color:white;
 font-family:sans-serif;
-overflow:auto;
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
-#container{
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:flex-start;
-height:100vh;
-box-sizing:border-box;
-padding:10px;
-gap:10px;
-}
+/* UPLOAD */
 
 #uploadBox{
 width:280px;
 height:280px;
 border:3px dashed #777;
 display:flex;
-justify-content:center;
 align-items:center;
+justify-content:center;
 cursor:pointer;
-margin:auto;
+text-align:center;
 }
 
-#controls{
+/* EDITOR */
+
+#editor{
 display:none;
+flex-direction:column;
+align-items:center;
 }
+
+/* WINDOW */
+
+#imageWindow{
+background:#000;
+border:1px solid #444;
+display:flex;
+flex-direction:column;
+max-width:95vw;
+position:relative;
+}
+
+/* WINDOW BAR */
+
+#windowBar{
+height:32px;
+background:#1b1b1b;
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:0 10px;
+font-family:monospace;
+color:#00ff66;
+}
+
+#hamburger{
+cursor:pointer;
+font-size:18px;
+}
+
+#filename{
+opacity:.85;
+}
+
+/* IMAGE */
 
 canvas{
 max-width:92vw;
-max-height:55vh;
-border:1px solid #444;
+max-height:60vh;
+display:block;
+}
+
+/* MENU */
+
+#menu{
+position:absolute;
+top:34px;
+left:0;
+background:#000;
+border:1px solid #333;
+padding:12px;
 display:none;
-object-fit:contain;
+font-family:monospace;
+z-index:5;
 }
 
-select{
-margin:5px;
+#menu select{
+margin-top:6px;
+width:200px;
 }
 
-input[type=range]{
+/* SLIDER */
+
+#slider{
 width:60vw;
 max-width:600px;
+margin-top:10px;
 }
+
+/* ACTIONS */
 
 #actions{
-display:none;
 font-family:"Courier New", monospace;
 color:#00ff66;
-padding-top:6px;
+margin-top:10px;
 }
 
-.actionBtn{
+#actions span{
 cursor:pointer;
-padding:8px 16px;
-display:inline-block;
+padding:6px 12px;
 }
 
-.actionBtn:hover{
+#actions span:hover{
 text-decoration:underline;
 }
+
 </style>
 </head>
 
 <body>
 
-<div id="container">
-
 <div id="uploadBox">
 Drop Image<br>or Click
 </div>
 
-<input type="file" id="fileInput" accept="image/*" hidden>
+<input type="file" id="fileInput" hidden>
 
-<div id="controls">
-<div>
-Left Effect:
+<div id="editor">
+
+<div id="imageWindow">
+
+<div id="windowBar">
+<div id="hamburger">☰</div>
+<div id="filename"></div>
+</div>
+
+<div id="menu">
+
+<div>Left Effect</div>
 <select id="leftEffect">
 <option value="original">Original</option>
 <option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Red/Blue Anaglyph</option>
+<option value="anaglyph">Anaglyph</option>
 <option value="grayscale">Grayscale</option>
 <option value="invert">Invert</option>
 <option value="blur">Blur</option>
 </select>
 
-Right Effect:
+<div style="margin-top:10px;">Right Effect</div>
 <select id="rightEffect">
 <option value="original">Original</option>
 <option value="chromatic">Chromatic Aberration</option>
-<option value="anaglyph">Red/Blue Anaglyph</option>
+<option value="anaglyph">Anaglyph</option>
 <option value="grayscale">Grayscale</option>
 <option value="invert">Invert</option>
 <option value="blur">Blur</option>
 </select>
-</div>
 
-<button id="generate">Generate Comparison</button>
-<input id="slider" type="range" min="0" max="100" value="50">
 </div>
 
 <canvas id="canvas"></canvas>
 
+</div>
+
+<input id="slider" type="range" min="0" max="100" value="50">
+
 <div id="actions">
-<span class="actionBtn" id="saveBtn">[Save]</span>
-<span class="actionBtn" id="closeBtn">[CLOSE]</span>
+<span id="saveBtn">[Save]</span>
+<span id="closeBtn">[CLOSE]</span>
 </div>
 
 </div>
 
 <script>
 
-const uploadBox = document.getElementById("uploadBox");
-const fileInput = document.getElementById("fileInput");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+const uploadBox=document.getElementById("uploadBox")
+const fileInput=document.getElementById("fileInput")
+const editor=document.getElementById("editor")
 
-const slider = document.getElementById("slider");
-const controls = document.getElementById("controls");
-const actions = document.getElementById("actions");
+const canvas=document.getElementById("canvas")
+const ctx=canvas.getContext("2d")
 
-const leftEffect = document.getElementById("leftEffect");
-const rightEffect = document.getElementById("rightEffect");
+const slider=document.getElementById("slider")
 
-const generateBtn = document.getElementById("generate");
-const saveBtn = document.getElementById("saveBtn");
-const closeBtn = document.getElementById("closeBtn");
+const leftEffect=document.getElementById("leftEffect")
+const rightEffect=document.getElementById("rightEffect")
 
-let original = new Image();
+const hamburger=document.getElementById("hamburger")
+const menu=document.getElementById("menu")
 
-let leftCanvas = document.createElement("canvas");
-let leftCtx = leftCanvas.getContext("2d");
+const saveBtn=document.getElementById("saveBtn")
+const closeBtn=document.getElementById("closeBtn")
 
-let rightCanvas = document.createElement("canvas");
-let rightCtx = rightCanvas.getContext("2d");
+const filenameLabel=document.getElementById("filename")
 
-uploadBox.onclick = ()=>fileInput.click();
-uploadBox.ondragover=e=>e.preventDefault();
+let original=new Image()
+
+let leftCanvas=document.createElement("canvas")
+let rightCanvas=document.createElement("canvas")
+
+let leftCtx=leftCanvas.getContext("2d")
+let rightCtx=rightCanvas.getContext("2d")
+
+/* UPLOAD */
+
+uploadBox.onclick=()=>fileInput.click()
+
+uploadBox.ondragover=e=>e.preventDefault()
 
 uploadBox.ondrop=e=>{
-e.preventDefault();
-loadFile(e.dataTransfer.files[0]);
-};
+e.preventDefault()
+loadFile(e.dataTransfer.files[0])
+}
 
 fileInput.onchange=e=>{
-loadFile(e.target.files[0]);
-};
+loadFile(e.target.files[0])
+}
 
 function loadFile(file){
 
-const reader=new FileReader();
+const reader=new FileReader()
 
 reader.onload=e=>{
 
 original.onload=()=>{
 
-canvas.width=original.width;
-canvas.height=original.height;
+canvas.width=original.width
+canvas.height=original.height
 
-leftCanvas.width=original.width;
-leftCanvas.height=original.height;
+leftCanvas.width=original.width
+rightCanvas.width=original.width
 
-rightCanvas.width=original.width;
-rightCanvas.height=original.height;
+leftCanvas.height=original.height
+rightCanvas.height=original.height
 
-uploadBox.style.display="none";
-canvas.style.display="block";
-controls.style.display="block";
-actions.style.display="block";
+filenameLabel.textContent=file.name
 
-generateEffects();
-};
+uploadBox.style.display="none"
+editor.style.display="flex"
 
-original.src=e.target.result;
-};
+generateEffects()
 
-reader.readAsDataURL(file);
 }
 
-generateBtn.onclick=generateEffects;
-slider.oninput=renderSlider;
+original.src=e.target.result
+
+}
+
+reader.readAsDataURL(file)
+
+}
+
+/* MENU */
+
+hamburger.onclick=(e)=>{
+e.stopPropagation()
+menu.style.display=menu.style.display==="block"?"none":"block"
+}
+
+document.addEventListener("click",(e)=>{
+if(!menu.contains(e.target) && e.target!==hamburger){
+menu.style.display="none"
+}
+})
+
+/* EFFECT AUTO UPDATE */
+
+leftEffect.onchange=generateEffects
+rightEffect.onchange=generateEffects
+slider.oninput=renderSlider
 
 function generateEffects(){
-applyEffect(leftEffect.value,leftCtx);
-applyEffect(rightEffect.value,rightCtx);
-renderSlider();
+
+applyEffect(leftEffect.value,leftCtx)
+applyEffect(rightEffect.value,rightCtx)
+
+renderSlider()
+
 }
 
 function renderSlider(){
 
-const pos=slider.value/100;
+const pos=slider.value/100
 
-const w=canvas.width;
-const h=canvas.height;
+ctx.clearRect(0,0,canvas.width,canvas.height)
 
-ctx.clearRect(0,0,w,h);
-ctx.drawImage(rightCanvas,0,0);
+ctx.drawImage(rightCanvas,0,0)
 
-ctx.save();
-ctx.beginPath();
-ctx.rect(0,0,w*pos,h);
-ctx.clip();
-ctx.drawImage(leftCanvas,0,0);
-ctx.restore();
+ctx.save()
+ctx.beginPath()
+ctx.rect(0,0,canvas.width*pos,canvas.height)
+ctx.clip()
+ctx.drawImage(leftCanvas,0,0)
+ctx.restore()
+
 }
+
+/* SAVE */
 
 saveBtn.onclick=()=>{
 
-const link=document.createElement("a");
-link.download="edited-image.png";
-link.href=canvas.toDataURL("image/png");
-link.click();
+const link=document.createElement("a")
+link.download="edited-image.png"
+link.href=canvas.toDataURL()
+link.click()
 
-};
+}
+
+/* CLOSE + FULL RESET */
 
 closeBtn.onclick=()=>{
 
-canvas.style.display="none";
-controls.style.display="none";
-actions.style.display="none";
-uploadBox.style.display="flex";
+editor.style.display="none"
+uploadBox.style.display="flex"
 
-ctx.clearRect(0,0,canvas.width,canvas.height);
-fileInput.value="";
+ctx.clearRect(0,0,canvas.width,canvas.height)
 
-};
+original.src=""
+
+leftCanvas.width=0
+leftCanvas.height=0
+rightCanvas.width=0
+rightCanvas.height=0
+
+slider.value=50
+
+leftEffect.value="original"
+rightEffect.value="original"
+
+filenameLabel.textContent=""
+
+fileInput.value=""
+
+}
+
+/* EFFECT ENGINE */
 
 function applyEffect(type,targetCtx){
 
-const w=original.width;
-const h=original.height;
+const w=original.width
+const h=original.height
 
-targetCtx.clearRect(0,0,w,h);
+targetCtx.drawImage(original,0,0)
 
-if(type==="original"){
-targetCtx.drawImage(original,0,0);
-return;
-}
-
-if(type==="blur"){
-targetCtx.filter="blur(5px)";
-targetCtx.drawImage(original,0,0);
-targetCtx.filter="none";
-return;
-}
-
-if(type==="chromatic"){
-
-targetCtx.drawImage(original,0,0);
-
-let imgData = targetCtx.getImageData(0,0,w,h);
-let d = imgData.data;
-let copy = new Uint8ClampedArray(d);
-
-let offsetR = 12;
-let offsetB = -12;
-
-for(let y=0;y<h;y++){
-for(let x=0;x<w;x++){
-
-let i = (y*w + x) * 4;
-
-let xr = Math.min(w-1, Math.max(0, x + offsetR));
-let xb = Math.min(w-1, Math.max(0, x + offsetB));
-
-let ir = (y*w + xr) * 4;
-let ib = (y*w + xb) * 4;
-
-d[i]     = copy[ir];
-d[i + 1] = copy[i + 1];
-d[i + 2] = copy[ib + 2];
-
-}
-}
-
-targetCtx.putImageData(imgData,0,0);
-return;
-}
-
-targetCtx.drawImage(original,0,0);
-
-let imgData=targetCtx.getImageData(0,0,w,h);
-let d=imgData.data;
-
-if(type==="grayscale"){
-for(let i=0;i<d.length;i+=4){
-let v=(d[i]+d[i+1]+d[i+2])/3;
-d[i]=d[i+1]=d[i+2]=v;
-}
-}
+let imgData=targetCtx.getImageData(0,0,w,h)
+let d=imgData.data
 
 if(type==="invert"){
 for(let i=0;i<d.length;i+=4){
-d[i]=255-d[i];
-d[i+1]=255-d[i+1];
-d[i+2]=255-d[i+2];
+d[i]=255-d[i]
+d[i+1]=255-d[i+1]
+d[i+2]=255-d[i+2]
+}
+}
+
+if(type==="grayscale"){
+for(let i=0;i<d.length;i+=4){
+let v=(d[i]+d[i+1]+d[i+2])/3
+d[i]=d[i+1]=d[i+2]=v
 }
 }
 
 if(type==="anaglyph"){
 for(let i=0;i<d.length;i+=4){
-let r=d[i];
-let b=d[i+2];
-d[i]=r;
-d[i+1]=0;
-d[i+2]=b;
+d[i+1]=0
 }
 }
 
-targetCtx.putImageData(imgData,0,0);
+if(type==="chromatic"){
+
+let copy=new Uint8ClampedArray(d)
+
+let offsetR=12
+let offsetB=-12
+
+for(let y=0;y<h;y++){
+for(let x=0;x<w;x++){
+
+let i=(y*w+x)*4
+
+let xr=Math.min(w-1,Math.max(0,x+offsetR))
+let xb=Math.min(w-1,Math.max(0,x+offsetB))
+
+let ir=(y*w+xr)*4
+let ib=(y*w+xb)*4
+
+d[i]=copy[ir]
+d[i+2]=copy[ib+2]
+
+}
+}
+
+}
+
+targetCtx.putImageData(imgData,0,0)
+
 }
 
 </script>
