@@ -204,7 +204,6 @@ Invert Halves
 </div>
 
 <canvas id="canvas"></canvas>
-
 <input type="range" id="compareSlider" min="0" max="100" value="50">
 
 </div>
@@ -253,20 +252,13 @@ let rightCanvas=document.createElement("canvas")
 let leftCtx=leftCanvas.getContext("2d")
 let rightCtx=rightCanvas.getContext("2d")
 
-/* UPLOAD */
-
 uploadBox.onclick=()=>fileInput.click()
 
 fileInput.onchange=e=>{
-
 const reader=new FileReader()
-
 reader.onload=r=>{
-
 original.onload=()=>{
-
 sourceType="image"
-
 canvas.width=original.width
 canvas.height=original.height
 
@@ -279,18 +271,11 @@ startPanel.style.display="none"
 editor.style.display="flex"
 
 drawSource()
-
 }
-
 original.src=r.target.result
-
 }
-
 reader.readAsDataURL(e.target.files[0])
-
 }
-
-/* CAMERA */
 
 cameraBox.onclick=async ()=>{
 
@@ -303,22 +288,15 @@ video.srcObject=videoStream
 video.play()
 
 video.onloadedmetadata=()=>{
-
 sourceType="video"
-
 canvas.width=video.videoWidth
 canvas.height=video.videoHeight
-
 startPanel.style.display="none"
 editor.style.display="flex"
-
 requestAnimationFrame(loop)
-
 }
 
 }
-
-/* SOURCE DRAW */
 
 function drawSource(){
 
@@ -331,8 +309,6 @@ ctx.drawImage(video,0,0)
 }
 
 }
-
-/* LOOP */
 
 function loop(){
 
@@ -354,8 +330,6 @@ requestAnimationFrame(loop)
 
 }
 
-/* MODE SWITCH */
-
 modeSelector.onchange=()=>{
 
 controlsPanel.style.display="none"
@@ -366,22 +340,16 @@ comparatorControls.style.display="none"
 mirrorControls.style.display="none"
 
 if(modeSelector.value==="comparator"){
-
 gear.style.display="block"
 compareSlider.style.display="block"
 comparatorControls.style.display="block"
-
 generateComparator()
-
 }
 
 if(modeSelector.value==="mirror"){
-
 gear.style.display="block"
 mirrorControls.style.display="block"
-
 renderMirror()
-
 }
 
 }
@@ -390,8 +358,6 @@ gear.onclick=()=>{
 controlsPanel.style.display =
 controlsPanel.style.display==="block"?"none":"block"
 }
-
-/* COMPARATOR */
 
 compareSlider.oninput=generateComparator
 leftEffect.onchange=generateComparator
@@ -408,20 +374,27 @@ applyEffect(leftEffect.value,leftCtx)
 applyEffect(rightEffect.value,rightCtx)
 
 let split = compareSlider.value/100
+let splitX = canvas.width * split
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
-ctx.drawImage(rightCanvas,0,0)
+ctx.drawImage(
+leftCanvas,
+0,0,
+splitX,canvas.height,
+0,0,
+splitX,canvas.height
+)
 
-ctx.save()
-ctx.rect(0,0,canvas.width*split,canvas.height)
-ctx.clip()
-ctx.drawImage(leftCanvas,0,0)
-ctx.restore()
+ctx.drawImage(
+rightCanvas,
+splitX,0,
+canvas.width - splitX,canvas.height,
+splitX,0,
+canvas.width - splitX,canvas.height
+)
 
 }
-
-/* MIRROR MODE */
 
 mirrorAxis.onchange=renderMirror
 mirrorInvert.onchange=renderMirror
@@ -459,9 +432,7 @@ ctx.drawImage(source,0,0,axisX,canvas.height,axisX,0,axisX,canvas.height)
 
 }
 
-}
-
-else{
+}else{
 
 if(!mirrorInvert.checked){
 
@@ -488,8 +459,6 @@ ctx.drawImage(source,0,0,canvas.width,axisY,0,axisY,canvas.width,axisY)
 }
 
 }
-
-/* EFFECT ENGINE */
 
 function applyEffect(type,targetCtx){
 
