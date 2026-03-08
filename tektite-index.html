@@ -233,6 +233,7 @@ cursor:pointer;
 <input id="videoSearch" placeholder="Search Videos...">
 <button id="listBtn">LIST</button>
 <button id="gridBtn">GRID</button>
+<button id="modeBtn">2D</button>
 
 <div id="gridMenu">
 
@@ -251,6 +252,7 @@ cursor:pointer;
 </header>
 
 <div id="posts" class="grid"></div>
+<div id="cubeContainer" style="display:none;width:100%;height:600px;"></div>
 <div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
 
 <button id="loadMore">Load More</button>
@@ -263,6 +265,8 @@ cursor:pointer;
 <div id="videoFull"></div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 <script>
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
@@ -277,6 +281,9 @@ let gridSize=3;
 let visible=9;
 
 const postsEl=document.getElementById("posts");
+const cubeContainer=document.getElementById("cubeContainer");
+const modeBtn=document.getElementById("modeBtn");
+let mode="2d";
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
 const loadBtn=document.getElementById("loadMore");
@@ -476,6 +483,118 @@ filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
 visible=view==="list"?3:gridSize*gridSize;
 render();
 });
+
+
+modeBtn.onclick=()=>{
+
+if(mode==="2d"){
+
+mode="3d";
+modeBtn.textContent="3D";
+
+postsEl.style.display="none";
+cubeContainer.style.display="block";
+
+initCube();
+
+}else{
+
+mode="2d";
+modeBtn.textContent="2D";
+
+postsEl.style.display="grid";
+cubeContainer.style.display="none";
+
+}
+
+}
+
+function initCube(){
+
+cubeContainer.innerHTML="";
+
+const scene=new THREE.Scene();
+
+const camera=new THREE.PerspectiveCamera(
+70,
+cubeContainer.clientWidth/cubeContainer.clientHeight,
+0.1,
+1000
+);
+
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(
+cubeContainer.clientWidth,
+cubeContainer.clientHeight
+);
+
+cubeContainer.appendChild(renderer.domElement);
+
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+
+camera.position.z=3;
+
+const materials=[];
+
+for(let i=0;i<6;i++){
+
+let video=filtered[i];
+if(!video) continue;
+
+let texture=new THREE.TextureLoader().load(video.thumb);
+
+materials.push(
+new THREE.MeshBasicMaterial({map:texture})
+);
+
+}
+
+while(materials.length<6){
+materials.push(new THREE.MeshBasicMaterial({color:0x000000}));
+}
+
+const geometry=new THREE.BoxGeometry(2,2,2);
+
+const cube=new THREE.Mesh(geometry,materials);
+
+scene.add(cube);
+
+renderer.domElement.addEventListener("click",e=>{
+
+const rect=renderer.domElement.getBoundingClientRect();
+
+const mouse=new THREE.Vector2(
+((e.clientX-rect.left)/rect.width)*2-1,
+-((e.clientY-rect.top)/rect.height)*2+1
+);
+
+const raycaster=new THREE.Raycaster();
+raycaster.setFromCamera(mouse,camera);
+
+const hits=raycaster.intersectObject(cube);
+
+if(hits.length){
+
+let face=Math.floor(hits[0].faceIndex/2);
+let video=filtered[face];
+
+if(video){
+openVideo(video.id,video.title,video.date,video.description);
+}
+
+}
+
+});
+
+function animate(){
+requestAnimationFrame(animate);
+renderer.render(scene,camera);
+}
+
+animate();
+
+}
+
 
 document.addEventListener("DOMContentLoaded",loadPosts);
 
