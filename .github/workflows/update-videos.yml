@@ -1,0 +1,41 @@
+name: Update YouTube Video List
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */6 * * *"  # runs every 6 hours
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install yt-dlp
+        run: |
+          python -m pip install --upgrade pip
+          pip install yt-dlp
+
+      - name: Create data folder
+        run: mkdir -p data
+
+      - name: Scrape channel metadata
+        run: |
+          yt-dlp \
+            --flat-playlist \
+            --dump-single-json \
+            https://www.youtube.com/channel/UCn3WLZT7k8nO24XimlJVJVQ/videos \
+            > data/videos.json
+
+      - name: Commit updated JSON
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add data/videos.json
+          git commit -m "Auto update videos.json" || echo "No changes"
+          git push
