@@ -365,7 +365,6 @@ statusEl.textContent="FAILED TO LOAD /data/videos.json";
 }
 
 
-}
 
 function openVideo(id,title,date,description){
 
@@ -452,13 +451,9 @@ slider.value=3;
 visible=gridSize*gridSize;
 updatePreview();
 render();
-}
-else{
-gridMenu.style.display = gridMenu.style.display==="block"?"none":"block";
-}
-}
-else{
-gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
+}else{
+gridMenu.style.display =
+gridMenu.style.display==="block" ? "none" : "block";
 }
 }
 
