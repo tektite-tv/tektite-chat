@@ -12,7 +12,6 @@ padding:12px 0 0 0;
 background:#111;
 color:white;
 font-family:sans-serif;
-height:100%;
 display:flex;
 flex-direction:column;
 align-items:center;
@@ -27,7 +26,7 @@ cursor:pointer;text-align:center;
 }
 
 #uploadBox{border:3px dashed #777;}
-#cameraBox{border:3px dashed red;background:rgba(255,0,0,0.5);}
+#cameraBox{border:3px dashed red;background:rgba(255,0,0,0.4);}
 
 #editor{display:none;flex-direction:column;align-items:center;width:100%;}
 
@@ -64,13 +63,15 @@ font-family:monospace;
 select,input{
 background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 }
+
+#compareSlider{width:100%;margin-top:8px;display:none;}
 </style>
 </head>
 
 <body>
 
 <div id="startPanel">
-<div id="uploadBox">Drop Image<br>or Click</div>
+<div id="uploadBox">Upload Image</div>
 <div id="cameraBox">Enable Camera</div>
 </div>
 
@@ -84,6 +85,7 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 <div id="leftControls">
 <select id="modeSelector">
 <option value="">Select Mode</option>
+<option value="comparator">Comparator</option>
 <option value="mirror">Mirror</option>
 </select>
 <div id="gear">⚙️</div>
@@ -91,6 +93,8 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 </div>
 
 <div id="controlsPanel">
+
+<div id="mirrorControls">
 
 Mirror Axis<br>
 <select id="mirrorAxis">
@@ -106,7 +110,10 @@ Invert Halves
 
 </div>
 
+</div>
+
 <canvas id="canvas"></canvas>
+<input type="range" id="compareSlider" min="0" max="100" value="50">
 
 </div>
 </div>
@@ -128,6 +135,7 @@ const controlsPanel=document.getElementById("controlsPanel")
 
 const mirrorAxis=document.getElementById("mirrorAxis")
 const mirrorInvert=document.getElementById("mirrorInvert")
+const compareSlider=document.getElementById("compareSlider")
 
 let sourceType="image"
 let original=new Image()
@@ -178,19 +186,15 @@ video.playsInline=true
 
 await video.play()
 
-video.addEventListener("playing",()=>{
-
-sourceType="video"
-
-canvas.width=video.videoWidth
-canvas.height=video.videoHeight
+canvas.width=1280
+canvas.height=720
 
 startPanel.style.display="none"
 editor.style.display="flex"
 
-requestAnimationFrame(renderLoop)
+sourceType="video"
 
-})
+requestAnimationFrame(renderLoop)
 
 }
 
@@ -205,11 +209,15 @@ ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height)
 
 function renderLoop(){
 
-if(sourceType==="video" && video.readyState>=2){
+if(sourceType==="video"){
 
 if(modeSelector.value==="mirror"){
 renderMirror()
-}else{
+}
+else if(modeSelector.value==="comparator"){
+generateComparator()
+}
+else{
 drawSource()
 }
 
@@ -223,12 +231,16 @@ modeSelector.onchange=()=>{
 
 gear.style.display="none"
 controlsPanel.style.display="none"
+compareSlider.style.display="none"
 
 if(modeSelector.value==="mirror"){
 gear.style.display="block"
 renderMirror()
-}else{
-drawSource()
+}
+
+if(modeSelector.value==="comparator"){
+compareSlider.style.display="block"
+generateComparator()
 }
 
 }
@@ -242,6 +254,7 @@ controlsPanel.style.display==="block"?"none":"block"
 
 mirrorAxis.onchange=renderMirror
 mirrorInvert.onchange=renderMirror
+compareSlider.oninput=generateComparator
 
 function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
 
@@ -300,6 +313,20 @@ quad(src,0,0,w,hh,0,hh,w,hh,false,true)
 return
 
 }
+
+}
+
+function generateComparator(){
+
+let src=currentSource()
+
+let split=compareSlider.value/100
+let splitX=canvas.width*split
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+ctx.drawImage(src,0,0,splitX,canvas.height,0,0,splitX,canvas.height)
+ctx.drawImage(src,splitX,0,canvas.width-splitX,canvas.height,splitX,0,canvas.width-splitX,canvas.height)
 
 }
 
