@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,7 +136,7 @@ Mirror Axis<br>
 <select id="mirrorAxis">
 <option value="vertical">Vertical</option>
 <option value="horizontal">Horizontal</option>
-<option value="both">Both (4x)</option>
+<option value="both">Both (4×)</option>
 </select><br><br>
 
 <label>
@@ -162,7 +161,6 @@ Invert Halves
 </div>
 
 <script>
-
 const uploadBox=document.getElementById("uploadBox")
 const cameraBox=document.getElementById("cameraBox")
 const startPanel=document.getElementById("startPanel")
@@ -187,6 +185,9 @@ const rightEffect=document.getElementById("rightEffect")
 const mirrorAxis=document.getElementById("mirrorAxis")
 const mirrorInvert=document.getElementById("mirrorInvert")
 
+const saveBtn=document.getElementById("saveBtn")
+const closeBtn=document.getElementById("closeBtn")
+
 let sourceType="image"
 let original=new Image()
 let video=null
@@ -201,13 +202,12 @@ let rightCtx=rightCanvas.getContext("2d")
 uploadBox.onclick=()=>fileInput.click()
 
 fileInput.onchange=e=>{
+const file=e.target.files[0]
+if(!file) return
 
 const reader=new FileReader()
-
 reader.onload=r=>{
-
 original.onload=()=>{
-
 sourceType="image"
 
 canvas.width=original.width
@@ -222,29 +222,25 @@ startPanel.style.display="none"
 editor.style.display="flex"
 
 drawSource()
-
 }
-
 original.src=r.target.result
-
 }
-
-reader.readAsDataURL(e.target.files[0])
-
+reader.readAsDataURL(file)
 }
 
 cameraBox.onclick=async ()=>{
-
+try{
 videoStream=await navigator.mediaDevices.getUserMedia({
 video:{width:{ideal:4096},height:{ideal:2160}}
 })
 
 video=document.createElement("video")
 video.srcObject=videoStream
-video.play()
+video.muted=true
+video.playsInline=true
+await video.play()
 
 video.onloadedmetadata=()=>{
-
 sourceType="video"
 
 canvas.width=video.videoWidth
@@ -259,49 +255,39 @@ startPanel.style.display="none"
 editor.style.display="flex"
 
 requestAnimationFrame(loop)
-
+}
+}catch(err){
+console.error(err)
+alert("Could not access camera.")
+}
 }
 
+function currentSource(){
+return sourceType==="video" ? video : original
 }
 
 function drawSource(){
-
 ctx.clearRect(0,0,canvas.width,canvas.height)
-
-if(sourceType==="image"){
-ctx.drawImage(original,0,0)
-}else{
-ctx.drawImage(video,0,0)
-}
-
+ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height)
 }
 
 function loop(){
-
 if(sourceType==="video"){
-
 if(modeSelector.value==="comparator"){
 generateComparator()
-}
-else if(modeSelector.value==="mirror"){
+}else if(modeSelector.value==="mirror"){
 renderMirror()
-}
-else{
+}else{
 drawSource()
 }
-
 requestAnimationFrame(loop)
-
 }
-
 }
 
 modeSelector.onchange=()=>{
-
 controlsPanel.style.display="none"
 gear.style.display="none"
 compareSlider.style.display="none"
-
 comparatorControls.style.display="none"
 mirrorControls.style.display="none"
 
@@ -309,28 +295,61 @@ if(modeSelector.value==="comparator"){
 gear.style.display="block"
 compareSlider.style.display="block"
 comparatorControls.style.display="block"
-}
-
-if(modeSelector.value==="mirror"){
+if(sourceType==="image") generateComparator()
+}else if(modeSelector.value==="mirror"){
 gear.style.display="block"
 mirrorControls.style.display="block"
 renderMirror()
+}else{
+drawSource()
 }
-
 }
 
 gear.onclick=()=>{
 controlsPanel.style.display =
-controlsPanel.style.display==="block"?"none":"block"
+controlsPanel.style.display==="block" ? "none" : "block"
 }
 
 compareSlider.oninput=()=>{ if(sourceType==="image") generateComparator() }
 leftEffect.onchange=()=>{ if(sourceType==="image") generateComparator() }
 rightEffect.onchange=()=>{ if(sourceType==="image") generateComparator() }
 
-function generateComparator(){
+mirrorAxis.onchange=renderMirror
+mirrorInvert.onchange=renderMirror
 
-let source = sourceType==="video" ? video : original
+saveBtn.onclick=()=>{
+const link=document.createElement("a")
+link.download="edited-image.png"
+link.href=canvas.toDataURL("image/png")
+link.click()
+}
+
+closeBtn.onclick=()=>{
+if(videoStream){
+videoStream.getTracks().forEach(t=>t.stop())
+videoStream=null
+video=null
+}
+editor.style.display="none"
+startPanel.style.display="flex"
+controlsPanel.style.display="none"
+gear.style.display="none"
+compareSlider.style.display="none"
+comparatorControls.style.display="none"
+mirrorControls.style.display="none"
+modeSelector.value=""
+fileInput.value=""
+ctx.clearRect(0,0,canvas.width,canvas.height)
+sourceType="image"
+original=new Image()
+}
+
+/* COMPARATOR */
+function generateComparator(){
+let source=currentSource()
+
+leftCtx.clearRect(0,0,canvas.width,canvas.height)
+rightCtx.clearRect(0,0,canvas.width,canvas.height)
 
 leftCtx.drawImage(source,0,0,canvas.width,canvas.height)
 rightCtx.drawImage(source,0,0,canvas.width,canvas.height)
@@ -338,106 +357,78 @@ rightCtx.drawImage(source,0,0,canvas.width,canvas.height)
 applyEffect(leftEffect.value,leftCtx)
 applyEffect(rightEffect.value,rightCtx)
 
-let split = compareSlider.value/100
-let splitX = canvas.width * split
+let split=compareSlider.value/100
+let splitX=canvas.width*split
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
-
 ctx.drawImage(leftCanvas,0,0,splitX,canvas.height,0,0,splitX,canvas.height)
 ctx.drawImage(rightCanvas,splitX,0,canvas.width-splitX,canvas.height,splitX,0,canvas.width-splitX,canvas.height)
-
 }
 
-mirrorAxis.onchange=renderMirror
-mirrorInvert.onchange=renderMirror
+/* MIRROR */
+function drawQuad(source, sx, sy, sw, sh, dx, dy, dw, dh, flipX=false, flipY=false){
+ctx.save()
+ctx.translate(dx + (flipX ? dw : 0), dy + (flipY ? dh : 0))
+ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1)
+ctx.drawImage(source, sx, sy, sw, sh, 0, 0, dw, dh)
+ctx.restore()
+}
 
 function renderMirror(){
+let source=currentSource()
+let w=canvas.width
+let h=canvas.height
+let hw=w/2
+let hh=h/2
 
-let source = sourceType==="video" ? video : original
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-let halfW = canvas.width/2
-let halfH = canvas.height/2
+ctx.clearRect(0,0,w,h)
 
 if(mirrorAxis.value==="vertical"){
-
-ctx.drawImage(source,0,0,halfW,canvas.height,0,0,halfW,canvas.height)
-
-ctx.save()
-ctx.translate(canvas.width,0)
-ctx.scale(-1,1)
-ctx.drawImage(source,0,0,halfW,canvas.height,0,0,halfW,canvas.height)
-ctx.restore()
-
+if(!mirrorInvert.checked){
+drawQuad(source,0,0,hw,h,0,0,hw,h,false,false)
+drawQuad(source,0,0,hw,h,hw,0,hw,h,true,false)
+}else{
+drawQuad(source,0,0,hw,h,0,0,hw,h,true,false)
+drawQuad(source,0,0,hw,h,hw,0,hw,h,false,false)
+}
+return
 }
 
-else if(mirrorAxis.value==="horizontal"){
-
-ctx.drawImage(source,0,0,canvas.width,halfH,0,0,canvas.width,halfH)
-
-ctx.save()
-ctx.translate(0,canvas.height)
-ctx.scale(1,-1)
-ctx.drawImage(source,0,0,canvas.width,halfH,0,0,canvas.width,halfH)
-ctx.restore()
-
+if(mirrorAxis.value==="horizontal"){
+if(!mirrorInvert.checked){
+drawQuad(source,0,0,w,hh,0,0,w,hh,false,false)
+drawQuad(source,0,0,w,hh,0,hh,w,hh,false,true)
+}else{
+drawQuad(source,0,0,w,hh,0,0,w,hh,false,true)
+drawQuad(source,0,0,w,hh,0,hh,w,hh,false,false)
+}
+return
 }
 
-else if(mirrorAxis.value==="both"){
+if(mirrorAxis.value==="both"){
+/*
+unchecked:
+TL none, TR flipX, BL flipY, BR flipXY
+
+checked:
+TL none, TR flipX, BL flipXY, BR flipY
+This keeps the top row the same and swaps the bottom-row flip orientation.
+*/
+drawQuad(source,0,0,hw,hh,0,0,hw,hh,false,false)
+drawQuad(source,0,0,hw,hh,hw,0,hw,hh,true,false)
 
 if(!mirrorInvert.checked){
-
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-
-ctx.save()
-ctx.translate(canvas.width,0)
-ctx.scale(-1,1)
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-ctx.restore()
-
-ctx.save()
-ctx.translate(0,canvas.height)
-ctx.scale(1,-1)
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-ctx.restore()
-
-ctx.save()
-ctx.translate(canvas.width,canvas.height)
-ctx.scale(-1,-1)
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-ctx.restore()
-
+drawQuad(source,0,0,hw,hh,0,hh,hw,hh,false,true)
+drawQuad(source,0,0,hw,hh,hw,hh,hw,hh,true,true)
 }else{
-
-ctx.save()
-ctx.translate(halfW,0)
-ctx.scale(-1,1)
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-ctx.restore()
-
-ctx.drawImage(source,0,0,halfW,halfH,halfW,0,halfW,halfH)
-
-ctx.save()
-ctx.translate(halfW,canvas.height)
-ctx.scale(-1,-1)
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-ctx.restore()
-
-ctx.save()
-ctx.translate(0,canvas.height)
-ctx.scale(1,-1)
-ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
-ctx.restore()
-
+drawQuad(source,0,0,hw,hh,0,hh,hw,hh,true,true)
+drawQuad(source,0,0,hw,hh,hw,hh,hw,hh,false,true)
+}
+}
 }
 
-}
-
-}
-
+/* EFFECTS */
 function applyEffect(type,targetCtx){
-
 const w=canvas.width
 const h=canvas.height
 
@@ -466,15 +457,12 @@ d[i+1]=0
 }
 
 if(type==="chromatic"){
-
 let copy=new Uint8ClampedArray(d)
-
 let offsetR=12
 let offsetB=-12
 
 for(let y=0;y<h;y++){
 for(let x=0;x<w;x++){
-
 let i=(y*w+x)*4
 
 let xr=Math.min(w-1,Math.max(0,x+offsetR))
@@ -485,15 +473,37 @@ let ib=(y*w+xb)*4
 
 d[i]=copy[ir]
 d[i+2]=copy[ib+2]
+}
+}
+}
 
+if(type==="blur"){
+let copy=new Uint8ClampedArray(d)
+
+for(let y=1;y<h-1;y++){
+for(let x=1;x<w-1;x++){
+let i=(y*w+x)*4
+let sumR=0,sumG=0,sumB=0,count=0
+
+for(let dy=-1;dy<=1;dy++){
+for(let dx=-1;dx<=1;dx++){
+let ii=((y+dy)*w+(x+dx))*4
+sumR+=copy[ii]
+sumG+=copy[ii+1]
+sumB+=copy[ii+2]
+count++
+}
+}
+
+d[i]=sumR/count
+d[i+1]=sumG/count
+d[i+2]=sumB/count
 }
 }
 }
 
 targetCtx.putImageData(imgData,0,0)
-
 }
-
 </script>
 
 </body>
