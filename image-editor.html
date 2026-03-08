@@ -8,7 +8,7 @@
 
 html,body{
 margin:0;
-padding:12px 0 0 0; /* small top padding instead of big gap */
+padding:12px 0 0 0;
 background:#111;
 color:white;
 font-family:sans-serif;
@@ -19,15 +19,11 @@ align-items:center;
 justify-content:flex-start;
 }
 
-/* START PANEL */
-
 #startPanel{
 display:flex;
 gap:20px;
 margin-top:20px;
 }
-
-/* UPLOAD */
 
 #uploadBox{
 width:260px;
@@ -39,8 +35,6 @@ justify-content:center;
 cursor:pointer;
 text-align:center;
 }
-
-/* CAMERA */
 
 #cameraBox{
 width:260px;
@@ -54,8 +48,6 @@ cursor:pointer;
 text-align:center;
 }
 
-/* EDITOR */
-
 #editor{
 display:none;
 flex-direction:column;
@@ -63,19 +55,15 @@ align-items:center;
 width:100%;
 }
 
-/* WINDOW */
-
 #imageWindow{
 background:#000;
 border:1px solid #444;
 display:flex;
 flex-direction:column;
 max-width:92vw;
-max-height:75vh; /* keeps editor fitting on screen */
+max-height:75vh;
 position:relative;
 }
-
-/* WINDOW BAR */
 
 #windowBar{
 height:32px;
@@ -110,19 +98,11 @@ text-align:center;
 display:none;
 }
 
-#filename{
-opacity:.85;
-}
-
-/* CANVAS */
-
 canvas{
 max-width:92vw;
-max-height:65vh; /* keeps image inside screen */
+max-height:65vh;
 display:block;
 }
-
-/* CONTROL PANEL */
 
 #controlsPanel{
 position:absolute;
@@ -142,8 +122,6 @@ color:#00ff66;
 border:1px solid #333;
 font-family:monospace;
 }
-
-/* DIVIDER */
 
 #dividerLine{
 position:absolute;
@@ -181,13 +159,11 @@ font-size:14px;
 color:white;
 }
 
-/* ACTIONS */
-
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
 margin-top:40px;
-padding-bottom:40px; /* requested padding below buttons */
+padding-bottom:40px;
 }
 
 #actions span{
@@ -220,8 +196,6 @@ padding:6px 12px;
 </select>
 <div id="gear">⚙️</div>
 </div>
-
-<div id="filename"></div>
 
 </div>
 
@@ -274,8 +248,6 @@ const editor=document.getElementById("editor")
 const canvas=document.getElementById("canvas")
 const ctx=canvas.getContext("2d")
 
-const filenameLabel=document.getElementById("filename")
-
 const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
 
@@ -286,12 +258,10 @@ const controlsPanel=document.getElementById("controlsPanel")
 const leftEffect=document.getElementById("leftEffect")
 const rightEffect=document.getElementById("rightEffect")
 
-const saveBtn=document.getElementById("saveBtn")
-const closeBtn=document.getElementById("closeBtn")
-
+let sourceType="image"
 let original=new Image()
-let videoStream=null
 let video=null
+let videoStream=null
 
 let leftCanvas=document.createElement("canvas")
 let rightCanvas=document.createElement("canvas")
@@ -303,13 +273,6 @@ let split=0.5
 let dragging=false
 
 uploadBox.onclick=()=>fileInput.click()
-
-uploadBox.ondragover=e=>e.preventDefault()
-
-uploadBox.ondrop=e=>{
-e.preventDefault()
-loadFile(e.dataTransfer.files[0])
-}
 
 fileInput.onchange=e=>{
 loadFile(e.target.files[0])
@@ -323,15 +286,20 @@ reader.onload=e=>{
 
 original.onload=()=>{
 
+sourceType="image"
+
 canvas.width=original.width
 canvas.height=original.height
 
-filenameLabel.textContent=file.name
+leftCanvas.width=canvas.width
+rightCanvas.width=canvas.width
+leftCanvas.height=canvas.height
+rightCanvas.height=canvas.height
 
 startPanel.style.display="none"
 editor.style.display="flex"
 
-drawOriginal()
+drawSource()
 
 }
 
@@ -343,15 +311,10 @@ reader.readAsDataURL(file)
 
 }
 
-/* CAMERA WITH MAX RESOLUTION */
-
 cameraBox.onclick=async ()=>{
 
 videoStream=await navigator.mediaDevices.getUserMedia({
-video:{
-width:{ideal:4096},
-height:{ideal:2160}
-}
+video:{width:{ideal:4096},height:{ideal:2160}}
 })
 
 video=document.createElement("video")
@@ -360,37 +323,51 @@ video.play()
 
 video.onloadedmetadata=()=>{
 
+sourceType="video"
+
 canvas.width=video.videoWidth
 canvas.height=video.videoHeight
+
+leftCanvas.width=canvas.width
+rightCanvas.width=canvas.width
+leftCanvas.height=canvas.height
+rightCanvas.height=canvas.height
 
 startPanel.style.display="none"
 editor.style.display="flex"
 
-requestAnimationFrame(drawCamera)
+requestAnimationFrame(loop)
 
 }
 
 }
 
-function drawCamera(){
-
-ctx.drawImage(video,0,0,canvas.width,canvas.height)
-requestAnimationFrame(drawCamera)
-
-}
-
-function drawOriginal(){
+function drawSource(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
-ctx.drawImage(original,0,0)
 
-dividerLine.style.display="none"
-dividerHandle.style.display="none"
+if(sourceType==="image"){
+ctx.drawImage(original,0,0)
+}else if(sourceType==="video"){
+ctx.drawImage(video,0,0)
+}
 
 }
 
-gear.onclick=()=>{
-controlsPanel.style.display = controlsPanel.style.display==="block" ? "none":"block"
+function loop(){
+
+if(sourceType==="video"){
+
+if(modeSelector.value==="comparator"){
+generateComparator()
+}else{
+drawSource()
+}
+
+requestAnimationFrame(loop)
+
+}
+
 }
 
 modeSelector.onchange=()=>{
@@ -408,16 +385,25 @@ generateComparator()
 
 gear.style.display="none"
 controlsPanel.style.display="none"
-drawOriginal()
+drawSource()
 
 }
 
+}
+
+gear.onclick=()=>{
+controlsPanel.style.display = controlsPanel.style.display==="block" ? "none":"block"
 }
 
 leftEffect.onchange=generateComparator
 rightEffect.onchange=generateComparator
 
 function generateComparator(){
+
+let source = sourceType==="video" ? video : original
+
+leftCtx.drawImage(source,0,0,canvas.width,canvas.height)
+rightCtx.drawImage(source,0,0,canvas.width,canvas.height)
 
 applyEffect(leftEffect.value,leftCtx)
 applyEffect(rightEffect.value,rightCtx)
@@ -469,44 +455,15 @@ const rect=canvas.getBoundingClientRect()
 split=(e.clientX-rect.left)/rect.width
 split=Math.max(0,Math.min(1,split))
 
-updateDivider()
 renderSplit()
+updateDivider()
 
 })
-
-saveBtn.onclick=()=>{
-
-const link=document.createElement("a")
-link.download="edited-image.png"
-link.href=canvas.toDataURL()
-link.click()
-
-}
-
-closeBtn.onclick=()=>{
-
-editor.style.display="none"
-startPanel.style.display="flex"
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-if(videoStream){
-videoStream.getTracks().forEach(t=>t.stop())
-videoStream=null
-}
-
-modeSelector.value=""
-gear.style.display="none"
-controlsPanel.style.display="none"
-
-}
 
 function applyEffect(type,targetCtx){
 
 const w=canvas.width
 const h=canvas.height
-
-targetCtx.drawImage(canvas,0,0)
 
 let imgData=targetCtx.getImageData(0,0,w,h)
 let d=imgData.data
