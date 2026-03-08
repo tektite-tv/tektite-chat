@@ -252,7 +252,7 @@ cursor:pointer;
 </header>
 
 <div id="posts" class="grid"></div>
-<div id="cubeContainer" style="display:none;width:100%;height:600px;"></div>
+<div id="cubeContainer" style="display:none;width:100%;height:70vh;position:relative;"></div>
 <div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
 
 <button id="loadMore">Load More</button>
@@ -284,6 +284,7 @@ const postsEl=document.getElementById("posts");
 const cubeContainer=document.getElementById("cubeContainer");
 const modeBtn=document.getElementById("modeBtn");
 let mode="2d";
+let cubeInitialized=false;
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
 const loadBtn=document.getElementById("loadMore");
@@ -485,6 +486,7 @@ render();
 });
 
 
+
 modeBtn.onclick=()=>{
 
 if(mode==="2d"){
@@ -495,7 +497,10 @@ modeBtn.textContent="3D";
 postsEl.style.display="none";
 cubeContainer.style.display="block";
 
+if(!cubeInitialized && filtered.length){
 initCube();
+cubeInitialized=true;
+}
 
 }else{
 
@@ -514,6 +519,7 @@ function initCube(){
 cubeContainer.innerHTML="";
 
 const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x000000);
 
 const camera=new THREE.PerspectiveCamera(
 70,
@@ -534,27 +540,25 @@ const controls=new THREE.OrbitControls(camera,renderer.domElement);
 
 camera.position.z=3;
 
+const light=new THREE.AmbientLight(0xffffff,1);
+scene.add(light);
+
 const materials=[];
 
 for(let i=0;i<6;i++){
 
 let video=filtered[i];
-if(!video) continue;
 
+if(video){
 let texture=new THREE.TextureLoader().load(video.thumb);
-
-materials.push(
-new THREE.MeshBasicMaterial({map:texture})
-);
-
-}
-
-while(materials.length<6){
+materials.push(new THREE.MeshBasicMaterial({map:texture}));
+}else{
 materials.push(new THREE.MeshBasicMaterial({color:0x000000}));
 }
 
-const geometry=new THREE.BoxGeometry(2,2,2);
+}
 
+const geometry=new THREE.BoxGeometry(2,2,2);
 const cube=new THREE.Mesh(geometry,materials);
 
 scene.add(cube);
