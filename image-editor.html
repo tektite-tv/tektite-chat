@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -65,6 +64,13 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 }
 
 #compareSlider{width:100%;margin-top:8px;display:none;}
+
+#actions{
+font-family:"Courier New", monospace;color:#00ff66;
+margin-top:24px;padding-bottom:28px;
+}
+
+#actions span{cursor:pointer;padding:6px 12px;}
 </style>
 </head>
 
@@ -78,258 +84,432 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 <input type="file" id="fileInput" hidden>
 
 <div id="editor">
+  <div id="imageWindow">
+    <div id="windowBar">
+      <div id="leftControls">
+        <select id="modeSelector">
+          <option value="">Select Mode</option>
+          <option value="comparator">Comparator</option>
+          <option value="mirror">Mirror</option>
+        </select>
+        <div id="gear">⚙️</div>
+      </div>
+    </div>
 
-<div id="imageWindow">
+    <div id="controlsPanel">
 
-<div id="windowBar">
-<div id="leftControls">
-<select id="modeSelector">
-<option value="">Select Mode</option>
-<option value="comparator">Comparator</option>
-<option value="mirror">Mirror</option>
-</select>
-<div id="gear">⚙️</div>
-</div>
-</div>
+      <div id="comparatorControls" style="display:none">
+        <b>Comparator Controls</b><br><br>
 
-<div id="controlsPanel">
+        Left Effect<br>
+        <select id="leftEffect">
+          <option value="original">Original</option>
+          <option value="chromatic">Chromatic Aberration</option>
+          <option value="anaglyph">Anaglyph</option>
+          <option value="grayscale">Grayscale</option>
+          <option value="invert">Invert</option>
+          <option value="blur">Blur</option>
+        </select><br><br>
 
-<div id="mirrorControls">
+        Right Effect<br>
+        <select id="rightEffect">
+          <option value="original">Original</option>
+          <option value="chromatic">Chromatic Aberration</option>
+          <option value="anaglyph">Anaglyph</option>
+          <option value="grayscale">Grayscale</option>
+          <option value="invert">Invert</option>
+          <option value="blur">Blur</option>
+        </select>
+      </div>
 
-Mirror Axis<br>
-<select id="mirrorAxis">
-<option value="vertical">Vertical</option>
-<option value="horizontal">Horizontal</option>
-<option value="both">Both (4×)</option>
-</select><br><br>
+      <div id="mirrorControls" style="display:none">
+        <b>Mirror Controls</b><br><br>
 
-<label>
-<input type="checkbox" id="mirrorInvert">
-Invert Halves
-</label>
+        Mirror Axis<br>
+        <select id="mirrorAxis">
+          <option value="vertical">Vertical</option>
+          <option value="horizontal">Horizontal</option>
+          <option value="both">Both (4×)</option>
+        </select><br><br>
 
-</div>
+        <label>
+          <input type="checkbox" id="mirrorInvert">
+          Invert Halves
+        </label>
+      </div>
 
-</div>
+    </div>
 
-<canvas id="canvas"></canvas>
-<input type="range" id="compareSlider" min="0" max="100" value="50">
+    <canvas id="canvas"></canvas>
+    <input type="range" id="compareSlider" min="0" max="100" value="50">
+  </div>
 
-</div>
+  <div id="actions">
+    <span id="saveBtn">[Save]</span>
+    <span id="closeBtn">[CLOSE]</span>
+  </div>
 </div>
 
 <script>
+const uploadBox=document.getElementById("uploadBox");
+const cameraBox=document.getElementById("cameraBox");
+const startPanel=document.getElementById("startPanel");
+const fileInput=document.getElementById("fileInput");
+const editor=document.getElementById("editor");
 
-const uploadBox=document.getElementById("uploadBox")
-const cameraBox=document.getElementById("cameraBox")
-const startPanel=document.getElementById("startPanel")
-const fileInput=document.getElementById("fileInput")
-const editor=document.getElementById("editor")
+const canvas=document.getElementById("canvas");
+const ctx=canvas.getContext("2d");
 
-const canvas=document.getElementById("canvas")
-const ctx=canvas.getContext("2d")
+const modeSelector=document.getElementById("modeSelector");
+const gear=document.getElementById("gear");
+const controlsPanel=document.getElementById("controlsPanel");
+const compareSlider=document.getElementById("compareSlider");
 
-const modeSelector=document.getElementById("modeSelector")
-const gear=document.getElementById("gear")
-const controlsPanel=document.getElementById("controlsPanel")
+const comparatorControls=document.getElementById("comparatorControls");
+const mirrorControls=document.getElementById("mirrorControls");
 
-const mirrorAxis=document.getElementById("mirrorAxis")
-const mirrorInvert=document.getElementById("mirrorInvert")
-const compareSlider=document.getElementById("compareSlider")
+const leftEffect=document.getElementById("leftEffect");
+const rightEffect=document.getElementById("rightEffect");
 
-let sourceType="image"
-let original=new Image()
-let video=null
-let videoStream=null
+const mirrorAxis=document.getElementById("mirrorAxis");
+const mirrorInvert=document.getElementById("mirrorInvert");
 
-uploadBox.onclick=()=>fileInput.click()
+const saveBtn=document.getElementById("saveBtn");
+const closeBtn=document.getElementById("closeBtn");
 
-fileInput.onchange=e=>{
+let sourceType="image";
+let original=new Image();
+let video=null;
+let videoStream=null;
+let rafId=null;
 
-const reader=new FileReader()
+let leftCanvas=document.createElement("canvas");
+let rightCanvas=document.createElement("canvas");
+let leftCtx=leftCanvas.getContext("2d");
+let rightCtx=rightCanvas.getContext("2d");
 
-reader.onload=r=>{
-
-original.onload=()=>{
-
-sourceType="image"
-
-canvas.width=original.width
-canvas.height=original.height
-
-startPanel.style.display="none"
-editor.style.display="flex"
-
-drawSource()
-
-}
-
-original.src=r.target.result
-
-}
-
-reader.readAsDataURL(e.target.files[0])
-
-}
-
-cameraBox.onclick=async ()=>{
-
-videoStream=await navigator.mediaDevices.getUserMedia({
-video:{width:{ideal:4096},height:{ideal:2160}}
-})
-
-video=document.createElement("video")
-video.srcObject=videoStream
-video.autoplay=true
-video.muted=true
-video.playsInline=true
-
-await video.play()
-
-canvas.width=1280
-canvas.height=720
-
-startPanel.style.display="none"
-editor.style.display="flex"
-
-sourceType="video"
-
-requestAnimationFrame(renderLoop)
-
+function syncBuffers(){
+  leftCanvas.width=canvas.width;
+  leftCanvas.height=canvas.height;
+  rightCanvas.width=canvas.width;
+  rightCanvas.height=canvas.height;
 }
 
 function currentSource(){
-return sourceType==="video"?video:original
+  return sourceType==="video" ? video : original;
 }
 
 function drawSource(){
-ctx.clearRect(0,0,canvas.width,canvas.height)
-ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height)
+  const src=currentSource();
+  if(!src) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(src,0,0,canvas.width,canvas.height);
 }
+
+uploadBox.onclick=()=>fileInput.click();
+
+fileInput.onchange=e=>{
+  const file=e.target.files[0];
+  if(!file) return;
+
+  const reader=new FileReader();
+  reader.onload=r=>{
+    original.onload=()=>{
+      sourceType="image";
+      canvas.width=original.width;
+      canvas.height=original.height;
+      syncBuffers();
+
+      startPanel.style.display="none";
+      editor.style.display="flex";
+
+      drawCurrentMode();
+    };
+    original.src=r.target.result;
+  };
+  reader.readAsDataURL(file);
+};
+
+cameraBox.onclick=async ()=>{
+  try{
+    if(videoStream){
+      videoStream.getTracks().forEach(t=>t.stop());
+      videoStream=null;
+    }
+
+    videoStream=await navigator.mediaDevices.getUserMedia({
+      video:{width:{ideal:4096},height:{ideal:2160}}
+    });
+
+    video=document.createElement("video");
+    video.srcObject=videoStream;
+    video.autoplay=true;
+    video.muted=true;
+    video.playsInline=true;
+
+    await video.play();
+
+    const startIfReady=()=>{
+      if(video.videoWidth>0 && video.videoHeight>0){
+        sourceType="video";
+        canvas.width=video.videoWidth;
+        canvas.height=video.videoHeight;
+        syncBuffers();
+
+        startPanel.style.display="none";
+        editor.style.display="flex";
+
+        if(rafId===null){
+          rafId=requestAnimationFrame(renderLoop);
+        }
+        drawCurrentMode();
+      }
+    };
+
+    if(video.readyState >= 2){
+      startIfReady();
+    }else{
+      video.addEventListener("loadeddata", startIfReady, {once:true});
+    }
+  }catch(err){
+    console.error(err);
+    alert("Could not access camera.");
+  }
+};
 
 function renderLoop(){
-
-if(sourceType==="video"){
-
-if(modeSelector.value==="mirror"){
-renderMirror()
-}
-else if(modeSelector.value==="comparator"){
-generateComparator()
-}
-else{
-drawSource()
+  if(sourceType==="video" && video && video.readyState>=2){
+    drawCurrentMode();
+  }
+  rafId=requestAnimationFrame(renderLoop);
 }
 
-}
-
-requestAnimationFrame(renderLoop)
-
+function drawCurrentMode(){
+  if(modeSelector.value==="mirror"){
+    renderMirror();
+  }else if(modeSelector.value==="comparator"){
+    generateComparator();
+  }else{
+    drawSource();
+  }
 }
 
 modeSelector.onchange=()=>{
+  controlsPanel.style.display="none";
+  gear.style.display="none";
+  compareSlider.style.display="none";
+  comparatorControls.style.display="none";
+  mirrorControls.style.display="none";
 
-gear.style.display="none"
-controlsPanel.style.display="none"
-compareSlider.style.display="none"
+  if(modeSelector.value==="mirror"){
+    gear.style.display="block";
+    mirrorControls.style.display="block";
+  }
 
-if(modeSelector.value==="mirror"){
-gear.style.display="block"
-renderMirror()
-}
+  if(modeSelector.value==="comparator"){
+    gear.style.display="block";
+    compareSlider.style.display="block";
+    comparatorControls.style.display="block";
+  }
 
-if(modeSelector.value==="comparator"){
-compareSlider.style.display="block"
-generateComparator()
-}
-
-}
+  drawCurrentMode();
+};
 
 gear.onclick=()=>{
+  controlsPanel.style.display =
+    controlsPanel.style.display==="block" ? "none" : "block";
+};
 
-controlsPanel.style.display =
-controlsPanel.style.display==="block"?"none":"block"
+mirrorAxis.onchange=drawCurrentMode;
+mirrorInvert.onchange=drawCurrentMode;
+compareSlider.oninput=drawCurrentMode;
+leftEffect.onchange=drawCurrentMode;
+rightEffect.onchange=drawCurrentMode;
 
+saveBtn.onclick=()=>{
+  const link=document.createElement("a");
+  link.download="edited-image.png";
+  link.href=canvas.toDataURL("image/png");
+  link.click();
+};
+
+closeBtn.onclick=()=>{
+  if(videoStream){
+    videoStream.getTracks().forEach(t=>t.stop());
+    videoStream=null;
+  }
+  if(rafId!==null){
+    cancelAnimationFrame(rafId);
+    rafId=null;
+  }
+  video=null;
+  sourceType="image";
+  original=new Image();
+
+  controlsPanel.style.display="none";
+  gear.style.display="none";
+  compareSlider.style.display="none";
+  comparatorControls.style.display="none";
+  mirrorControls.style.display="none";
+  modeSelector.value="";
+  fileInput.value="";
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  editor.style.display="none";
+  startPanel.style.display="flex";
+};
+
+function generateComparator(){
+  const src=currentSource();
+  if(!src) return;
+
+  leftCtx.clearRect(0,0,canvas.width,canvas.height);
+  rightCtx.clearRect(0,0,canvas.width,canvas.height);
+
+  leftCtx.drawImage(src,0,0,canvas.width,canvas.height);
+  rightCtx.drawImage(src,0,0,canvas.width,canvas.height);
+
+  applyEffect(leftEffect.value,leftCtx);
+  applyEffect(rightEffect.value,rightCtx);
+
+  const split=compareSlider.value/100;
+  const splitX=canvas.width*split;
+
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(leftCanvas,0,0,splitX,canvas.height,0,0,splitX,canvas.height);
+  ctx.drawImage(rightCanvas,splitX,0,canvas.width-splitX,canvas.height,splitX,0,canvas.width-splitX,canvas.height);
 }
 
-mirrorAxis.onchange=renderMirror
-mirrorInvert.onchange=renderMirror
-compareSlider.oninput=generateComparator
-
 function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
-
-ctx.save()
-ctx.translate(dx+(flipX?dw:0),dy+(flipY?dh:0))
-ctx.scale(flipX?-1:1,flipY?-1:1)
-ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh)
-ctx.restore()
-
+  ctx.save();
+  ctx.translate(dx+(flipX?dw:0),dy+(flipY?dh:0));
+  ctx.scale(flipX?-1:1,flipY?-1:1);
+  ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh);
+  ctx.restore();
 }
 
 function renderMirror(){
+  const src=currentSource();
+  if(!src) return;
 
-let src=currentSource()
+  const w=canvas.width;
+  const h=canvas.height;
+  const hw=w/2;
+  const hh=h/2;
 
-let w=canvas.width
-let h=canvas.height
-let hw=w/2
-let hh=h/2
+  ctx.clearRect(0,0,w,h);
 
-ctx.clearRect(0,0,w,h)
+  if(mirrorAxis.value==="vertical"){
+    if(!mirrorInvert.checked){
+      quad(src,0,0,hw,h,0,0,hw,h,false,false);
+      quad(src,0,0,hw,h,hw,0,hw,h,true,false);
+    }else{
+      quad(src,0,0,hw,h,0,0,hw,h,true,false);
+      quad(src,0,0,hw,h,hw,0,hw,h,false,false);
+    }
+    return;
+  }
 
-if(mirrorAxis.value==="both"){
+  if(mirrorAxis.value==="horizontal"){
+    if(!mirrorInvert.checked){
+      quad(src,0,0,w,hh,0,0,w,hh,false,false);
+      quad(src,0,0,w,hh,0,hh,w,hh,false,true);
+    }else{
+      quad(src,0,0,w,hh,0,0,w,hh,false,true);
+      quad(src,0,0,w,hh,0,hh,w,hh,false,false);
+    }
+    return;
+  }
 
-quad(src,0,0,hw,hh,0,0,hw,hh,false,false)
-quad(src,0,0,hw,hh,hw,0,hw,hh,true,false)
+  if(mirrorAxis.value==="both"){
+    // Top row stays the same in both states
+    quad(src,0,0,hw,hh,0,0,hw,hh,false,false);  // TL original
+    quad(src,0,0,hw,hh,hw,0,hw,hh,true,false);  // TR flipX
 
-if(!mirrorInvert.checked){
-
-quad(src,0,0,hw,hh,0,hh,hw,hh,false,true)
-quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true)
-
-}else{
-
-quad(src,0,0,hw,hh,0,hh,hw,hh,true,true)
-quad(src,0,0,hw,hh,hw,hh,hw,hh,false,true)
-
+    if(!mirrorInvert.checked){
+      quad(src,0,0,hw,hh,0,hh,hw,hh,true,true);   // BL flipXY
+      quad(src,0,0,hw,hh,hw,hh,hw,hh,false,true); // BR flipY
+    }else{
+      quad(src,0,0,hw,hh,0,hh,hw,hh,false,true);  // BL flipY
+      quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true);  // BR flipXY
+    }
+  }
 }
 
-return
+function applyEffect(type,targetCtx){
+  const w=canvas.width;
+  const h=canvas.height;
 
+  let imgData=targetCtx.getImageData(0,0,w,h);
+  let d=imgData.data;
+
+  if(type==="invert"){
+    for(let i=0;i<d.length;i+=4){
+      d[i]=255-d[i];
+      d[i+1]=255-d[i+1];
+      d[i+2]=255-d[i+2];
+    }
+  }
+
+  if(type==="grayscale"){
+    for(let i=0;i<d.length;i+=4){
+      let v=(d[i]+d[i+1]+d[i+2])/3;
+      d[i]=d[i+1]=d[i+2]=v;
+    }
+  }
+
+  if(type==="anaglyph"){
+    for(let i=0;i<d.length;i+=4){
+      d[i+1]=0;
+    }
+  }
+
+  if(type==="chromatic"){
+    let copy=new Uint8ClampedArray(d);
+    let offsetR=12;
+    let offsetB=-12;
+
+    for(let y=0;y<h;y++){
+      for(let x=0;x<w;x++){
+        let i=(y*w+x)*4;
+        let xr=Math.min(w-1,Math.max(0,x+offsetR));
+        let xb=Math.min(w-1,Math.max(0,x+offsetB));
+        let ir=(y*w+xr)*4;
+        let ib=(y*w+xb)*4;
+        d[i]=copy[ir];
+        d[i+2]=copy[ib+2];
+      }
+    }
+  }
+
+  if(type==="blur"){
+    let copy=new Uint8ClampedArray(d);
+
+    for(let y=1;y<h-1;y++){
+      for(let x=1;x<w-1;x++){
+        let i=(y*w+x)*4;
+        let sumR=0,sumG=0,sumB=0,count=0;
+
+        for(let dy=-1;dy<=1;dy++){
+          for(let dx=-1;dx<=1;dx++){
+            let ii=((y+dy)*w+(x+dx))*4;
+            sumR+=copy[ii];
+            sumG+=copy[ii+1];
+            sumB+=copy[ii+2];
+            count++;
+          }
+        }
+
+        d[i]=sumR/count;
+        d[i+1]=sumG/count;
+        d[i+2]=sumB/count;
+      }
+    }
+  }
+
+  targetCtx.putImageData(imgData,0,0);
 }
-
-if(mirrorAxis.value==="vertical"){
-
-quad(src,0,0,hw,h,0,0,hw,h,false,false)
-quad(src,0,0,hw,h,hw,0,hw,h,true,false)
-return
-
-}
-
-if(mirrorAxis.value==="horizontal"){
-
-quad(src,0,0,w,hh,0,0,w,hh,false,false)
-quad(src,0,0,w,hh,0,hh,w,hh,false,true)
-return
-
-}
-
-}
-
-function generateComparator(){
-
-let src=currentSource()
-
-let split=compareSlider.value/100
-let splitX=canvas.width*split
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-ctx.drawImage(src,0,0,splitX,canvas.height,0,0,splitX,canvas.height)
-ctx.drawImage(src,splitX,0,canvas.width-splitX,canvas.height,splitX,0,canvas.width-splitX,canvas.height)
-
-}
-
 </script>
 
 </body>
