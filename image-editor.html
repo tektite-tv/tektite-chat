@@ -18,8 +18,6 @@ align-items:center;
 justify-content:center;
 }
 
-/* UPLOAD */
-
 #uploadBox{
 width:280px;
 height:280px;
@@ -31,15 +29,11 @@ cursor:pointer;
 text-align:center;
 }
 
-/* EDITOR */
-
 #editor{
 display:none;
 flex-direction:column;
 align-items:center;
 }
-
-/* WINDOW */
 
 #imageWindow{
 background:#000;
@@ -49,8 +43,6 @@ flex-direction:column;
 max-width:95vw;
 position:relative;
 }
-
-/* WINDOW BAR */
 
 #windowBar{
 height:32px;
@@ -68,12 +60,6 @@ cursor:pointer;
 font-size:18px;
 }
 
-#filename{
-opacity:.85;
-}
-
-/* IMAGE */
-
 canvas{
 max-width:92vw;
 max-height:60vh;
@@ -81,8 +67,6 @@ display:block;
 position:relative;
 z-index:1;
 }
-
-/* MENU */
 
 #menu{
 position:absolute;
@@ -101,8 +85,6 @@ margin-top:6px;
 width:200px;
 }
 
-/* DIVIDER */
-
 #dividerLine{
 position:absolute;
 top:34px;
@@ -117,8 +99,6 @@ pointer-events:none;
 #dividerLine:hover{
 background:rgba(255,255,255,0.5);
 }
-
-/* HANDLE */
 
 #dividerHandle{
 width:28px;
@@ -143,8 +123,6 @@ font-size:14px;
 color:white;
 }
 
-/* ACTIONS */
-
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
@@ -165,10 +143,7 @@ text-decoration:underline;
 
 <body>
 
-<div id="uploadBox">
-Drop Image<br>or Click
-</div>
-
+<div id="uploadBox">Drop Image<br>or Click</div>
 <input type="file" id="fileInput" hidden>
 
 <div id="editor">
@@ -252,8 +227,6 @@ let rightCtx=rightCanvas.getContext("2d")
 let split=0.5
 let dragging=false
 
-/* UPLOAD */
-
 uploadBox.onclick=()=>fileInput.click()
 
 uploadBox.ondragover=e=>e.preventDefault()
@@ -263,9 +236,7 @@ e.preventDefault()
 loadFile(e.dataTransfer.files[0])
 }
 
-fileInput.onchange=e=>{
-loadFile(e.target.files[0])
-}
+fileInput.onchange=e=>loadFile(e.target.files[0])
 
 function loadFile(file){
 
@@ -290,7 +261,6 @@ uploadBox.style.display="none"
 editor.style.display="flex"
 
 updateDivider()
-
 generateEffects()
 
 }
@@ -303,8 +273,6 @@ reader.readAsDataURL(file)
 
 }
 
-/* MENU */
-
 hamburger.onclick=(e)=>{
 e.stopPropagation()
 menu.style.display=menu.style.display==="block"?"none":"block"
@@ -316,18 +284,13 @@ menu.style.display="none"
 }
 })
 
-/* EFFECT AUTO UPDATE */
-
 leftEffect.onchange=generateEffects
 rightEffect.onchange=generateEffects
 
 function generateEffects(){
-
 applyEffect(leftEffect.value,leftCtx)
 applyEffect(rightEffect.value,rightCtx)
-
 renderSplit()
-
 }
 
 function renderSplit(){
@@ -339,34 +302,68 @@ ctx.drawImage(rightCanvas,0,0)
 ctx.save()
 
 ctx.beginPath()
-ctx.rect(0,0,canvas.width*split,canvas.height)
+ctx.rect(0,0,canvas.width*Math.max(0,Math.min(split,1)),canvas.height)
 ctx.clip()
 
 ctx.drawImage(leftCanvas,0,0)
 
 ctx.restore()
 
+if(split>1 && leftEffect.value==="chromatic"){
+
+let start=canvas.width
+let end=canvas.width*split
+
+let g=ctx.createLinearGradient(start,0,end,0)
+
+g.addColorStop(0,"red")
+g.addColorStop(.16,"orange")
+g.addColorStop(.33,"yellow")
+g.addColorStop(.5,"lime")
+g.addColorStop(.66,"cyan")
+g.addColorStop(.83,"blue")
+g.addColorStop(1,"magenta")
+
+ctx.fillStyle=g
+ctx.fillRect(start,0,end-start,canvas.height)
+
 }
 
-/* DIVIDER */
+if(split<0 && rightEffect.value==="chromatic"){
+
+let start=canvas.width*split
+let end=0
+
+let g=ctx.createLinearGradient(start,0,end,0)
+
+g.addColorStop(0,"magenta")
+g.addColorStop(.16,"blue")
+g.addColorStop(.33,"cyan")
+g.addColorStop(.5,"lime")
+g.addColorStop(.66,"yellow")
+g.addColorStop(.83,"orange")
+g.addColorStop(1,"red")
+
+ctx.fillStyle=g
+ctx.fillRect(start,0,end-start,canvas.height)
+
+}
+
+}
 
 function updateDivider(){
 
 const rect=canvas.getBoundingClientRect()
-const pos=rect.width*split
+const pos=rect.width*(split+0.4)
 
 dividerLine.style.left=pos+"px"
 dividerHandle.style.left=pos+"px"
 
 }
 
-dividerHandle.addEventListener("mousedown",()=>{
-dragging=true
-})
+dividerHandle.addEventListener("mousedown",()=>dragging=true)
 
-document.addEventListener("mouseup",()=>{
-dragging=false
-})
+document.addEventListener("mouseup",()=>dragging=false)
 
 document.addEventListener("mousemove",(e)=>{
 
@@ -375,14 +372,12 @@ if(!dragging) return
 const rect=canvas.getBoundingClientRect()
 
 split=(e.clientX-rect.left)/rect.width
-split=Math.max(0,Math.min(1,split))
+split=Math.max(-0.4,Math.min(1.4,split))
 
 updateDivider()
 renderSplit()
 
 })
-
-/* SAVE */
 
 saveBtn.onclick=()=>{
 
@@ -392,8 +387,6 @@ link.href=canvas.toDataURL()
 link.click()
 
 }
-
-/* CLOSE */
 
 closeBtn.onclick=()=>{
 
@@ -417,8 +410,6 @@ filenameLabel.textContent=""
 fileInput.value=""
 
 }
-
-/* EFFECT ENGINE */
 
 function applyEffect(type,targetCtx){
 
