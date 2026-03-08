@@ -19,6 +19,7 @@ html,body{margin:0;padding:12px 0 0 0;background:#111;color:white;font-family:sa
 canvas{max-width:92vw;max-height:65vh;display:block;}
 #controlsPanel{position:absolute;top:34px;left:0;background:#000;border:1px solid #333;padding:10px;display:none;z-index:10;font-family:monospace;}
 select,input{background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;}
+#compareSlider{width:100%;display:none;}
 </style>
 </head>
 <body>
@@ -36,6 +37,7 @@ select,input{background:#000;color:#00ff66;border:1px solid #333;font-family:mon
 <div id="leftControls">
 <select id="modeSelector">
 <option value="">Select Mode</option>
+<option value="comparator">Comparator</option>
 <option value="mirror">Mirror</option>
 </select>
 <div id="gear">⚙️</div>
@@ -43,7 +45,8 @@ select,input{background:#000;color:#00ff66;border:1px solid #333;font-family:mon
 </div>
 
 <div id="controlsPanel">
-<b>Mirror Controls</b><br><br>
+
+<div id="mirrorControls" style="display:none">
 Mirror Axis<br>
 <select id="mirrorAxis">
 <option value="vertical">Vertical</option>
@@ -57,7 +60,27 @@ Invert Halves
 </label>
 </div>
 
+<div id="compareControls" style="display:none">
+Left Effect<br>
+<select id="leftEffect">
+<option value="none">None</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+</select><br><br>
+
+Right Effect<br>
+<select id="rightEffect">
+<option value="none">None</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+</select>
+</div>
+
+</div>
+
 <canvas id="canvas"></canvas>
+<input type="range" id="compareSlider" min="0" max="100" value="50">
+
 </div>
 </div>
 
@@ -79,10 +102,21 @@ const mirrorInvert=document.getElementById("mirrorInvert");
 const gear=document.getElementById("gear");
 const controlsPanel=document.getElementById("controlsPanel");
 
+const compareSlider=document.getElementById("compareSlider");
+const leftEffect=document.getElementById("leftEffect");
+const rightEffect=document.getElementById("rightEffect");
+
+const mirrorControls=document.getElementById("mirrorControls");
+const compareControls=document.getElementById("compareControls");
+
 let original=new Image();
 let video=null;
 let stream=null;
 let sourceType="image";
+
+function currentSource(){
+return sourceType==="video"?video:original;
+}
 
 function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
 ctx.save();
@@ -92,11 +126,47 @@ ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh);
 ctx.restore();
 }
 
-function drawMirror(){
+function applyEffect(imgData,type){
+let d=imgData.data;
+for(let i=0;i<d.length;i+=4){
 
-const src=(sourceType==="video")?video:original;
+if(type==="invert"){
+d[i]=255-d[i];
+d[i+1]=255-d[i+1];
+d[i+2]=255-d[i+2];
+}
+
+if(type==="grayscale"){
+let v=(d[i]+d[i+1]+d[i+2])/3;
+d[i]=d[i+1]=d[i+2]=v;
+}
+
+}
+return imgData;
+}
+
+function drawComparator(){
+
+const src=currentSource();
 if(!src)return;
 
+ctx.drawImage(src,0,0,canvas.width,canvas.height);
+
+let split=(compareSlider.value/100)*canvas.width;
+
+let left=ctx.getImageData(0,0,split,canvas.height);
+let right=ctx.getImageData(split,0,canvas.width-split,canvas.height);
+
+left=applyEffect(left,leftEffect.value);
+right=applyEffect(right,rightEffect.value);
+
+ctx.putImageData(left,0,0);
+ctx.putImageData(right,split,0);
+}
+
+function drawMirror(){
+
+const src=currentSource();
 const w=canvas.width;
 const h=canvas.height;
 const hw=w/2;
@@ -108,19 +178,16 @@ if(mirrorAxis.value==="both"){
 
 if(!mirrorInvert.checked){
 
-quad(src,0,0,hw,hh,0,0,hw,hh,false,false); 
+quad(src,0,0,hw,hh,0,0,hw,hh,false,false);
 quad(src,0,0,hw,hh,hw,0,hw,hh,true,false);
-
 quad(src,0,0,hw,hh,0,hh,hw,hh,false,true);
 quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true);
 
 }else{
 
-// diagonal inversion — chin goes to corners
-quad(src,0,0,hw,hh,0,0,hw,hh,true,true);     
+quad(src,0,0,hw,hh,0,0,hw,hh,true,true);
 quad(src,0,0,hw,hh,hw,0,hw,hh,false,true);
-
-quad(src,0,0,hw,hh,0,hh,hw,hh,true,false);   
+quad(src,0,0,hw,hh,0,hh,hw,hh,true,false);
 quad(src,0,0,hw,hh,hw,hh,hw,hh,false,false);
 
 }
@@ -140,9 +207,21 @@ quad(src,0,0,w,hh,0,hh,w,hh,false,true);
 
 }
 
-function renderLoop(){
+function draw(){
+
+if(modeSelector.value==="mirror"){
 drawMirror();
-requestAnimationFrame(renderLoop);
+}else if(modeSelector.value==="comparator"){
+drawComparator();
+}else{
+ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height);
+}
+
+}
+
+function loop(){
+draw();
+requestAnimationFrame(loop);
 }
 
 uploadBox.onclick=()=>fileInput.click();
@@ -156,7 +235,7 @@ canvas.width=original.width;
 canvas.height=original.height;
 startPanel.style.display="none";
 editor.style.display="flex";
-drawMirror();
+draw();
 };
 original.src=r.target.result;
 };
@@ -180,16 +259,34 @@ sourceType="video";
 startPanel.style.display="none";
 editor.style.display="flex";
 
-renderLoop();
+loop();
 };
 
 modeSelector.onchange=()=>{
+
 gear.style.display="block";
-drawMirror();
+
+compareSlider.style.display="none";
+mirrorControls.style.display="none";
+compareControls.style.display="none";
+
+if(modeSelector.value==="mirror"){
+mirrorControls.style.display="block";
+}
+
+if(modeSelector.value==="comparator"){
+compareSlider.style.display="block";
+compareControls.style.display="block";
+}
+
+draw();
 };
 
-mirrorAxis.onchange=drawMirror;
-mirrorInvert.onchange=drawMirror;
+mirrorAxis.onchange=draw;
+mirrorInvert.onchange=draw;
+compareSlider.oninput=draw;
+leftEffect.onchange=draw;
+rightEffect.onchange=draw;
 
 gear.onclick=()=>{
 controlsPanel.style.display=(controlsPanel.style.display==="block")?"none":"block";
