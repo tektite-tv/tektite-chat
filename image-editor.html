@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,6 +17,7 @@ height:100%;
 display:flex;
 align-items:center;
 justify-content:center;
+overflow:hidden;
 }
 
 #uploadBox{
@@ -123,6 +125,14 @@ font-size:14px;
 color:white;
 }
 
+#rainbowOverflow{
+position:absolute;
+top:34px;
+pointer-events:none;
+z-index:3;
+height:0;
+}
+
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
@@ -181,6 +191,7 @@ text-decoration:underline;
 
 <div id="dividerLine"></div>
 <div id="dividerHandle"></div>
+<div id="rainbowOverflow"></div>
 
 <canvas id="canvas"></canvas>
 
@@ -215,6 +226,7 @@ const filenameLabel=document.getElementById("filename")
 
 const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
+const rainbowOverflow=document.getElementById("rainbowOverflow")
 
 let original=new Image()
 
@@ -228,9 +240,7 @@ let split=0.5
 let dragging=false
 
 uploadBox.onclick=()=>fileInput.click()
-
 uploadBox.ondragover=e=>e.preventDefault()
-
 uploadBox.ondrop=e=>{
 e.preventDefault()
 loadFile(e.dataTransfer.files[0])
@@ -259,6 +269,8 @@ filenameLabel.textContent=file.name
 
 uploadBox.style.display="none"
 editor.style.display="flex"
+
+split=0.5
 
 updateDivider()
 generateEffects()
@@ -309,60 +321,53 @@ ctx.drawImage(leftCanvas,0,0)
 
 ctx.restore()
 
-if(split>1 && leftEffect.value==="chromatic"){
-
-let start=canvas.width
-let end=canvas.width*split
-
-let g=ctx.createLinearGradient(start,0,end,0)
-
-g.addColorStop(0,"red")
-g.addColorStop(.16,"orange")
-g.addColorStop(.33,"yellow")
-g.addColorStop(.5,"lime")
-g.addColorStop(.66,"cyan")
-g.addColorStop(.83,"blue")
-g.addColorStop(1,"magenta")
-
-ctx.fillStyle=g
-ctx.fillRect(start,0,end-start,canvas.height)
-
-}
-
-if(split<0 && rightEffect.value==="chromatic"){
-
-let start=canvas.width*split
-let end=0
-
-let g=ctx.createLinearGradient(start,0,end,0)
-
-g.addColorStop(0,"magenta")
-g.addColorStop(.16,"blue")
-g.addColorStop(.33,"cyan")
-g.addColorStop(.5,"lime")
-g.addColorStop(.66,"yellow")
-g.addColorStop(.83,"orange")
-g.addColorStop(1,"red")
-
-ctx.fillStyle=g
-ctx.fillRect(start,0,end-start,canvas.height)
-
-}
+updateRainbow()
 
 }
 
 function updateDivider(){
 
 const rect=canvas.getBoundingClientRect()
-const pos=rect.width*(split+0.4)
+const pos=rect.width*split
 
 dividerLine.style.left=pos+"px"
 dividerHandle.style.left=pos+"px"
 
 }
 
-dividerHandle.addEventListener("mousedown",()=>dragging=true)
+function updateRainbow(){
 
+rainbowOverflow.style.width="0px"
+rainbowOverflow.style.background="none"
+
+const rect=canvas.getBoundingClientRect()
+
+if(split>1 && leftEffect.value==="chromatic"){
+
+let start=rect.right
+let width=window.innerWidth-start
+
+rainbowOverflow.style.left=rect.width+"px"
+rainbowOverflow.style.width=width+"px"
+rainbowOverflow.style.height=rect.height+"px"
+rainbowOverflow.style.background="linear-gradient(to right, red, orange, yellow, lime, cyan, blue, magenta)"
+
+}
+
+if(split<0 && rightEffect.value==="chromatic"){
+
+let width=rect.left
+
+rainbowOverflow.style.left=-width+"px"
+rainbowOverflow.style.width=width+"px"
+rainbowOverflow.style.height=rect.height+"px"
+rainbowOverflow.style.background="linear-gradient(to left, red, orange, yellow, lime, cyan, blue, magenta)"
+
+}
+
+}
+
+dividerHandle.addEventListener("mousedown",()=>dragging=true)
 document.addEventListener("mouseup",()=>dragging=false)
 
 document.addEventListener("mousemove",(e)=>{
