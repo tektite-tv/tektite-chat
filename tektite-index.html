@@ -378,8 +378,7 @@ let clean=(description||"")
 .replace(/<[^>]*>/g,"")
 .trim();
 
-document.getElementById("videoMeta").innerHTML =
-new Date(date).toLocaleString();
+document.getElementById("videoMeta").innerHTML = "";
 
 document.getElementById("videoFull").textContent = clean;
 
@@ -421,7 +420,7 @@ el.innerHTML=`
 </div>
 <div>
 <div class="post-title">${p.title}</div>
-<div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
+
 </div>`;
 
 el.querySelector("img").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
