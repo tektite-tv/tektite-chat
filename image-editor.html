@@ -423,16 +423,18 @@ function renderMirror(){
   }
 
   if(mirrorAxis.value==="both"){
-    // Top row stays the same in both states
+    // Top row
     quad(src,0,0,hw,hh,0,0,hw,hh,false,false);  // TL original
     quad(src,0,0,hw,hh,hw,0,hw,hh,true,false);  // TR flipX
 
     if(!mirrorInvert.checked){
-      quad(src,0,0,hw,hh,0,hh,hw,hh,true,true);   // BL flipXY
-      quad(src,0,0,hw,hh,hw,hh,hw,hh,false,true); // BR flipY
+      // Default: bottom row should be horizontally correct
+      quad(src,0,0,hw,hh,0,hh,hw,hh,false,true); // BL flipY
+      quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true); // BR flipXY
     }else{
-      quad(src,0,0,hw,hh,0,hh,hw,hh,false,true);  // BL flipY
-      quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true);  // BR flipXY
+      // Inverted halves: swap bottom row orientations
+      quad(src,0,0,hw,hh,0,hh,hw,hh,true,true);  // BL flipXY
+      quad(src,0,0,hw,hh,hw,hh,hw,hh,false,true); // BR flipY
     }
   }
 }
