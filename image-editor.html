@@ -18,8 +18,6 @@ align-items:center;
 justify-content:center;
 }
 
-/* UPLOAD */
-
 #uploadBox{
 width:280px;
 height:280px;
@@ -31,15 +29,11 @@ cursor:pointer;
 text-align:center;
 }
 
-/* EDITOR */
-
 #editor{
 display:none;
 flex-direction:column;
 align-items:center;
 }
-
-/* WINDOW */
 
 #imageWindow{
 background:#000;
@@ -49,8 +43,6 @@ flex-direction:column;
 max-width:95vw;
 position:relative;
 }
-
-/* WINDOW BAR */
 
 #windowBar{
 height:32px;
@@ -69,14 +61,19 @@ gap:8px;
 align-items:center;
 }
 
-#hamburger,#gear{
+#modeSelector{
+background:#000;
+color:#00ff66;
+border:1px solid #333;
+font-family:monospace;
+height:22px;
+}
+
+#gear{
 cursor:pointer;
 font-size:18px;
 width:24px;
 text-align:center;
-}
-
-#gear{
 display:none;
 }
 
@@ -84,24 +81,16 @@ display:none;
 opacity:.85;
 }
 
-/* DROPDOWNS */
-
-#modeMenu{
-position:absolute;
-top:34px;
-left:0;
-background:#000;
-border:1px solid #333;
-padding:10px;
-display:none;
-z-index:10;
-font-family:monospace;
+canvas{
+max-width:92vw;
+max-height:60vh;
+display:block;
 }
 
 #controlsPanel{
 position:absolute;
 top:34px;
-left:120px;
+left:0;
 background:#000;
 border:1px solid #333;
 padding:10px;
@@ -116,16 +105,6 @@ color:#00ff66;
 border:1px solid #333;
 font-family:monospace;
 }
-
-/* IMAGE */
-
-canvas{
-max-width:92vw;
-max-height:60vh;
-display:block;
-}
-
-/* DIVIDER */
 
 #dividerLine{
 position:absolute;
@@ -163,8 +142,6 @@ font-size:14px;
 color:white;
 }
 
-/* ACTIONS */
-
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
@@ -194,21 +171,14 @@ Drop Image<br>or Click
 <div id="windowBar">
 
 <div id="leftControls">
-<div id="hamburger">☰</div>
+<select id="modeSelector">
+<option value="">Select Mode</option>
+<option value="comparator">Comparator</option>
+</select>
 <div id="gear">⚙️</div>
 </div>
 
 <div id="filename"></div>
-
-</div>
-
-<div id="modeMenu">
-
-<div>Select Mode</div>
-<select id="modeSelector">
-<option value="">None</option>
-<option value="comparator">Comparator</option>
-</select>
 
 </div>
 
@@ -264,13 +234,9 @@ const filenameLabel=document.getElementById("filename")
 const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
 
-const hamburger=document.getElementById("hamburger")
-const gear=document.getElementById("gear")
-
-const modeMenu=document.getElementById("modeMenu")
-const controlsPanel=document.getElementById("controlsPanel")
-
 const modeSelector=document.getElementById("modeSelector")
+const gear=document.getElementById("gear")
+const controlsPanel=document.getElementById("controlsPanel")
 
 const leftEffect=document.getElementById("leftEffect")
 const rightEffect=document.getElementById("rightEffect")
@@ -288,8 +254,6 @@ let rightCtx=rightCanvas.getContext("2d")
 
 let split=0.5
 let dragging=false
-
-/* UPLOAD */
 
 uploadBox.onclick=()=>fileInput.click()
 
@@ -348,21 +312,11 @@ dividerHandle.style.display="none"
 
 }
 
-/* MENUS */
-
-hamburger.onclick=()=>{
-modeMenu.style.display = modeMenu.style.display==="block" ? "none":"block"
-}
-
 gear.onclick=()=>{
 controlsPanel.style.display = controlsPanel.style.display==="block" ? "none":"block"
 }
 
-/* MODE */
-
 modeSelector.onchange=()=>{
-
-modeMenu.style.display="none"
 
 if(modeSelector.value==="comparator"){
 
@@ -382,8 +336,6 @@ drawOriginal()
 }
 
 }
-
-/* EFFECTS */
 
 leftEffect.onchange=generateComparator
 rightEffect.onchange=generateComparator
@@ -445,8 +397,6 @@ renderSplit()
 
 })
 
-/* SAVE */
-
 saveBtn.onclick=()=>{
 
 const link=document.createElement("a")
@@ -455,8 +405,6 @@ link.href=canvas.toDataURL()
 link.click()
 
 }
-
-/* CLOSE */
 
 closeBtn.onclick=()=>{
 
