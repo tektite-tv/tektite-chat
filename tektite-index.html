@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -251,7 +252,7 @@ cursor:pointer;
 </header>
 
 <div id="posts" class="grid"></div>
-<div id="cubeContainer" style="display:none;width:100%;height:70vh;position:relative;"></div>
+<div id="cubeContainer" style="display:none;width:100%;height:70vh;"></div>
 <div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
 
 <button id="loadMore">Load More</button>
@@ -279,10 +280,6 @@ let gridSize=3;
 let visible=9;
 
 const postsEl=document.getElementById("posts");
-const cubeContainer=document.getElementById("cubeContainer");
-const modeBtn=document.getElementById("modeBtn");
-let mode="2d";
-let cubeInitialized=false;
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
 const loadBtn=document.getElementById("loadMore");
@@ -484,116 +481,41 @@ render();
 });
 
 
+let mode="2d";
+const cubeContainer=document.getElementById("cubeContainer");
+const modeBtn=document.getElementById("modeBtn");
 
 modeBtn.onclick=()=>{
 
 if(mode==="2d"){
-
 mode="3d";
 modeBtn.textContent="3D";
-
 postsEl.style.display="none";
 cubeContainer.style.display="block";
-
-if(!cubeInitialized && filtered.length){
-initCube();
-cubeInitialized=true;
-}
-
+buildCube();
 }else{
-
 mode="2d";
 modeBtn.textContent="2D";
-
-postsEl.style.display="grid";
 cubeContainer.style.display="none";
-
+postsEl.style.display="";
 }
 
 }
 
-
+function shuffle(arr){
+let a=[...arr];
+for(let i=a.length-1;i>0;i--){
+let j=Math.floor(Math.random()*(i+1));
+[a[i],a[j]]=[a[j],a[i]];
+}
+return a;
 }
 
-const geometry=new THREE.BoxGeometry(2,2,2);
-const cube=new THREE.Mesh(geometry,materials);
-
-scene.add(cube);
-
-let isDragging=false;
-let prevX=0;
-let prevY=0;
-
-renderer.domElement.addEventListener("mousedown",e=>{
-isDragging=true;
-prevX=e.clientX;
-prevY=e.clientY;
-});
-
-window.addEventListener("mouseup",()=>{
-isDragging=false;
-});
-
-window.addEventListener("mousemove",e=>{
-
-if(!isDragging) return;
-
-let dx=e.clientX-prevX;
-let dy=e.clientY-prevY;
-
-cube.rotation.y += dx * 0.01;
-cube.rotation.x += dy * 0.01;
-
-prevX=e.clientX;
-prevY=e.clientY;
-
-});
-
-
-renderer.domElement.addEventListener("click",e=>{
-
-const rect=renderer.domElement.getBoundingClientRect();
-
-const mouse=new THREE.Vector2(
-((e.clientX-rect.left)/rect.width)*2-1,
--((e.clientY-rect.top)/rect.height)*2+1
-);
-
-const raycaster=new THREE.Raycaster();
-raycaster.setFromCamera(mouse,camera);
-
-const hits=raycaster.intersectObject(cube);
-
-if(hits.length){
-
-let face=Math.floor(hits[0].faceIndex/2);
-let video=filtered[face];
-
-if(video){
-openVideo(video.id,video.title,video.date,video.description);
-}
-
-}
-
-});
-
-function animate(){
-requestAnimationFrame(animate);
-renderer.render(scene,camera);
-}
-
-animate();
-
-}
-
-
-
-function initCube(){
+function buildCube(){
 
 cubeContainer.innerHTML="";
 
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x000000);
 
 const camera=new THREE.PerspectiveCamera(
 70,
@@ -608,25 +530,24 @@ cubeContainer.appendChild(renderer.domElement);
 
 camera.position.z=3;
 
-const light=new THREE.AmbientLight(0xffffff,1);
-scene.add(light);
+let shuffled=shuffle(filtered);
 
 const materials=[];
 
-function buildFaceTexture(faceIndex){
+function buildFaceTexture(face){
 
 let canvas=document.createElement("canvas");
 canvas.width=1024;
 canvas.height=1024;
-
 let ctx=canvas.getContext("2d");
+
 let cell=canvas.width/gridSize;
 
 for(let y=0;y<gridSize;y++){
 for(let x=0;x<gridSize;x++){
 
-let videoIndex=faceIndex*(gridSize*gridSize)+(y*gridSize+x);
-let v=filtered[videoIndex];
+let i=face*(gridSize*gridSize)+y*gridSize+x;
+let v=shuffled[i];
 if(!v) continue;
 
 let img=new Image();
@@ -641,46 +562,43 @@ ctx.drawImage(img,x*cell,y*cell,cell,cell);
 }
 
 return new THREE.CanvasTexture(canvas);
+
 }
 
-for(let i=0;i<6;i++){
-materials.push(
-new THREE.MeshBasicMaterial({
-map: buildFaceTexture(i)
-})
+for(let f=0;f<6;f++){
+materials.push(new THREE.MeshBasicMaterial({map:buildFaceTexture(f)}));
+}
+
+const cube=new THREE.Mesh(
+new THREE.BoxGeometry(2,2,2),
+materials
 );
-}
 
-const geometry=new THREE.BoxGeometry(2,2,2);
-const cube=new THREE.Mesh(geometry,materials);
 scene.add(cube);
 
-let isDragging=false;
-let prevX=0;
-let prevY=0;
+let dragging=false;
+let px=0,py=0;
 
 renderer.domElement.addEventListener("mousedown",e=>{
-isDragging=true;
-prevX=e.clientX;
-prevY=e.clientY;
+dragging=true;
+px=e.clientX;
+py=e.clientY;
 });
 
-window.addEventListener("mouseup",()=>{
-isDragging=false;
-});
+window.addEventListener("mouseup",()=>dragging=false);
 
 window.addEventListener("mousemove",e=>{
 
-if(!isDragging) return;
+if(!dragging) return;
 
-let dx=e.clientX-prevX;
-let dy=e.clientY-prevY;
+let dx=e.clientX-px;
+let dy=e.clientY-py;
 
-cube.rotation.y += dx * 0.01;
-cube.rotation.x += dy * 0.01;
+cube.rotation.y+=dx*0.01;
+cube.rotation.x+=dy*0.01;
 
-prevX=e.clientX;
-prevY=e.clientY;
+px=e.clientX;
+py=e.clientY;
 
 });
 
@@ -701,7 +619,6 @@ const hits=raycaster.intersectObject(cube);
 if(hits.length){
 
 let face=Math.floor(hits[0].faceIndex/2);
-
 let uv=hits[0].uv;
 
 let cellX=Math.floor(uv.x*gridSize);
@@ -709,7 +626,7 @@ let cellY=Math.floor((1-uv.y)*gridSize);
 
 let index=face*(gridSize*gridSize)+cellY*gridSize+cellX;
 
-let video=filtered[index];
+let video=shuffled[index];
 
 if(video){
 openVideo(video.id,video.title,video.date,video.description);
