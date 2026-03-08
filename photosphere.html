@@ -29,9 +29,7 @@ select, button { margin-top:10px; display:block; width: 100%; }
 
 <div id="menu">
   <div><b>Options</b></div>
-
-  <label>Theme (uses ./themes/&lt;theme&gt;/theme.json if present):</label>
-  <select id="themeSelect">
+<select id="themeSelect">
     <option value="" selected>-- Select Theme --</option>
     <option value="custom">Custom</option>
     <!-- EDIT THESE to match your /themes/ subfolders -->
@@ -44,13 +42,8 @@ select, button { margin-top:10px; display:block; width: 100%; }
 </div>
 <button id="applyThemeBtn">Apply Theme</button>
 
-  <div id="themeStatus" class="small">No theme applied.</div>
-  <div class="small">
-    Important: if you opened this as <b>file:///...</b>, browsers usually block loading local images via TextureLoader.
-    Run a local server (examples below).
-  </div>
-
-  <label><input type="checkbox" id="magneticToggle"> Magnetic Field Bands</label>
+  <div id="themeStatus" class="small"></div>
+<label><input type="checkbox" id="magneticToggle"> Magnetic Field Bands</label>
 <select id="bandMode" style="display:none; margin-top:6px;">
   <option value="1">1 Band</option>
   <option value="2">2 Bands (reverse)</option>
