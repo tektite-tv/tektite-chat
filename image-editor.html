@@ -6,7 +6,6 @@
 <title>Image Effects Comparator</title>
 
 <style>
-
 html, body{
 margin:0;
 padding:0;
@@ -25,6 +24,7 @@ justify-content:flex-start;
 height:100vh;
 box-sizing:border-box;
 padding:10px;
+gap:10px;
 }
 
 #uploadBox{
@@ -39,13 +39,12 @@ margin:auto;
 }
 
 #controls{
-margin-top:8px;
 display:none;
 }
 
 canvas{
-max-width:95vw;
-max-height:65vh;
+max-width:92vw;
+max-height:55vh;
 border:1px solid #444;
 display:none;
 object-fit:contain;
@@ -62,9 +61,9 @@ max-width:600px;
 
 #actions{
 display:none;
-margin-top:10px;
 font-family:"Courier New", monospace;
 color:#00ff66;
+padding-top:6px;
 }
 
 .actionBtn{
@@ -76,7 +75,6 @@ display:inline-block;
 .actionBtn:hover{
 text-decoration:underline;
 }
-
 </style>
 </head>
 
@@ -91,7 +89,6 @@ Drop Image<br>or Click
 <input type="file" id="fileInput" accept="image/*" hidden>
 
 <div id="controls">
-
 <div>
 Left Effect:
 <select id="leftEffect">
@@ -114,14 +111,8 @@ Right Effect:
 </select>
 </div>
 
-<br>
-
 <button id="generate">Generate Comparison</button>
-
-<br><br>
-
 <input id="slider" type="range" min="0" max="100" value="50">
-
 </div>
 
 <canvas id="canvas"></canvas>
@@ -203,14 +194,11 @@ reader.readAsDataURL(file);
 }
 
 generateBtn.onclick=generateEffects;
-
 slider.oninput=renderSlider;
 
 function generateEffects(){
-
 applyEffect(leftEffect.value,leftCtx);
 applyEffect(rightEffect.value,rightCtx);
-
 renderSlider();
 }
 
@@ -222,17 +210,13 @@ const w=canvas.width;
 const h=canvas.height;
 
 ctx.clearRect(0,0,w,h);
-
 ctx.drawImage(rightCanvas,0,0);
 
 ctx.save();
-
 ctx.beginPath();
 ctx.rect(0,0,w*pos,h);
 ctx.clip();
-
 ctx.drawImage(leftCanvas,0,0);
-
 ctx.restore();
 }
 
