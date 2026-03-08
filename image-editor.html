@@ -18,8 +18,6 @@ align-items:center;
 justify-content:center;
 }
 
-/* UPLOAD */
-
 #uploadBox{
 width:280px;
 height:280px;
@@ -31,15 +29,11 @@ cursor:pointer;
 text-align:center;
 }
 
-/* EDITOR */
-
 #editor{
 display:none;
 flex-direction:column;
 align-items:center;
 }
-
-/* WINDOW */
 
 #imageWindow{
 background:#000;
@@ -49,8 +43,6 @@ flex-direction:column;
 max-width:95vw;
 position:relative;
 }
-
-/* WINDOW BAR */
 
 #windowBar{
 height:32px;
@@ -63,7 +55,7 @@ font-family:monospace;
 color:#00ff66;
 }
 
-#modeSelector{
+select{
 background:#000;
 color:#00ff66;
 border:1px solid #333;
@@ -74,17 +66,23 @@ font-family:monospace;
 opacity:.85;
 }
 
-/* IMAGE */
-
 canvas{
 max-width:92vw;
 max-height:60vh;
 display:block;
-position:relative;
-z-index:1;
 }
 
-/* DIVIDER */
+#modePanel{
+position:absolute;
+top:34px;
+left:0;
+background:#000;
+border:1px solid #333;
+padding:10px;
+display:none;
+z-index:10;
+font-family:monospace;
+}
 
 #dividerLine{
 position:absolute;
@@ -96,12 +94,6 @@ left:50%;
 z-index:6;
 pointer-events:none;
 }
-
-#dividerLine:hover{
-background:rgba(255,255,255,0.5);
-}
-
-/* HANDLE */
 
 #dividerHandle{
 width:28px;
@@ -126,8 +118,6 @@ font-size:14px;
 color:white;
 }
 
-/* ACTIONS */
-
 #actions{
 font-family:"Courier New", monospace;
 color:#00ff66;
@@ -137,10 +127,6 @@ margin-top:60px;
 #actions span{
 cursor:pointer;
 padding:6px 12px;
-}
-
-#actions span:hover{
-text-decoration:underline;
 }
 
 </style>
@@ -161,10 +147,35 @@ Drop Image<br>or Click
 <div id="windowBar">
 
 <select id="modeSelector">
+<option value="">Select Mode</option>
 <option value="comparator">Comparator</option>
 </select>
 
 <div id="filename"></div>
+
+</div>
+
+<div id="modePanel">
+
+<div><b>Comparator Controls</b></div>
+
+<div style="margin-top:8px">Left Effect</div>
+<select id="leftEffect">
+<option value="original">Original</option>
+<option value="chromatic">Chromatic</option>
+<option value="anaglyph">Anaglyph</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+</select>
+
+<div style="margin-top:8px">Right Effect</div>
+<select id="rightEffect">
+<option value="original">Original</option>
+<option value="chromatic">Chromatic</option>
+<option value="anaglyph">Anaglyph</option>
+<option value="grayscale">Grayscale</option>
+<option value="invert">Invert</option>
+</select>
 
 </div>
 
@@ -200,6 +211,10 @@ const dividerLine=document.getElementById("dividerLine")
 const dividerHandle=document.getElementById("dividerHandle")
 
 const modeSelector=document.getElementById("modeSelector")
+const modePanel=document.getElementById("modePanel")
+
+const leftEffect=document.getElementById("leftEffect")
+const rightEffect=document.getElementById("rightEffect")
 
 let original=new Image()
 
@@ -211,8 +226,6 @@ let rightCtx=rightCanvas.getContext("2d")
 
 let split=0.5
 let dragging=false
-
-/* UPLOAD */
 
 uploadBox.onclick=()=>fileInput.click()
 
@@ -249,7 +262,7 @@ filenameLabel.textContent=file.name
 uploadBox.style.display="none"
 editor.style.display="flex"
 
-runMode()
+drawOriginal()
 
 }
 
@@ -261,24 +274,43 @@ reader.readAsDataURL(file)
 
 }
 
-/* MODE SYSTEM */
+function drawOriginal(){
 
-modeSelector.onchange=runMode
+ctx.clearRect(0,0,canvas.width,canvas.height)
+ctx.drawImage(original,0,0)
 
-function runMode(){
+dividerLine.style.display="none"
+dividerHandle.style.display="none"
+
+}
+
+modeSelector.onchange=()=>{
 
 if(modeSelector.value==="comparator"){
+
+modePanel.style.display="block"
+
+dividerLine.style.display="block"
+dividerHandle.style.display="flex"
+
 generateComparator()
-}
+
+}else{
+
+modePanel.style.display="none"
+drawOriginal()
 
 }
 
-/* COMPARATOR */
+}
+
+leftEffect.onchange=generateComparator
+rightEffect.onchange=generateComparator
 
 function generateComparator(){
 
-leftCtx.drawImage(original,0,0)
-rightCtx.drawImage(original,0,0)
+applyEffect(leftEffect.value,leftCtx)
+applyEffect(rightEffect.value,rightCtx)
 
 renderSplit()
 updateDivider()
@@ -292,18 +324,13 @@ ctx.clearRect(0,0,canvas.width,canvas.height)
 ctx.drawImage(rightCanvas,0,0)
 
 ctx.save()
-
 ctx.beginPath()
 ctx.rect(0,0,canvas.width*split,canvas.height)
 ctx.clip()
-
 ctx.drawImage(leftCanvas,0,0)
-
 ctx.restore()
 
 }
-
-/* DIVIDER */
 
 function updateDivider(){
 
@@ -337,8 +364,6 @@ renderSplit()
 
 })
 
-/* SAVE */
-
 saveBtn.onclick=()=>{
 
 const link=document.createElement("a")
@@ -347,8 +372,6 @@ link.href=canvas.toDataURL()
 link.click()
 
 }
-
-/* CLOSE */
 
 closeBtn.onclick=()=>{
 
@@ -367,6 +390,67 @@ rightCanvas.height=0
 filenameLabel.textContent=""
 
 fileInput.value=""
+
+modeSelector.value=""
+
+}
+
+function applyEffect(type,targetCtx){
+
+const w=original.width
+const h=original.height
+
+targetCtx.drawImage(original,0,0)
+
+let imgData=targetCtx.getImageData(0,0,w,h)
+let d=imgData.data
+
+if(type==="invert"){
+for(let i=0;i<d.length;i+=4){
+d[i]=255-d[i]
+d[i+1]=255-d[i+1]
+d[i+2]=255-d[i+2]
+}
+}
+
+if(type==="grayscale"){
+for(let i=0;i<d.length;i+=4){
+let v=(d[i]+d[i+1]+d[i+2])/3
+d[i]=d[i+1]=d[i+2]=v
+}
+}
+
+if(type==="anaglyph"){
+for(let i=0;i<d.length;i+=4){
+d[i+1]=0
+}
+}
+
+if(type==="chromatic"){
+
+let copy=new Uint8ClampedArray(d)
+let offsetR=12
+let offsetB=-12
+
+for(let y=0;y<h;y++){
+for(let x=0;x<w;x++){
+
+let i=(y*w+x)*4
+
+let xr=Math.min(w-1,Math.max(0,x+offsetR))
+let xb=Math.min(w-1,Math.max(0,x+offsetB))
+
+let ir=(y*w+xr)*4
+let ib=(y*w+xb)*4
+
+d[i]=copy[ir]
+d[i+2]=copy[ib+2]
+
+}
+}
+}
+
+targetCtx.putImageData(imgData,0,0)
 
 }
 
