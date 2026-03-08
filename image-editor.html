@@ -137,6 +137,7 @@ Mirror Axis<br>
 <select id="mirrorAxis">
 <option value="vertical">Vertical</option>
 <option value="horizontal">Horizontal</option>
+<option value="both">Both (4x)</option>
 </select><br><br>
 
 <label>
@@ -356,54 +357,78 @@ let source = sourceType==="video" ? video : original
 
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
-let axisX = canvas.width/2
-let axisY = canvas.height/2
+let halfW = canvas.width/2
+let halfH = canvas.height/2
 
 if(mirrorAxis.value==="vertical"){
 
-if(!mirrorInvert.checked){
-
-ctx.drawImage(source,0,0,axisX,canvas.height,0,0,axisX,canvas.height)
+ctx.drawImage(source,0,0,halfW,canvas.height,0,0,halfW,canvas.height)
 
 ctx.save()
 ctx.translate(canvas.width,0)
 ctx.scale(-1,1)
-ctx.drawImage(source,0,0,axisX,canvas.height,0,0,axisX,canvas.height)
+ctx.drawImage(source,0,0,halfW,canvas.height,0,0,halfW,canvas.height)
 ctx.restore()
-
-}else{
-
-ctx.save()
-ctx.translate(axisX,0)
-ctx.scale(-1,1)
-ctx.drawImage(source,0,0,axisX,canvas.height,0,0,axisX,canvas.height)
-ctx.restore()
-
-ctx.drawImage(source,0,0,axisX,canvas.height,axisX,0,axisX,canvas.height)
 
 }
 
-}else{
+else if(mirrorAxis.value==="horizontal"){
 
-if(!mirrorInvert.checked){
-
-ctx.drawImage(source,0,0,canvas.width,axisY,0,0,canvas.width,axisY)
+ctx.drawImage(source,0,0,canvas.width,halfH,0,0,canvas.width,halfH)
 
 ctx.save()
 ctx.translate(0,canvas.height)
 ctx.scale(1,-1)
-ctx.drawImage(source,0,0,canvas.width,axisY,0,0,canvas.width,axisY)
+ctx.drawImage(source,0,0,canvas.width,halfH,0,0,canvas.width,halfH)
+ctx.restore()
+
+}
+
+else if(mirrorAxis.value==="both"){
+
+if(!mirrorInvert.checked){
+
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
+
+ctx.save()
+ctx.translate(canvas.width,0)
+ctx.scale(-1,1)
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
+ctx.restore()
+
+ctx.save()
+ctx.translate(0,canvas.height)
+ctx.scale(1,-1)
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
+ctx.restore()
+
+ctx.save()
+ctx.translate(canvas.width,canvas.height)
+ctx.scale(-1,-1)
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
 ctx.restore()
 
 }else{
 
 ctx.save()
-ctx.translate(0,axisY)
-ctx.scale(1,-1)
-ctx.drawImage(source,0,0,canvas.width,axisY,0,0,canvas.width,axisY)
+ctx.translate(halfW,0)
+ctx.scale(-1,1)
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
 ctx.restore()
 
-ctx.drawImage(source,0,0,canvas.width,axisY,0,axisY,canvas.width,axisY)
+ctx.drawImage(source,0,0,halfW,halfH,halfW,0,halfW,halfH)
+
+ctx.save()
+ctx.translate(halfW,canvas.height)
+ctx.scale(-1,-1)
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
+ctx.restore()
+
+ctx.save()
+ctx.translate(0,canvas.height)
+ctx.scale(1,-1)
+ctx.drawImage(source,0,0,halfW,halfH,0,0,halfW,halfH)
+ctx.restore()
 
 }
 
@@ -463,39 +488,6 @@ d[i+2]=copy[ib+2]
 
 }
 }
-}
-
-if(type==="blur"){
-
-let copy=new Uint8ClampedArray(d)
-
-for(let y=1;y<h-1;y++){
-for(let x=1;x<w-1;x++){
-
-let i=(y*w+x)*4
-
-let sumR=0,sumG=0,sumB=0,count=0
-
-for(let dy=-1;dy<=1;dy++){
-for(let dx=-1;dx<=1;dx++){
-
-let ii=((y+dy)*w+(x+dx))*4
-
-sumR+=copy[ii]
-sumG+=copy[ii+1]
-sumB+=copy[ii+2]
-count++
-
-}
-}
-
-d[i]=sumR/count
-d[i+1]=sumG/count
-d[i+2]=sumB/count
-
-}
-}
-
 }
 
 targetCtx.putImageData(imgData,0,0)
