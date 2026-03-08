@@ -326,33 +326,29 @@ slider.oninput=()=>updateSize(slider.value);
 
 
 
+
 async function loadPosts(){
 
 try{
 
-const r = await fetch("/channel-metadata.csv");
-if(!r.ok) throw new Error("CSV load failed");
+const r = await fetch("/data/videos.json");
+if(!r.ok) throw new Error("videos.json load failed");
 
-const text = await r.text();
+const data = await r.json();
 
-const rows = text.trim().split(/
-?
-/).slice(1);
+// yt-dlp JSON structure
+const entries = data.entries || data;
 
-posts = rows.map(row=>{
-
-const cols = row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+posts = entries.map(v => {
 
 return {
-id:cols[0],
-title:(cols[1]||"").replace(/^"|"$/g,""),
-description:(cols[2]||"").replace(/^"|"$/g,""),
-date:cols[3],
-duration:cols[4],
-views:cols[5],
-thumb:cols[6],
-link:cols[7],
-embed:cols[8]
+id: v.id,
+title: v.title || "",
+description: v.description || "",
+date: v.upload_date || "",
+duration: v.duration || "",
+views: v.view_count || "",
+thumb: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`
 };
 
 });
@@ -369,108 +365,12 @@ render();
 }catch(e){
 
 console.error(e);
-statusEl.textContent="FAILED TO LOAD channel-metadata.csv";
+statusEl.textContent="FAILED TO LOAD /data/videos.json";
 
 }
 
 }
 
-}
-
-}
-
-
-
-function openVideo(id,title,date,description){
-
-frame.src="https://www.youtube.com/embed/"+id;
-
-document.getElementById("videoTitle").innerHTML =
-`<a href="https://youtube.com/watch?v=${id}" target="_blank" style="color:#00ff00;text-decoration:none;">${title}</a>`;
-
-let clean=(description||"")
-.replace(/<br\s*\/?>/gi,"\n")
-.replace(/<[^>]*>/g,"")
-.trim();
-
-document.getElementById("videoMeta").innerHTML =
-new Date(date).toLocaleString();
-
-document.getElementById("videoFull").textContent = clean;
-
-lightbox.style.display="flex";
-
-document.getElementById("closeVideo").onclick = ()=>{
-lightbox.style.display="none";
-frame.src="";
-};
-
-}
-
-function render(){
-postsEl.className=view;
-postsEl.style.gridTemplateColumns="repeat("+gridSize+",1fr)";
-
-postsEl.innerHTML="";
-
-const data=filtered.slice(0,visible);
-
-data.forEach(p=>{
-
-const el=document.createElement("div");
-el.className="post";
-
-if(view==="grid"){
-el.innerHTML=`
-<div class="thumb-grid">
-<img src="https://i.ytimg.com/vi/${p.id}/hqdefault.jpg">
-</div>
-<div class="post-title">${p.title}</div>`;
-
-el.onclick=()=>openVideo(p.id,p.title,p.date,p.description);
-}
-else{
-el.innerHTML=`
-<div class="thumb-list">
-<img src="https://i.ytimg.com/vi/${p.id}/hqdefault.jpg">
-</div>
-<div>
-<div class="post-title">${p.title}</div>
-<div class="post-date">${new Date(p.date).toLocaleDateString()}</div>
-</div>`;
-
-el.querySelector("img").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
-el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
-}
-
-postsEl.appendChild(el);
-
-});
-
-if(visible>=filtered.length) loadBtn.style.display="none";
-else loadBtn.style.display="block";
-}
-
-document.getElementById("listBtn").onclick=()=>{
-view="list";
-visible=3;
-gridMenu.style.display="none";
-render();
-}
-
-gridBtn.onclick=()=>{
-if(view!=="grid"){
-view="grid";
-gridSize=3;
-slider.value=3;
-visible=gridSize*gridSize;
-updatePreview();
-render();
-}
-else{
-gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
-}
-}
 else{
 gridMenu.style.display=gridMenu.style.display==="block"?"none":"block";
 }
