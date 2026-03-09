@@ -278,13 +278,35 @@ return;
 }
 
 if(mirrorAxis.value==="vertical"){
+
+if(!mirrorInvert.checked){
+
 quad(src,0,0,hw,h,0,0,hw,h,false,false);
 quad(src,0,0,hw,h,hw,0,hw,h,true,false);
+
+}else{
+
+quad(src,0,0,hw,h,0,0,hw,h,true,false);
+quad(src,0,0,hw,h,hw,0,hw,h,false,false);
+
+}
+
 }
 
 if(mirrorAxis.value==="horizontal"){
+
+if(!mirrorInvert.checked){
+
 quad(src,0,0,w,hh,0,0,w,hh,false,false);
 quad(src,0,0,w,hh,0,hh,w,hh,false,true);
+
+}else{
+
+quad(src,0,0,w,hh,0,0,w,hh,false,true);
+quad(src,0,0,w,hh,0,hh,w,hh,false,false);
+
+}
+
 }
 
 }
