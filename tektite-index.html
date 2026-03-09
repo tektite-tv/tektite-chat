@@ -265,7 +265,6 @@ cursor:pointer;
 <div id="videoFull"></div>
 </div>
 
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script>
 
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
@@ -544,8 +543,8 @@ const materials=[];
 function buildFaceTexture(face){
 
 let canvas=document.createElement("canvas");
-canvas.width=1024;
-canvas.height=1024;
+canvas.width=512;
+canvas.height=512;
 let ctx=canvas.getContext("2d");
 
 let texture=new THREE.CanvasTexture(canvas);
