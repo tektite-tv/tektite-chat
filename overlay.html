@@ -122,6 +122,8 @@ padding:20px;
 flex:1;
 }
 
+/* SIDEBAR ITEM */
+
 .sidebar-item{
 margin-bottom:12px;
 transition:box-shadow .15s ease;
@@ -168,21 +170,23 @@ max-height:200px;
 opacity:1;
 }
 
-/* BOTTOM BUTTON */
+/* SETTINGS BUTTON */
 
 .sidebar-bottom{
 padding:0 20px 20px 20px;
 }
 
-.sidebar-bottom a{
+.sidebar-settings{
 display:block;
+width:100%;
 background:#3b0066;
 color:lime;
-text-decoration:none;
 border:2px solid black;
 padding:10px;
 text-align:center;
 font-weight:bold;
+font-family:inherit;
+cursor:pointer;
 }
 
 </style>
@@ -205,7 +209,9 @@ font-weight:bold;
 <div class="clock">
 <div class="clock-box">
 <iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2"
-frameborder="0" width="200" height="36"></iframe>
+frameborder="0"
+width="200"
+height="36"></iframe>
 </div>
 </div>
 
@@ -251,7 +257,7 @@ frameborder="0" width="200" height="36"></iframe>
 </div>
 
 <div class="sidebar-bottom">
-<a href="#" onclick="openStats()">Settings ⚙️</a>
+<button class="sidebar-settings" onclick="openStats()">Settings ⚙️</button>
 </div>
 
 </div>
