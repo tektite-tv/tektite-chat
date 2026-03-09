@@ -5,11 +5,23 @@
 <title>theinternetisdead.org</title>
 
 <style>
-
+html,
 body{
     margin:0;
+    width:100%;
+    height:100%;
     background:#111;
     font-family:"Courier New", monospace;
+
+    /* keep scrolling enabled, hide scrollbar */
+    overflow:auto;
+    scrollbar-width:none;        /* Firefox */
+    -ms-overflow-style:none;     /* IE / old Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar{
+    display:none;                /* Chrome / Safari / Opera */
 }
 
 /* overlay container */
@@ -25,7 +37,6 @@ body{
     height:100vh;
     border:none;
 }
-
 </style>
 
 </head>
@@ -39,7 +50,6 @@ body{
 <iframe id="photosphere-frame" src="/photosphere.html"></iframe>
 
 <script>
-
 fetch("overlay.html")
 .then(res => res.text())
 .then(html=>{
@@ -50,7 +60,6 @@ function toggleSidebar(){
     const sidebar=document.getElementById("sidebar");
     sidebar.classList.toggle("open");
 }
-
 </script>
 
 </body>
