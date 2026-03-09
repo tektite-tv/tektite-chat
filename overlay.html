@@ -236,21 +236,21 @@ height="36"></iframe>
 <div class="sidebar-item">
 <a href="/tektite-photosphere.html">Tektite's Photosphere</a>
 <div class="sidebar-preview">
-<iframe src="/tektite-photosphere.html"></iframe>
+<iframe data-src="/tektite-photosphere.html"></iframe>
 </div>
 </div>
 
 <div class="sidebar-item">
 <a href="/tektite-image-editor.html">Tektite's Image Editor</a>
 <div class="sidebar-preview">
-<iframe src="/tektite-image-editor.html"></iframe>
+<iframe data-src="/tektite-image-editor.html"></iframe>
 </div>
 </div>
 
 <div class="sidebar-item">
 <a href="/tektite-sound-machine.html">Tektite's Sound Machine</a>
 <div class="sidebar-preview">
-<iframe src="/tektite-sound-machine.html"></iframe>
+<iframe data-src="/tektite-sound-machine.html"></iframe>
 </div>
 </div>
 
@@ -271,6 +271,17 @@ document.getElementById("sidebar").classList.toggle("open");
 function openStats(){
 window.parent.postMessage({type:"openStats"}, "*");
 }
+
+
+/* Lazy load sidebar preview iframes */
+document.querySelectorAll(".sidebar-preview iframe").forEach(frame=>{
+    const parent=frame.closest(".sidebar-item");
+    parent.addEventListener("mouseenter",()=>{
+        if(!frame.src){
+            frame.src=frame.dataset.src;
+        }
+    });
+});
 
 </script>
 
