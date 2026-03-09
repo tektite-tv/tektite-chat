@@ -35,30 +35,39 @@ font-weight:bold;
 
 .logo{
 margin-left:15px;
-height:40px;
+height:60px;
 display:flex;
 align-items:center;
 }
 
+/* wrapper */
+
 .logo a{
-display:inline-flex;
+display:flex;
 align-items:center;
-padding:4px;
-transition:box-shadow .15s ease, background .15s ease;
+justify-content:center;
+
+padding:6px;
+
+transition:
+transform .15s ease,
+box-shadow .15s ease,
+background .15s ease;
 }
 
-/* logo image */
+/* image */
 
 .logo img{
 height:40px;
 width:auto;
 display:block;
-transition:transform .15s ease;
 }
 
-/* hover glow */
+/* hover */
 
 .logo a:hover{
+
+transform:scale(1.15);
 
 background:rgba(0,255,0,0.5);
 
@@ -67,12 +76,6 @@ box-shadow:
 0 0 10px lime,
 0 0 20px lime;
 
-}
-
-/* make logo grow */
-
-.logo a:hover img{
-transform:scale(1.15);
 }
 
 /* spacer pushes clock right */
