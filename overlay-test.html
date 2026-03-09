@@ -31,26 +31,31 @@ color:lime;
 font-weight:bold;
 }
 
-/* LOGO CONTAINER */
+/* LOGO */
 
 .logo{
 margin-left:15px;
 height:40px;
 display:flex;
 align-items:center;
+}
+
+.logo a{
+display:inline-flex;
+align-items:center;
 padding:4px;
 transition:box-shadow .15s ease, background .15s ease;
 }
 
 .logo img{
-height:100%;
+height:40px;
 width:auto;
 display:block;
 }
 
-/* logo hover glow */
+/* hover glow */
 
-.logo:hover{
+.logo a:hover{
 
 background:rgba(0,255,0,0.5);
 
@@ -99,8 +104,6 @@ padding:20px;
 margin-bottom:12px;
 transition:box-shadow .15s ease;
 }
-
-/* neon module glow */
 
 .sidebar-item:hover{
 
