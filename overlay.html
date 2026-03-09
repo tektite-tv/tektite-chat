@@ -63,6 +63,22 @@
     font-weight:bold;
 }
 
+
+.motd{
+    margin-left:20px;
+    font-family:monospace;
+    color:lime;
+    font-size:14px;
+    white-space:nowrap;
+    filter:hue-rotate(0deg);
+    animation:hueShift 6s linear infinite;
+}
+
+@keyframes hueShift{
+    from{ filter:hue-rotate(0deg); }
+    to{ filter:hue-rotate(360deg); }
+}
+
 </style>
 </head>
 
@@ -77,6 +93,8 @@
 <img src="/images/deadlogo-green.png">
 </a>
 </div>
+
+<div id="motd" class="motd">loading...</div>
 
 </div>
 
@@ -102,6 +120,26 @@
 </div>
 
 </div>
+
+
+<script>
+async function loadMOTD(){
+    try{
+        const res = await fetch('/motd.json');
+        const data = await res.json();
+        if(Array.isArray(data) && data.length>0){
+            const msg = data[Math.floor(Math.random()*data.length)];
+            document.getElementById('motd').textContent = msg;
+        }else{
+            document.getElementById('motd').textContent = '...';
+        }
+    }catch(e){
+        document.getElementById('motd').textContent = '';
+    }
+}
+
+loadMOTD();
+</script>
 
 </body>
 </html>
