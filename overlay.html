@@ -11,6 +11,7 @@
     display:flex;
     align-items:center;
     padding-left:15px;
+    padding-right:15px;
 }
 
 .hamburger{
@@ -29,6 +30,15 @@
 .logo img{
     height:100%;
     width:auto;
+    display:block;
+}
+
+/* pushes the clock to the far right */
+.spacer{
+    flex:1;
+}
+
+.clock iframe{
     display:block;
 }
 
@@ -78,6 +88,12 @@
 </a>
 </div>
 
+<div class="spacer"></div>
+
+<div class="clock">
+<iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2" frameborder="0" width="200" height="36" allowtransparency="true"></iframe>
+</div>
+
 </div>
 
 <div id="sidebar" class="sidebar">
@@ -102,6 +118,12 @@
 </div>
 
 </div>
+
+<script>
+function toggleSidebar(){
+    document.getElementById("sidebar").classList.toggle("open");
+}
+</script>
 
 </body>
 </html>
