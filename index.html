@@ -15,7 +15,8 @@ html,body{
     font-family:"Courier New", monospace;
 }
 
-#overlay-container{
+/* overlay iframe */
+#overlay-frame{
     position:fixed;
     top:0;
     left:0;
@@ -26,7 +27,7 @@ html,body{
     z-index:1000;
 }
 
-/* main content iframe fills remaining space under overlay */
+/* main site iframe */
 #main-frame{
     position:absolute;
     top:60px;
@@ -43,24 +44,9 @@ html,body{
 
 <body>
 
-<div id="overlay-container"></div>
+<iframe id="overlay-frame" src="/overlay.html"></iframe>
 
 <iframe id="main-frame" src="/tektite-index.html"></iframe>
-
-<script>
-
-fetch("overlay.html")
-.then(res => res.text())
-.then(html=>{
-    document.getElementById("overlay-container").innerHTML = html;
-});
-
-function toggleSidebar(){
-    const sidebar=document.getElementById("sidebar");
-    sidebar.classList.toggle("open");
-}
-
-</script>
 
 </body>
 </html>
