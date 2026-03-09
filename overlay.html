@@ -8,8 +8,6 @@
 html,body{
     margin:0;
     padding:0;
-    height:60px;
-    overflow:hidden;
     background:#3b0066;
     font-family:"Courier New", monospace;
 }
@@ -25,6 +23,7 @@ html,body{
     box-sizing:border-box;
 }
 
+/* hamburger */
 .hamburger{
     font-size:26px;
     cursor:pointer;
@@ -33,6 +32,7 @@ html,body{
     font-weight:bold;
 }
 
+/* logo */
 .logo{
     margin-left:15px;
     height:40px;
@@ -46,7 +46,7 @@ html,body{
     display:block;
 }
 
-/* MOTD text */
+/* MOTD */
 .motd{
     margin-left:20px;
     font-family:monospace;
@@ -57,7 +57,6 @@ html,body{
     animation:hueShift 6s linear infinite;
 }
 
-/* hue animation */
 @keyframes hueShift{
     from{ filter:hue-rotate(0deg); }
     to{ filter:hue-rotate(360deg); }
@@ -73,6 +72,7 @@ html,body{
     background:#1a1a1a;
     transition:left 0.25s;
     box-shadow:2px 0 10px rgba(0,0,0,0.6);
+    z-index:2000;
 }
 
 .sidebar.open{
@@ -129,14 +129,11 @@ html,body{
 </div>
 
 <div class="sidebar-menu">
-
 <a href="/tektite-photosphere.html">Tektite's Photosphere</a>
 <a href="/tektite-image-editor.html">Tektite's Image Editor</a>
-
 </div>
 
 </div>
-
 
 <script>
 
@@ -147,13 +144,12 @@ function toggleSidebar(){
 
 async function loadMOTD(){
     try{
-        const res = await fetch('https://theinternetisdead.org/motd.json');
+        const res = await fetch('/motd.json');
         const data = await res.json();
-        if(Array.isArray(data) && data.length>0){
+
+        if(Array.isArray(data) && data.length){
             const msg = data[Math.floor(Math.random()*data.length)];
             document.getElementById('motd').textContent = msg;
-        }else{
-            document.getElementById('motd').textContent = '...';
         }
     }catch(e){
         document.getElementById('motd').textContent = '';
