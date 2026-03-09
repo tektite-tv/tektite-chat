@@ -21,6 +21,8 @@ padding-left:15px;
 padding-right:15px;
 }
 
+/* HAMBURGER */
+
 .hamburger{
 font-size:26px;
 cursor:pointer;
@@ -29,16 +31,40 @@ color:lime;
 font-weight:bold;
 }
 
+/* LOGO */
+
 .logo{
 margin-left:15px;
 height:40px;
+display:flex;
+align-items:center;
+padding:4px;
+transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
 }
 
 .logo img{
 height:100%;
 width:auto;
 display:block;
+pointer-events:none;
 }
+
+/* glowing hover */
+
+.logo:hover{
+
+transform:scale(1.08);
+
+background:rgba(0,255,0,0.5);
+
+box-shadow:
+0 0 0 2px lime,
+0 0 10px lime,
+0 0 20px lime;
+
+}
+
+/* spacer pushes clock right */
 
 .spacer{
 flex:1;
@@ -70,14 +96,14 @@ left:0;
 padding:20px;
 }
 
-/* SIDEBAR ITEM CONTAINER */
+/* SIDEBAR ITEM */
 
 .sidebar-item{
 margin-bottom:12px;
 transition:box-shadow .15s ease;
 }
 
-/* GLOW EFFECT */
+/* neon module glow */
 
 .sidebar-item:hover{
 
@@ -103,7 +129,7 @@ position:relative;
 z-index:2;
 }
 
-/* PREVIEW */
+/* PREVIEW WINDOW */
 
 .sidebar-preview{
 
@@ -123,7 +149,7 @@ background:black;
 
 }
 
-/* miniature page trick */
+/* scaled page preview */
 
 .sidebar-preview iframe{
 
