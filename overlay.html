@@ -123,9 +123,15 @@
 
 
 <script>
+
+function toggleSidebar(){
+    const sidebar = document.getElementById('sidebar');
+    if(sidebar){ sidebar.classList.toggle('open'); }
+}
+
 async function loadMOTD(){
     try{
-        const res = await fetch('/motd.json');
+        const res = await fetch('https://theinternetisdead.org/motd.json');
         const data = await res.json();
         if(Array.isArray(data) && data.length>0){
             const msg = data[Math.floor(Math.random()*data.length)];
