@@ -27,8 +27,8 @@ max-width:92vw;max-height:75vh;position:relative;
 
 #windowBar{
 height:32px;background:#4b0076;
-display:flex;align-items:center;padding:0 10px;
-font-family:monospace;color:#00ff66;
+display:flex;align-items:center;justify-content:space-between;
+padding:0 10px;font-family:monospace;color:#00ff66;
 }
 
 #leftControls{display:flex;gap:8px;align-items:center;}
@@ -37,6 +37,12 @@ background:#000;color:#00ff66;border:1px solid #333;
 font-family:monospace;height:22px;
 }
 #gear{cursor:pointer;font-size:18px;width:24px;text-align:center;display:none;}
+
+#windowTitle{
+font-family:monospace;
+color:#00ff66;
+font-size:13px;
+}
 
 canvas{max-width:92vw;max-height:65vh;display:block;}
 
@@ -75,6 +81,8 @@ background:#000;color:#00ff66;border:1px solid #333;font-family:monospace;
 </select>
 <div id="gear">⚙️</div>
 </div>
+
+<div id="windowTitle">image</div>
 </div>
 
 <div id="controlsPanel">
@@ -130,6 +138,8 @@ const editor=document.getElementById("editor");
 const canvas=document.getElementById("canvas");
 const ctx=canvas.getContext("2d");
 
+const windowTitle=document.getElementById("windowTitle");
+
 const modeSelector=document.getElementById("modeSelector");
 const mirrorAxis=document.getElementById("mirrorAxis");
 const mirrorInvert=document.getElementById("mirrorInvert");
@@ -148,6 +158,7 @@ let original=new Image();
 let video=null;
 let stream=null;
 let sourceType="image";
+let currentFilename="image";
 
 let bufferL=document.createElement("canvas");
 let bufferR=document.createElement("canvas");
@@ -156,6 +167,14 @@ let ctxR=bufferR.getContext("2d");
 
 function currentSource(){
 return sourceType==="video"?video:original;
+}
+
+function updateTitle(){
+if(sourceType==="video"){
+windowTitle.textContent="🔴 LIVE";
+}else{
+windowTitle.textContent=currentFilename;
+}
 }
 
 function applyEffect(ctx,type){
@@ -178,49 +197,6 @@ if(type==="grayscale"){
 for(let i=0;i<d.length;i+=4){
 let v=(d[i]+d[i+1]+d[i+2])/3;
 d[i]=d[i+1]=d[i+2]=v;
-}
-}
-
-if(type==="anaglyph"){
-for(let i=0;i<d.length;i+=4){
-d[i+1]=0;
-}
-}
-
-if(type==="chromatic"){
-let copy=new Uint8ClampedArray(d);
-for(let y=0;y<h;y++){
-for(let x=0;x<w;x++){
-let i=(y*w+x)*4;
-let xr=Math.min(w-1,x+6);
-let xb=Math.max(0,x-6);
-let ir=(y*w+xr)*4;
-let ib=(y*w+xb)*4;
-d[i]=copy[ir];
-d[i+2]=copy[ib+2];
-}
-}
-}
-
-if(type==="blur"){
-let copy=new Uint8ClampedArray(d);
-for(let y=1;y<h-1;y++){
-for(let x=1;x<w-1;x++){
-let r=0,g=0,b=0,c=0;
-for(let dy=-1;dy<=1;dy++){
-for(let dx=-1;dx<=1;dx++){
-let i=((y+dy)*w+(x+dx))*4;
-r+=copy[i];
-g+=copy[i+1];
-b+=copy[i+2];
-c++;
-}
-}
-let ii=(y*w+x)*4;
-d[ii]=r/c;
-d[ii+1]=g/c;
-d[ii+2]=b/c;
-}
 }
 }
 
@@ -268,81 +244,8 @@ ctx.drawImage(bufferR,0,0);
 ctx.restore();
 }
 
-function quad(src,sx,sy,sw,sh,dx,dy,dw,dh,flipX,flipY){
-ctx.save();
-ctx.translate(dx+(flipX?dw:0),dy+(flipY?dh:0));
-ctx.scale(flipX?-1:1,flipY?-1:1);
-ctx.drawImage(src,sx,sy,sw,sh,0,0,dw,dh);
-ctx.restore();
-}
-
-function drawMirror(){
-
-const src=currentSource();
-const w=canvas.width;
-const h=canvas.height;
-const hw=w/2;
-const hh=h/2;
-
-ctx.clearRect(0,0,w,h);
-
-if(mirrorAxis.value==="both"){
-
-if(!mirrorInvert.checked){
-
-quad(src,0,0,hw,hh,0,0,hw,hh,false,false);
-quad(src,0,0,hw,hh,hw,0,hw,hh,true,false);
-quad(src,0,0,hw,hh,0,hh,hw,hh,false,true);
-quad(src,0,0,hw,hh,hw,hh,hw,hh,true,true);
-
-}else{
-
-quad(src,0,0,hw,hh,0,0,hw,hh,true,true);
-quad(src,0,0,hw,hh,hw,0,hw,hh,false,true);
-quad(src,0,0,hw,hh,0,hh,hw,hh,true,false);
-quad(src,0,0,hw,hh,hw,hh,hw,hh,false,false);
-
-}
-
-return;
-}
-
-if(mirrorAxis.value==="vertical"){
-
-if(!mirrorInvert.checked){
-quad(src,0,0,hw,h,0,0,hw,h,false,false);
-quad(src,0,0,hw,h,hw,0,hw,h,true,false);
-}else{
-quad(src,0,0,hw,h,0,0,hw,h,true,false);
-quad(src,0,0,hw,h,hw,0,hw,h,false,false);
-}
-
-}
-
-if(mirrorAxis.value==="horizontal"){
-
-if(!mirrorInvert.checked){
-quad(src,0,0,w,hh,0,0,w,hh,false,false);
-quad(src,0,0,w,hh,0,hh,w,hh,false,true);
-}else{
-quad(src,0,0,w,hh,0,0,w,hh,false,true);
-quad(src,0,0,w,hh,0,hh,w,hh,false,false);
-}
-
-}
-
-}
-
 function draw(){
-
-if(modeSelector.value==="mirror"){
-drawMirror();
-}else if(modeSelector.value==="comparator"){
-drawComparator();
-}else{
 ctx.drawImage(currentSource(),0,0,canvas.width,canvas.height);
-}
-
 }
 
 function loop(){
@@ -354,11 +257,17 @@ uploadBox.onclick=()=>fileInput.click();
 
 fileInput.onchange=e=>{
 const file=e.target.files[0];
+if(!file) return;
+
+currentFilename=file.name;
+
 const reader=new FileReader();
 reader.onload=r=>{
 original.onload=()=>{
 canvas.width=original.width;
 canvas.height=original.height;
+sourceType="image";
+updateTitle();
 startPanel.style.display="none";
 editor.style.display="flex";
 draw();
@@ -391,6 +300,8 @@ canvas.width=video.videoWidth;
 canvas.height=video.videoHeight;
 
 sourceType="video";
+updateTitle();
+
 startPanel.style.display="none";
 editor.style.display="flex";
 
@@ -414,15 +325,7 @@ compareSlider.style.display="block";
 compareControls.style.display="block";
 }
 
-draw();
-
 };
-
-mirrorAxis.onchange=draw;
-mirrorInvert.onchange=draw;
-compareSlider.oninput=draw;
-leftEffect.onchange=draw;
-rightEffect.onchange=draw;
 
 gear.onclick=()=>{
 controlsPanel.style.display=(controlsPanel.style.display==="block")?"none":"block";
