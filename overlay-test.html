@@ -31,7 +31,7 @@ color:lime;
 font-weight:bold;
 }
 
-/* LOGO */
+/* LOGO CONTAINER */
 
 .logo{
 margin-left:15px;
@@ -39,21 +39,18 @@ height:40px;
 display:flex;
 align-items:center;
 padding:4px;
-transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+transition:box-shadow .15s ease, background .15s ease;
 }
 
 .logo img{
 height:100%;
 width:auto;
 display:block;
-pointer-events:none;
 }
 
-/* glowing hover */
+/* logo hover glow */
 
 .logo:hover{
-
-transform:scale(1.08);
 
 background:rgba(0,255,0,0.5);
 
