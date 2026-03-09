@@ -10,15 +10,29 @@ html,body{
     margin:0;
     padding:0;
     height:100%;
-    overflow:hidden; /* prevents outer scrollbar */
+    overflow:hidden;
     background:#111;
     font-family:"Courier New", monospace;
 }
 
-/* iframe fills page normally */
+#overlay-container{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:60px;
+    border:none;
+    overflow:hidden;
+    z-index:1000;
+}
+
+/* main content iframe fills remaining space under overlay */
 #main-frame{
+    position:absolute;
+    top:60px;
+    left:0;
     width:100vw;
-    height:100vh;
+    height:calc(100vh - 60px);
     border:none;
     display:block;
 }
