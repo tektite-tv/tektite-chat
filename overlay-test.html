@@ -38,7 +38,6 @@ user-select:none;
 
 color:lime;
 
-/* optical centering fix */
 line-height:1;
 transform:translateY(-2px);
 
@@ -49,8 +48,6 @@ transform .15s ease;
 
 }
 
-/* hover */
-
 .hamburger:hover{
 
 background:rgba(0,255,0,0.5);
@@ -60,7 +57,6 @@ box-shadow:
 0 0 10px lime,
 0 0 20px lime;
 
-/* keep centering while scaling */
 transform:translateY(-2px) scale(1.1);
 
 }
@@ -74,13 +70,10 @@ display:flex;
 align-items:center;
 }
 
-/* wrapper */
-
 .logo a{
 display:flex;
 align-items:center;
 justify-content:center;
-
 padding:0;
 
 transition:
@@ -89,15 +82,11 @@ box-shadow .15s ease,
 background .15s ease;
 }
 
-/* image */
-
 .logo img{
 height:40px;
 width:auto;
 display:block;
 }
-
-/* hover */
 
 .logo a:hover{
 
@@ -118,7 +107,42 @@ box-shadow:
 flex:1;
 }
 
-.clock iframe{
+/* CLOCK */
+
+.clock{
+display:flex;
+align-items:center;
+}
+
+.clock-box{
+
+display:flex;
+align-items:center;
+justify-content:center;
+
+padding:4px;
+
+transition:
+transform .15s ease,
+box-shadow .15s ease,
+background .15s ease;
+
+}
+
+.clock-box:hover{
+
+transform:scale(1.075);
+
+background:rgba(0,255,0,0.5);
+
+box-shadow:
+0 0 0 2px lime,
+0 0 10px lime,
+0 0 20px lime;
+
+}
+
+.clock-box iframe{
 display:block;
 }
 
@@ -210,8 +234,6 @@ pointer-events:none;
 
 }
 
-/* reveal preview */
-
 .sidebar-item:hover .sidebar-preview{
 
 max-height:200px;
@@ -237,11 +259,13 @@ opacity:1;
 <div class="spacer"></div>
 
 <div class="clock">
+<div class="clock-box">
 <iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2"
 frameborder="0"
 width="200"
 height="36"
 allowtransparency="true"></iframe>
+</div>
 </div>
 
 </div>
