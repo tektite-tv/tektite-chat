@@ -154,10 +154,14 @@ top:0;
 left:-260px;
 width:260px;
 height:100%;
+
 background:#1a1a1a;
+
 transition:left 0.25s;
 box-shadow:2px 0 10px rgba(0,0,0,0.6);
-overflow-y:auto;
+
+display:flex;
+flex-direction:column;
 }
 
 .sidebar.open{
@@ -166,6 +170,7 @@ left:0;
 
 .sidebar-menu{
 padding:20px;
+flex:1;
 }
 
 /* SIDEBAR ITEM */
@@ -239,6 +244,23 @@ pointer-events:none;
 max-height:200px;
 opacity:1;
 
+}
+
+/* BOTTOM SETTINGS BUTTON */
+
+.sidebar-bottom{
+padding:0 20px 20px 20px;
+}
+
+.sidebar-bottom a{
+display:block;
+background:#3b0066;
+color:lime;
+text-decoration:none;
+border:2px solid black;
+padding:10px;
+text-align:center;
+font-weight:bold;
 }
 
 </style>
@@ -328,6 +350,10 @@ Tektite's Sound Machine
 </div>
 
 
+</div>
+
+<div class="sidebar-bottom">
+<a href="#">Settings ⚙️</a>
 </div>
 
 </div>
