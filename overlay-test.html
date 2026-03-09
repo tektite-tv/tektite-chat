@@ -38,14 +38,14 @@ user-select:none;
 
 color:lime;
 
-/* tiny vertical correction */
-position:relative;
-top:-1px;
+/* optical centering fix */
+line-height:1;
+transform:translateY(-2px);
 
 transition:
-transform .15s ease,
 box-shadow .15s ease,
-background .15s ease;
+background .15s ease,
+transform .15s ease;
 
 }
 
@@ -53,14 +53,15 @@ background .15s ease;
 
 .hamburger:hover{
 
-transform:scale(1.1);
-
 background:rgba(0,255,0,0.5);
 
 box-shadow:
 0 0 0 2px lime,
 0 0 10px lime,
 0 0 20px lime;
+
+/* keep centering while scaling */
+transform:translateY(-2px) scale(1.1);
 
 }
 
