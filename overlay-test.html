@@ -47,10 +47,13 @@ padding:4px;
 transition:box-shadow .15s ease, background .15s ease;
 }
 
+/* logo image */
+
 .logo img{
 height:40px;
 width:auto;
 display:block;
+transition:transform .15s ease;
 }
 
 /* hover glow */
@@ -64,6 +67,12 @@ box-shadow:
 0 0 10px lime,
 0 0 20px lime;
 
+}
+
+/* make logo grow */
+
+.logo a:hover img{
+transform:scale(1.15);
 }
 
 /* spacer pushes clock right */
