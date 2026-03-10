@@ -64,7 +64,7 @@ width:auto;
 display:block;
 }
 
-/* SPACER (pushes clock right) */
+/* SPACER */
 
 .spacer{
 flex:1;
@@ -162,27 +162,6 @@ max-height:200px;
 opacity:1;
 }
 
-/* MOBILE */
-
-@media (max-width:700px){
-
-.topbar{
-height:52px;
-padding-left:10px;
-padding-right:10px;
-}
-
-.logo img{
-height:32px;
-}
-
-.clock iframe{
-width:150px;
-height:28px;
-}
-
-}
-
 </style>
 </head>
 
@@ -202,12 +181,10 @@ height:28px;
 
 <div class="clock">
 <div class="clock-box">
-
 <iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2"
 frameborder="0"
 width="200"
 height="36"></iframe>
-
 </div>
 </div>
 
@@ -259,14 +236,6 @@ Tektite's Sound Machine
 </div>
 
 </div>
-
-<script>
-
-window.toggleSidebar = function(){
-document.getElementById("sidebar").classList.toggle("open");
-}
-
-</script>
 
 </body>
 </html>
