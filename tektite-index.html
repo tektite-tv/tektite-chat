@@ -6,7 +6,6 @@
 <title>theinternetisdead.org</title>
 
 <style>
-
 html,body{
 background:black;
 color:#00ff00;
@@ -16,7 +15,6 @@ overflow:auto;
 scrollbar-width:none;
 -ms-overflow-style:none;
 }
-
 html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;}
 
 header{
@@ -88,6 +86,7 @@ background:black;
 border:2px solid #00ff00;
 padding:25px;
 display:none;
+z-index:10;
 }
 
 #gridControl{
@@ -157,6 +156,7 @@ margin-bottom:10px;
 width:100%;
 height:100%;
 object-fit:cover;
+display:block;
 }
 
 .thumb-list{
@@ -276,32 +276,45 @@ text-align:center;
 padding:10px;
 }
 
-/* ======================================
-MOBILE LAYOUT
-====================================== */
+/* ===============================
+   MOBILE / TABLET RESPONSIVE
+   =============================== */
 
-@media (max-width:700px){
+@media (max-width:1100px){
 
 header{
 flex-direction:column;
 align-items:stretch;
 gap:10px;
+padding:10px;
 }
 
 .channelHeader{
 justify-content:center;
 flex-wrap:wrap;
+gap:12px;
+}
+
+.channelLogo{
+height:72px;
+}
+
+.channelTitle{
+font-size:20px;
+text-align:center;
 }
 
 .controls{
 width:100%;
 flex-wrap:wrap;
 justify-content:center;
+gap:8px;
 }
 
 #videoSearch{
 width:100%;
 max-width:100%;
+box-sizing:border-box;
 }
 
 #listBtn,
@@ -310,12 +323,21 @@ max-width:100%;
 display:none;
 }
 
-.grid{
-grid-template-columns:1fr !important;
+#gridMenu{
+display:none !important;
 }
 
 #posts{
 padding:10px;
+}
+
+.grid{
+grid-template-columns:1fr !important;
+gap:12px;
+}
+
+.grid .post{
+padding:8px;
 }
 
 .list .post{
@@ -325,10 +347,27 @@ align-items:flex-start;
 
 .thumb-list{
 width:100%;
+box-sizing:border-box;
+}
+
+#loadMore{
+width:calc(100% - 20px);
+max-width:320px;
+margin:25px auto 40px auto;
+}
+
+#lightbox iframe{
+width:min(92vw,640px);
+}
+
+#videoTitle,
+#videoExcerpt,
+#videoFull,
+#videoMeta{
+max-width:92vw;
 }
 
 }
-
 </style>
 </head>
 
@@ -338,7 +377,7 @@ width:100%;
 
 <div class="channelHeader">
 <a href="https://youtube.com/@Honestly_Thomas" target="_blank" rel="noopener noreferrer">
-<img src="/images/oldtube.png" class="channelLogo">
+<img src="/images/oldtube.png" class="channelLogo" alt="Honestly Thomas YouTube channel logo">
 </a>
 <a href="https://youtube.com/@Honestly_Thomas" target="_blank" rel="noopener noreferrer">
 <div class="channelTitle">Honestly Thomas (Tektite)</div>
@@ -352,15 +391,10 @@ width:100%;
 <button id="modeBtn" disabled>2D</button>
 
 <div id="gridMenu">
-
 <div id="gridControl">
-
 <input type="range" min="3" max="10" value="3" id="sizeSlider">
-
 <div id="gridPreview"></div>
-
 </div>
-
 </div>
 
 </div>
@@ -382,10 +416,7 @@ width:100%;
 </div>
 
 <script>
-
 const CHANNEL_ID="UCn3WLZT7k8nO24XimlJVJVQ";
-
-
 
 let posts=[];
 let filtered=[];
@@ -414,7 +445,6 @@ preview.appendChild(c);
 }
 
 function updatePreview(){
-
 let cells=document.querySelectorAll(".gridCell");
 
 cells.forEach((c,i)=>{
@@ -423,13 +453,10 @@ let y=Math.floor(i/10);
 
 if(x<gridSize && y<gridSize) c.classList.add("active");
 else c.classList.remove("active");
-
 });
-
 }
 
 function updateSize(v){
-
 gridSize=parseInt(v);
 slider.value=v;
 
@@ -437,33 +464,27 @@ visible=gridSize*gridSize;
 
 updatePreview();
 render();
-
 }
 
 slider.oninput=()=>updateSize(slider.value);
 
-
-
-
 async function loadPosts(){
-
 try{
-
 const r = await fetch("/data/videos.json");
 if(!r.ok) throw new Error("videos.json failed");
 
 const data = await r.json();
 
 posts = (data.entries || []).map(v => ({
-
 id: v.id,
 title: v.title || "",
 description: v.description || "",
 date: "",
 duration: v.duration || 0,
 views: v.view_count || 0,
-thumb: (v.thumbnails && v.thumbnails[3] ? v.thumbnails[3].url : `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`)
-
+thumb: (v.thumbnails && v.thumbnails[3]
+? v.thumbnails[3].url
+: `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`)
 }));
 
 filtered = posts;
@@ -475,18 +496,12 @@ updatePreview();
 render();
 
 }catch(e){
-
 console.error(e);
 statusEl.textContent="FAILED TO LOAD /data/videos.json";
-
 }
-
 }
-
-
 
 function openVideo(id,title,date,description){
-
 frame.src="https://www.youtube.com/embed/"+id;
 
 document.getElementById("videoTitle").innerHTML =
@@ -498,7 +513,6 @@ let clean=(description||"")
 .trim();
 
 document.getElementById("videoMeta").innerHTML = "";
-
 document.getElementById("videoFull").textContent = clean;
 
 lightbox.style.display="flex";
@@ -507,19 +521,21 @@ document.getElementById("closeVideo").onclick = ()=>{
 lightbox.style.display="none";
 frame.src="";
 };
-
 }
 
 function render(){
 postsEl.className=view;
-postsEl.style.gridTemplateColumns="repeat("+gridSize+",1fr)";
+
+const isMobile = window.matchMedia("(max-width: 1100px)").matches;
+postsEl.style.gridTemplateColumns = (view === "grid" && !isMobile)
+? "repeat("+gridSize+",1fr)"
+: "1fr";
 
 postsEl.innerHTML="";
 
 const data=filtered.slice(0,visible);
 
 data.forEach(p=>{
-
 const el=document.createElement("div");
 el.className="post";
 
@@ -531,15 +547,13 @@ el.innerHTML=`
 <div class="post-title">${p.title}</div>`;
 
 el.onclick=()=>openVideo(p.id,p.title,p.date,p.description);
-}
-else{
+}else{
 el.innerHTML=`
 <div class="thumb-list">
 <img src="${p.thumb}">
 </div>
 <div>
 <div class="post-title">${p.title}</div>
-
 </div>`;
 
 el.querySelector("img").onclick=()=>openVideo(p.id,p.title,p.date,p.description);
@@ -547,7 +561,6 @@ el.querySelector(".post-title").onclick=()=>openVideo(p.id,p.title,p.date,p.desc
 }
 
 postsEl.appendChild(el);
-
 });
 
 if(visible>=filtered.length) loadBtn.style.display="none";
@@ -559,7 +572,7 @@ view="list";
 visible=3;
 gridMenu.style.display="none";
 render();
-}
+};
 
 gridBtn.onclick=()=>{
 if(view!=="grid"){
@@ -573,10 +586,12 @@ render();
 gridMenu.style.display =
 gridMenu.style.display==="block" ? "none" : "block";
 }
-}
+};
 
 loadBtn.onclick=()=>{
-if(view==="list"){
+const isMobile = window.matchMedia("(max-width: 1100px)").matches;
+
+if(view==="list" || isMobile){
 visible+=3;
 }else{
 if(gridSize<10){
@@ -587,15 +602,15 @@ updatePreview();
 }
 }
 render();
-}
+};
 
 searchInput.addEventListener("input",()=>{
 const q=searchInput.value.toLowerCase();
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-visible=view==="list"?3:gridSize*gridSize;
+const isMobile = window.matchMedia("(max-width: 1100px)").matches;
+visible=(view==="list" || isMobile) ? 3 : gridSize*gridSize;
 render();
 });
-
 
 let mode="2d";
 const cubeContainer=document.getElementById("cubeContainer");
@@ -627,10 +642,9 @@ cubeContainer.style.display="none";
 postsEl.style.display="";
 }
 
-}
+};
 
 function buildCube(){
-
 cubeContainer.innerHTML="";
 
 const scene=new THREE.Scene();
@@ -657,7 +671,6 @@ let shuffled=shuffle(filtered);
 const materials=[];
 
 function buildFaceTexture(face){
-
 let canvas=document.createElement("canvas");
 canvas.width=512;
 canvas.height=512;
@@ -712,7 +725,6 @@ py=e.clientY;
 window.addEventListener("mouseup",()=>dragging=false);
 
 window.addEventListener("mousemove",e=>{
-
 if(!dragging) return;
 
 let dx=e.clientX-px;
@@ -723,11 +735,9 @@ cube.rotation.x+=dy*0.01;
 
 px=e.clientX;
 py=e.clientY;
-
 });
 
 renderer.domElement.addEventListener("click",e=>{
-
 const rect=renderer.domElement.getBoundingClientRect();
 
 const mouse=new THREE.Vector2(
@@ -741,7 +751,6 @@ raycaster.setFromCamera(mouse,camera);
 const hits=raycaster.intersectObject(cube);
 
 if(hits.length){
-
 let face=Math.floor(hits[0].faceIndex/2);
 let uv=hits[0].uv;
 
@@ -755,9 +764,7 @@ let video=shuffled[index];
 if(video){
 openVideo(video.id,video.title,video.date,video.description);
 }
-
 }
-
 });
 
 window.addEventListener("resize",()=>{
@@ -772,12 +779,10 @@ renderer.render(scene,camera);
 }
 
 animate();
-
 }
 
-
+window.addEventListener("resize",render);
 document.addEventListener("DOMContentLoaded",loadPosts);
-
 </script>
 
 </body>
