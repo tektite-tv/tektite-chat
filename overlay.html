@@ -19,7 +19,6 @@ display:flex;
 align-items:center;
 padding-left:15px;
 padding-right:15px;
-position:relative;
 }
 
 /* HAMBURGER */
@@ -48,7 +47,7 @@ transform:translateY(-2px) scale(1.1);
 /* LOGO */
 
 .logo{
-margin-left:auto;
+margin-left:15px;
 height:60px;
 display:flex;
 align-items:center;
@@ -65,12 +64,15 @@ width:auto;
 display:block;
 }
 
+/* SPACER (pushes clock right) */
+
+.spacer{
+flex:1;
+}
+
 /* CLOCK */
 
 .clock{
-position:absolute;
-left:50%;
-transform:translateX(-50%);
 display:flex;
 align-items:center;
 }
@@ -190,6 +192,14 @@ height:28px;
 
 <div class="hamburger" onclick="toggleSidebar()">☰</div>
 
+<div class="logo">
+<a href="/">
+<img src="/images/deadlogo-green.png">
+</a>
+</div>
+
+<div class="spacer"></div>
+
 <div class="clock">
 <div class="clock-box">
 
@@ -199,12 +209,6 @@ width="200"
 height="36"></iframe>
 
 </div>
-</div>
-
-<div class="logo">
-<a href="/">
-<img src="/images/deadlogo-green.png">
-</a>
 </div>
 
 </div>
