@@ -26,6 +26,7 @@ overflow:hidden;
 z-index:1000;
 }
 
+/* main content iframe fills remaining space under overlay */
 #main-frame{
 position:absolute;
 top:60px;
@@ -33,6 +34,23 @@ left:0;
 width:100vw;
 height:calc(100vh - 60px);
 border:none;
+display:block;
+}
+
+/* Stats panel */
+
+#nerd-stats{
+position:fixed;
+bottom:10px;
+right:10px;
+width:280px;
+background:black;
+color:lime;
+font-size:12px;
+padding:10px;
+border:2px solid lime;
+display:none;
+z-index:999999;
 }
 
 </style>
@@ -43,21 +61,72 @@ border:none;
 
 <div id="overlay-container"></div>
 
-<iframe id="main-frame" src="/tektite-index.html"></iframe>
+<iframe id="main-frame" src="/tektite-index.html" loading="lazy"></iframe>
+
+<div id="nerd-stats"></div>
 
 <script>
 
-fetch("overlay.html")
-.then(res=>res.text())
-.then(html=>{
-document.getElementById("overlay-container").innerHTML=html;
-});
+/* load overlay */
 
-/* sidebar toggle */
+fetch("overlay.html")
+.then(res => res.text())
+.then(html=>{
+document.getElementById("overlay-container").innerHTML = html;
+});
 
 function toggleSidebar(){
 const sidebar=document.getElementById("sidebar");
-if(sidebar) sidebar.classList.toggle("open");
+sidebar.classList.toggle("open");
+}
+
+/* listen for overlay messages */
+
+window.addEventListener("message", e=>{
+if(e.data && e.data.type==="openStats"){
+toggleStatsPanel();
+}
+});
+
+/* stats panel */
+
+function toggleStatsPanel(){
+
+const panel=document.getElementById("nerd-stats");
+
+if(panel.style.display==="block"){
+panel.style.display="none";
+return;
+}
+
+panel.style.display="block";
+
+updateStats();
+
+}
+
+function updateStats(){
+
+const panel=document.getElementById("nerd-stats");
+
+const domNodes=document.querySelectorAll("*").length;
+const resources=performance.getEntriesByType("resource").length;
+
+let memory="N/A";
+if(performance.memory){
+memory=Math.round(performance.memory.usedJSHeapSize/1048576)+" MB";
+}
+
+const runtime=Math.round(performance.now());
+
+panel.innerHTML=`
+<b>Stats for Nerds</b><br><br>
+DOM Nodes: ${domNodes}<br>
+Resources Loaded: ${resources}<br>
+Heap Memory: ${memory}<br>
+Page Runtime: ${runtime} ms
+`;
+
 }
 
 </script>
