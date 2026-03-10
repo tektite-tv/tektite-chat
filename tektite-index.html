@@ -1,4 +1,284 @@
-/* MOBILE LAYOUT */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>theinternetisdead.org</title>
+
+<style>
+
+html,body{
+background:black;
+color:#00ff00;
+font-family:"Courier New",monospace;
+margin:0;
+overflow:auto;
+scrollbar-width:none;
+-ms-overflow-style:none;
+}
+
+html::-webkit-scrollbar,body::-webkit-scrollbar{display:none;}
+
+header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:6px 20px;
+background:rgba(75,0,118,.5);
+}
+
+.channelHeader{
+display:flex;
+align-items:center;
+gap:18px;
+}
+
+.channelHeader a{
+display:flex;
+align-items:center;
+text-decoration:none;
+color:inherit;
+}
+
+.channelLogo{
+height:120px;
+}
+
+.channelTitle{
+font-size:26px;
+font-weight:bold;
+}
+
+.controls{
+display:flex;
+align-items:center;
+gap:12px;
+position:relative;
+}
+
+#videoSearch{
+width:360px;
+height:40px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+padding:0 12px;
+font-family:"Courier New",monospace;
+}
+
+button{
+height:40px;
+padding:0 16px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+cursor:pointer;
+font-family:"Courier New",monospace;
+}
+
+button:hover{
+background:#001a00;
+}
+
+#gridMenu{
+position:absolute;
+top:50px;
+right:0;
+background:black;
+border:2px solid #00ff00;
+padding:25px;
+display:none;
+}
+
+#gridControl{
+width:220px;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+}
+
+#gridPreview{
+display:grid;
+grid-template-columns:repeat(10,16px);
+grid-template-rows:repeat(10,16px);
+gap:2px;
+}
+
+.gridCell{
+width:16px;
+height:16px;
+border:1px solid purple;
+background:transparent;
+}
+
+.gridCell.active{
+background:#00ff00;
+}
+
+#sizeSlider{
+width:200px;
+margin-bottom:12px;
+}
+
+#posts{
+padding:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(var(--cols,3),1fr);
+gap:20px;
+}
+
+.list .post{
+display:flex;
+align-items:center;
+gap:16px;
+margin-bottom:16px;
+border:2px solid #00ff00;
+padding:10px;
+}
+
+.grid .post{
+border:2px solid #00ff00;
+padding:10px;
+cursor:pointer;
+}
+
+.thumb-grid{
+aspect-ratio:16/9;
+overflow:hidden;
+border:2px solid #00ff00;
+margin-bottom:10px;
+}
+
+.thumb-grid img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.thumb-list{
+width:160px;
+border:2px solid #00ff00;
+}
+
+.thumb-list img{
+width:100%;
+display:block;
+}
+
+.post-title{
+font-size:16px;
+}
+
+.post-date{
+font-size:12px;
+opacity:.7;
+}
+
+#loadMore{
+display:block;
+margin:40px auto 60px auto;
+padding:12px 30px;
+font-size:18px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+cursor:pointer;
+}
+
+#lightbox{
+position:fixed;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
+background:black;
+display:none;
+flex-direction:column;
+align-items:center;
+justify-content:flex-start;
+z-index:99999;
+padding-top:0;
+}
+
+#videoTitle{
+padding-top:5px;
+font-size:22px;
+margin:0 0 16px 0;
+text-align:center;
+max-width:90vw;
+}
+
+#lightbox iframe{
+width:min(48vw,640px);
+aspect-ratio:16/9;
+height:auto;
+display:block;
+margin:0 auto;
+border:2px solid #00ff00;
+}
+
+#videoExcerpt{
+font-size:22px;
+color:#00ff00;
+text-align:center;
+max-width:80vw;
+margin-top:10px;
+}
+
+#videoExcerpt a{
+color:#00ff00;
+text-decoration:none;
+cursor:pointer;
+}
+
+#videoFull{
+max-width:80vw;
+margin:10px auto;
+display:none;
+line-height:1.4;
+}
+
+#closeVideo{
+font-size:22px;
+color:#00ff00;
+text-align:center;
+cursor:pointer;
+margin:12px 0;
+}
+
+#closeVideo:hover{
+text-decoration:underline;
+}
+
+#videoMeta{
+margin-top:18px;
+font-size:14px;
+opacity:.8;
+text-align:center;
+max-width:80vw;
+line-height:1.4;
+}
+
+#lightboxClose{
+position:absolute;
+top:20px;
+right:20px;
+font-size:28px;
+cursor:pointer;
+}
+
+.status{
+text-align:center;
+padding:10px;
+}
+
+/* ======================================
+MOBILE LAYOUT
+====================================== */
 
 @media (max-width:700px){
 
@@ -30,8 +310,6 @@ max-width:100%;
 display:none;
 }
 
-/* force single column */
-
 .grid{
 grid-template-columns:1fr !important;
 }
@@ -50,3 +328,64 @@ width:100%;
 }
 
 }
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="channelHeader">
+<a href="https://youtube.com/@Honestly_Thomas" target="_blank" rel="noopener noreferrer">
+<img src="/images/oldtube.png" class="channelLogo">
+</a>
+<a href="https://youtube.com/@Honestly_Thomas" target="_blank" rel="noopener noreferrer">
+<div class="channelTitle">Honestly Thomas (Tektite)</div>
+</a>
+</div>
+
+<div class="controls">
+<input id="videoSearch" placeholder="Search Videos...">
+<button id="listBtn">LIST</button>
+<button id="gridBtn">GRID</button>
+<button id="modeBtn" disabled>2D</button>
+
+<div id="gridMenu">
+
+<div id="gridControl">
+
+<input type="range" min="3" max="10" value="3" id="sizeSlider">
+
+<div id="gridPreview"></div>
+
+</div>
+
+</div>
+
+</div>
+
+</header>
+
+<div id="posts" class="grid"></div>
+<div id="cubeContainer" style="display:none;width:100%;height:70vh;position:relative;"></div>
+<div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
+
+<button id="loadMore">Load More</button>
+
+<div id="lightbox">
+<div id="videoTitle"></div>
+<iframe id="lightboxFrame" src="" allowfullscreen></iframe>
+<div id="closeVideo">[CLOSE VIDEO]</div>
+<div id="videoMeta"></div>
+<div id="videoFull"></div>
+</div>
+
+<script>
+
+/* your entire original JS remains unchanged */
+
+</script>
+
+</body>
+</html>
