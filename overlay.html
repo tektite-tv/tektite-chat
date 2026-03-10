@@ -17,8 +17,10 @@ height:60px;
 background:#3b0066;
 display:flex;
 align-items:center;
+justify-content:space-between;
 padding-left:15px;
 padding-right:15px;
+position:relative;
 }
 
 /* HAMBURGER */
@@ -53,49 +55,18 @@ display:flex;
 align-items:center;
 }
 
-.logo a{
-display:flex;
-align-items:center;
-justify-content:center;
-padding:0;
-transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
-}
-
 .logo img{
 height:40px;
-width:auto;
-display:block;
 }
 
-.logo a:hover{
-transform:scale(1.075);
-background:rgba(0,255,0,0.5);
-box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
-}
-
-.spacer{
-flex:1;
-}
-
-/* CLOCK */
+/* CLOCK CENTERED */
 
 .clock{
+position:absolute;
+left:50%;
+transform:translateX(-50%);
 display:flex;
 align-items:center;
-}
-
-.clock-box{
-display:flex;
-align-items:center;
-justify-content:center;
-padding:4px;
-transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
-}
-
-.clock-box:hover{
-transform:scale(1.075);
-background:rgba(0,255,0,0.5);
-box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
 }
 
 /* SIDEBAR */
@@ -122,18 +93,9 @@ padding:20px;
 flex:1;
 }
 
-/* SIDEBAR ITEM */
-
 .sidebar-item{
 margin-bottom:12px;
-transition:box-shadow .15s ease;
 }
-
-.sidebar-item:hover{
-box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
-}
-
-/* LINK CARD */
 
 .sidebar-item a{
 display:block;
@@ -146,53 +108,25 @@ text-align:center;
 padding:10px;
 }
 
-/* PREVIEW */
+/* MOBILE */
 
-.sidebar-preview{
-width:100%;
-aspect-ratio:16/9;
-overflow:hidden;
-max-height:0;
-opacity:0;
-transition:max-height .25s ease,opacity .25s ease;
-background:black;
-margin-top:10px;
+@media (max-width:700px){
+
+.topbar{
+height:52px;
+padding-left:10px;
+padding-right:10px;
 }
 
-.sidebar-preview img{
-width:100%;
-height:100%;
-object-fit:cover;
-display:block;
-transition:transform .2s ease;
+.logo img{
+height:32px;
 }
 
-.sidebar-item:hover img{
-transform:scale(1.05);
+.clock iframe{
+width:150px;
+height:28px;
 }
 
-.sidebar-item:hover .sidebar-preview{
-max-height:200px;
-opacity:1;
-}
-
-/* SETTINGS BUTTON */
-
-.sidebar-bottom{
-padding:0 20px 20px 20px;
-}
-
-.sidebar-settings{
-display:block;
-width:100%;
-background:#3b0066;
-color:lime;
-border:2px solid black;
-padding:10px;
-text-align:center;
-font-weight:bold;
-font-family:inherit;
-cursor:pointer;
 }
 
 </style>
@@ -204,21 +138,17 @@ cursor:pointer;
 
 <div class="hamburger" onclick="toggleSidebar()">☰</div>
 
-<div class="logo">
-<a href="/">
-<img src="/images/deadlogo-green.png">
-</a>
-</div>
-
-<div class="spacer"></div>
-
 <div class="clock">
-<div class="clock-box">
 <iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2"
 frameborder="0"
 width="200"
 height="36"></iframe>
 </div>
+
+<div class="logo">
+<a href="/">
+<img src="/images/deadlogo-green.png">
+</a>
 </div>
 
 </div>
@@ -240,35 +170,16 @@ height="36"></iframe>
 <div class="sidebar-menu">
 
 <div class="sidebar-item">
-<a href="/tektite-photosphere.html">
-Tektite's Photosphere
-<div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-photosphere.png">
-</div>
-</a>
+<a href="/tektite-photosphere.html">Tektite's Photosphere</a>
 </div>
 
 <div class="sidebar-item">
-<a href="/tektite-image-editor.html">
-Tektite's Image Editor
-<div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-image-editor.png">
-</div>
-</a>
+<a href="/tektite-image-editor.html">Tektite's Image Editor</a>
 </div>
 
 <div class="sidebar-item">
-<a href="/tektite-sound-machine.html">
-Tektite's Sound Machine
-<div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-sound-machine.png">
+<a href="/tektite-sound-machine.html">Tektite's Sound Machine</a>
 </div>
-</a>
-</div>
-
-</div>
-
-<div class="sidebar-bottom">
 
 </div>
 
@@ -278,10 +189,6 @@ Tektite's Sound Machine
 
 function toggleSidebar(){
 document.getElementById("sidebar").classList.toggle("open");
-}
-
-function openStats(){
-window.parent.postMessage({type:"openStats"}, "*");
 }
 
 </script>
