@@ -56,6 +56,9 @@ align-items:center;
 .logo a{
 display:flex;
 align-items:center;
+justify-content:center;
+padding:0;
+transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
 }
 
 .logo img{
@@ -64,7 +67,11 @@ width:auto;
 display:block;
 }
 
-/* SPACER */
+.logo a:hover{
+transform:scale(1.075);
+background:rgba(0,255,0,0.5);
+box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
+}
 
 .spacer{
 flex:1;
@@ -82,6 +89,13 @@ display:flex;
 align-items:center;
 justify-content:center;
 padding:4px;
+transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+
+.clock-box:hover{
+transform:scale(1.075);
+background:rgba(0,255,0,0.5);
+box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
 }
 
 /* SIDEBAR */
@@ -162,6 +176,40 @@ max-height:200px;
 opacity:1;
 }
 
+/* SETTINGS BUTTON */
+
+.sidebar-bottom{
+padding:0 20px 20px 20px;
+}
+
+.sidebar-settings{
+display:block;
+width:100%;
+background:#3b0066;
+color:lime;
+border:2px solid black;
+padding:10px;
+text-align:center;
+font-weight:bold;
+font-family:inherit;
+cursor:pointer;
+}
+
+/* MOBILE ADJUSTMENT */
+
+@media (max-width:700px){
+
+.clock iframe{
+width:140px;
+height:30px;
+}
+
+.logo img{
+height:32px;
+}
+
+}
+
 </style>
 </head>
 
@@ -235,7 +283,21 @@ Tektite's Sound Machine
 
 </div>
 
+<div class="sidebar-bottom"></div>
+
 </div>
+
+<script>
+
+function toggleSidebar(){
+document.getElementById("sidebar").classList.toggle("open");
+}
+
+function openStats(){
+window.parent.postMessage({type:"openStats"}, "*");
+}
+
+</script>
 
 </body>
 </html>
