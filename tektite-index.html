@@ -1,200 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>theinternetisdead.org</title>
-
-<style>
-
-html,body{
-background:black;
-color:#00ff00;
-font-family:"Courier New",monospace;
-margin:0;
-overflow:auto;
-scrollbar-width:none;
--ms-overflow-style:none;
-}
-
-html::-webkit-scrollbar,
-body::-webkit-scrollbar{
-display:none;
-}
-
-/* HEADER */
-
-header{
-display:flex;
-align-items:center;
-justify-content:space-between;
-padding:6px 20px;
-background:rgba(75,0,118,.5);
-}
-
-.channelHeader{
-display:flex;
-align-items:center;
-gap:18px;
-}
-
-.channelLogo{
-height:120px;
-}
-
-.channelTitle{
-font-size:26px;
-font-weight:bold;
-}
-
-.controls{
-display:flex;
-align-items:center;
-gap:12px;
-}
-
-#videoSearch{
-width:360px;
-height:40px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-padding:0 12px;
-font-family:"Courier New",monospace;
-}
-
-button{
-height:40px;
-padding:0 16px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-cursor:pointer;
-font-family:"Courier New",monospace;
-}
-
-button:hover{
-background:#001a00;
-}
-
-/* POSTS */
-
-#posts{
-padding:20px;
-display:grid;
-grid-template-columns:repeat(var(--cols,3),1fr);
-gap:20px;
-}
-
-.post{
-border:2px solid #00ff00;
-padding:10px;
-cursor:pointer;
-}
-
-.thumb-grid{
-aspect-ratio:16/9;
-overflow:hidden;
-border:2px solid #00ff00;
-margin-bottom:10px;
-}
-
-.thumb-grid img{
-width:100%;
-height:100%;
-object-fit:cover;
-}
-
-.post-title{
-font-size:16px;
-}
-
-/* LOAD MORE */
-
-#loadMore{
-display:block;
-margin:40px auto 60px auto;
-padding:12px 30px;
-font-size:18px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-cursor:pointer;
-}
-
-/* LIGHTBOX */
-
-#lightbox{
-position:fixed;
-top:0;
-left:0;
-width:100vw;
-height:100vh;
-background:black;
-display:none;
-flex-direction:column;
-align-items:center;
-justify-content:flex-start;
-z-index:99999;
-padding-top:10px;
-}
-
-#videoTitle{
-font-size:22px;
-margin:0 0 16px 0;
-text-align:center;
-max-width:90vw;
-}
-
-#lightbox iframe{
-width:min(48vw,640px);
-aspect-ratio:16/9;
-height:auto;
-border:2px solid #00ff00;
-}
-
-#closeVideo{
-font-size:22px;
-cursor:pointer;
-margin:12px 0;
-}
-
-#closeVideo:hover{
-text-decoration:underline;
-}
-
-/* MOBILE */
+/* ===============================
+MOBILE RESPONSIVE LAYER
+=============================== */
 
 @media (max-width:700px){
 
 header{
 flex-direction:column;
-align-items:center;
+align-items:stretch;
 gap:10px;
-padding:10px;
 }
 
 .channelHeader{
-flex-direction:column;
-text-align:center;
-}
-
-.channelLogo{
-height:80px;
-}
-
-.channelTitle{
-font-size:20px;
+justify-content:center;
+flex-wrap:wrap;
 }
 
 .controls{
 width:100%;
+flex-wrap:wrap;
 justify-content:center;
 }
 
 #videoSearch{
 width:100%;
-max-width:500px;
+max-width:100%;
 }
 
 #listBtn,
@@ -204,196 +33,20 @@ display:none;
 }
 
 #posts{
-grid-template-columns:1fr;
+padding:10px;
+}
+
+.grid{
+grid-template-columns:1fr !important;
+}
+
+.list .post{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.thumb-list{
+width:100%;
 }
 
 }
-
-</style>
-</head>
-
-<body>
-
-<header>
-
-<div class="channelHeader">
-
-<a href="https://youtube.com/@Honestly_Thomas" target="_blank">
-<img src="/images/oldtube.png" class="channelLogo">
-</a>
-
-<div class="channelTitle">
-Honestly Thomas (Tektite)
-</div>
-
-</div>
-
-<div class="controls">
-
-<input id="videoSearch" placeholder="Search Videos...">
-
-<button id="listBtn">LIST</button>
-<button id="gridBtn">GRID</button>
-<button id="modeBtn" disabled>2D</button>
-
-</div>
-
-</header>
-
-<div id="posts"></div>
-
-<button id="loadMore">Load More</button>
-
-<div id="lightbox">
-
-<div id="videoTitle"></div>
-
-<iframe id="lightboxFrame" src="" allowfullscreen></iframe>
-
-<div id="closeVideo">[CLOSE VIDEO]</div>
-
-</div>
-
-<script>
-
-/* DATA */
-
-let posts=[];
-let filtered=[];
-let visible=9;
-let gridSize=3;
-
-const postsEl=document.getElementById("posts");
-const loadBtn=document.getElementById("loadMore");
-const searchInput=document.getElementById("videoSearch");
-
-const lightbox=document.getElementById("lightbox");
-const frame=document.getElementById("lightboxFrame");
-
-/* LOAD VIDEOS */
-
-async function loadPosts(){
-
-try{
-
-const r = await fetch("/data/videos.json");
-
-const data = await r.json();
-
-posts = (data.entries || []).map(v => ({
-
-id: v.id,
-title: v.title || "",
-description: v.description || "",
-thumb: (v.thumbnails && v.thumbnails[3] ? v.thumbnails[3].url : `https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`)
-
-}));
-
-filtered = posts;
-
-render();
-
-}catch(e){
-
-console.error(e);
-
-}
-
-}
-
-/* OPEN VIDEO */
-
-function openVideo(id,title){
-
-frame.src="https://www.youtube.com/embed/"+id;
-
-document.getElementById("videoTitle").innerHTML =
-`<a href="https://youtube.com/watch?v=${id}" target="_blank" style="color:#00ff00;text-decoration:none;">${title}</a>`;
-
-lightbox.style.display="flex";
-
-document.getElementById("closeVideo").onclick = ()=>{
-lightbox.style.display="none";
-frame.src="";
-};
-
-}
-
-/* RENDER POSTS */
-
-function render(){
-
-postsEl.innerHTML="";
-
-const data=filtered.slice(0,visible);
-
-data.forEach(p=>{
-
-const el=document.createElement("div");
-
-el.className="post";
-
-el.innerHTML=`
-
-<div class="thumb-grid">
-
-<img src="${p.thumb}">
-
-</div>
-
-<div class="post-title">
-
-${p.title}
-
-</div>
-
-`;
-
-el.onclick=()=>openVideo(p.id,p.title);
-
-postsEl.appendChild(el);
-
-});
-
-if(visible>=filtered.length){
-
-loadBtn.style.display="none";
-
-}else{
-
-loadBtn.style.display="block";
-
-}
-
-}
-
-/* LOAD MORE */
-
-loadBtn.onclick=()=>{
-
-visible+=gridSize*gridSize;
-
-render();
-
-}
-
-/* SEARCH */
-
-searchInput.addEventListener("input",()=>{
-
-const q=searchInput.value.toLowerCase();
-
-filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-
-visible=9;
-
-render();
-
-});
-
-document.addEventListener("DOMContentLoaded",loadPosts);
-
-</script>
-
-</body>
-</html>
