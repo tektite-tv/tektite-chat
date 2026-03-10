@@ -35,21 +35,6 @@ height:calc(100vh - 60px);
 border:none;
 }
 
-/* MOBILE */
-
-@media (max-width:700px){
-
-#overlay-container{
-height:52px;
-}
-
-#main-frame{
-top:52px;
-height:calc(100vh - 52px);
-}
-
-}
-
 </style>
 
 </head>
@@ -67,6 +52,13 @@ fetch("overlay.html")
 .then(html=>{
 document.getElementById("overlay-container").innerHTML=html;
 });
+
+/* sidebar toggle */
+
+function toggleSidebar(){
+const sidebar=document.getElementById("sidebar");
+if(sidebar) sidebar.classList.toggle("open");
+}
 
 </script>
 
