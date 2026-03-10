@@ -2,54 +2,263 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>theinternetisdead.org</title>
 
 <style>
 
+/* GLOBAL */
+
 html,body{
 margin:0;
 padding:0;
-height:100%;
-overflow:hidden;
-background:#111;
-font-family:"Courier New", monospace;
+background:black;
+color:#00ff00;
+font-family:"Courier New",monospace;
+overflow:auto;
+scrollbar-width:none;
+-ms-overflow-style:none;
 }
 
-#overlay-container{
+html::-webkit-scrollbar,
+body::-webkit-scrollbar{
+display:none;
+}
+
+/* ===== OVERLAY / TOP BAR ===== */
+
+.topbar{
+height:60px;
+background:#3b0066;
+display:flex;
+align-items:center;
+padding-left:15px;
+padding-right:15px;
 position:fixed;
 top:0;
 left:0;
 width:100%;
-height:60px;
 z-index:1000;
 }
 
-/* main content iframe */
-
-#main-frame{
-position:absolute;
-top:60px;
-left:0;
-width:100%;
-height:calc(100vh - 60px);
-border:none;
-display:block;
+.hamburger{
+width:40px;
+height:40px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:26px;
+cursor:pointer;
+color:lime;
 }
 
-/* stats panel */
+.logo{
+margin-left:15px;
+height:60px;
+display:flex;
+align-items:center;
+}
 
-#nerd-stats{
+.logo img{
+height:40px;
+}
+
+.spacer{
+flex:1;
+}
+
+.clock{
+display:flex;
+align-items:center;
+}
+
+/* ===== SIDEBAR ===== */
+
+.sidebar{
 position:fixed;
-bottom:10px;
-right:10px;
-width:280px;
-background:black;
+top:0;
+left:-260px;
+width:260px;
+height:100%;
+background:#1a1a1a;
+transition:left .25s;
+display:flex;
+flex-direction:column;
+z-index:2000;
+}
+
+.sidebar.open{
+left:0;
+}
+
+.sidebar-menu{
+padding:20px;
+flex:1;
+}
+
+.sidebar-item{
+margin-bottom:12px;
+}
+
+.sidebar-item a{
+display:block;
+background:#3b0066;
 color:lime;
-font-size:12px;
+text-decoration:none;
+border:2px solid black;
+font-weight:bold;
+text-align:center;
 padding:10px;
-border:2px solid lime;
+}
+
+.sidebar-preview{
+width:100%;
+aspect-ratio:16/9;
+overflow:hidden;
+max-height:0;
+opacity:0;
+transition:max-height .25s ease,opacity .25s ease;
+background:black;
+margin-top:10px;
+}
+
+.sidebar-preview img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.sidebar-item:hover .sidebar-preview{
+max-height:200px;
+opacity:1;
+}
+
+/* ===== MAIN CONTENT OFFSET UNDER TOPBAR ===== */
+
+#mainContent{
+margin-top:60px;
+}
+
+/* ===== ORIGINAL VIDEO PAGE STYLES ===== */
+
+header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:6px 20px;
+background:rgba(75,0,118,.5);
+}
+
+.channelHeader{
+display:flex;
+align-items:center;
+gap:18px;
+}
+
+.channelHeader a{
+display:flex;
+align-items:center;
+text-decoration:none;
+color:inherit;
+}
+
+.channelLogo{
+height:120px;
+}
+
+.channelTitle{
+font-size:26px;
+font-weight:bold;
+}
+
+.controls{
+display:flex;
+align-items:center;
+gap:12px;
+position:relative;
+}
+
+#videoSearch{
+width:360px;
+height:40px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+padding:0 12px;
+}
+
+button{
+height:40px;
+padding:0 16px;
+border:2px solid #00ff00;
+background:black;
+color:#00ff00;
+cursor:pointer;
+}
+
+button:hover{
+background:#001a00;
+}
+
+#posts{
+padding:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(var(--cols,3),1fr);
+gap:20px;
+}
+
+.post{
+border:2px solid #00ff00;
+padding:10px;
+cursor:pointer;
+}
+
+.thumb-grid{
+aspect-ratio:16/9;
+overflow:hidden;
+border:2px solid #00ff00;
+margin-bottom:10px;
+}
+
+.thumb-grid img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+/* LIGHTBOX */
+
+#lightbox{
+position:fixed;
+top:0;
+left:0;
+width:100vw;
+height:100vh;
+background:black;
 display:none;
-z-index:999999;
+flex-direction:column;
+align-items:center;
+z-index:99999;
+}
+
+#lightbox iframe{
+width:min(48vw,640px);
+aspect-ratio:16/9;
+border:2px solid #00ff00;
+}
+
+#closeVideo{
+font-size:22px;
+cursor:pointer;
+margin:12px 0;
+}
+
+.status{
+text-align:center;
+padding:10px;
 }
 
 </style>
@@ -57,68 +266,173 @@ z-index:999999;
 
 <body>
 
-<div id="overlay-container"></div>
+<!-- ===== TOP BAR ===== -->
 
-<iframe id="main-frame" src="/tektite-index.html" loading="lazy"></iframe>
+<div class="topbar">
 
-<div id="nerd-stats"></div>
+<div class="hamburger" onclick="toggleSidebar()">☰</div>
+
+<div class="logo">
+<a href="/">
+<img src="/images/deadlogo-green.png">
+</a>
+</div>
+
+<div class="spacer"></div>
+
+<div class="clock">
+<iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2"
+frameborder="0"
+width="200"
+height="36"></iframe>
+</div>
+
+</div>
+
+<!-- ===== SIDEBAR ===== -->
+
+<div id="sidebar" class="sidebar">
+
+<div class="sidebar-menu">
+
+<div class="sidebar-item">
+<a href="/tektite-photosphere.html">
+Tektite's Photosphere
+<div class="sidebar-preview">
+<img src="/images/link-thumbnails/tektite-photosphere.png">
+</div>
+</a>
+</div>
+
+<div class="sidebar-item">
+<a href="/tektite-image-editor.html">
+Tektite's Image Editor
+<div class="sidebar-preview">
+<img src="/images/link-thumbnails/tektite-image-editor.png">
+</div>
+</a>
+</div>
+
+<div class="sidebar-item">
+<a href="/tektite-sound-machine.html">
+Tektite's Sound Machine
+<div class="sidebar-preview">
+<img src="/images/link-thumbnails/tektite-sound-machine.png">
+</div>
+</a>
+</div>
+
+</div>
+
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+
+<div id="mainContent">
+
+<header>
+
+<div class="channelHeader">
+<a href="https://youtube.com/@Honestly_Thomas" target="_blank">
+<img src="/images/oldtube.png" class="channelLogo">
+</a>
+<a href="https://youtube.com/@Honestly_Thomas" target="_blank">
+<div class="channelTitle">Honestly Thomas (Tektite)</div>
+</a>
+</div>
+
+<div class="controls">
+<input id="videoSearch" placeholder="Search Videos...">
+<button id="listBtn">LIST</button>
+<button id="gridBtn">GRID</button>
+<button id="modeBtn" disabled>2D</button>
+</div>
+
+</header>
+
+<div id="posts" class="grid"></div>
+<div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
+
+<button id="loadMore">Load More</button>
+
+</div>
+
+<!-- LIGHTBOX -->
+
+<div id="lightbox">
+<div id="videoTitle"></div>
+<iframe id="lightboxFrame"></iframe>
+<div id="closeVideo">[CLOSE VIDEO]</div>
+<div id="videoMeta"></div>
+<div id="videoFull"></div>
+</div>
 
 <script>
 
-fetch("overlay.html")
-.then(res => res.text())
-.then(html=>{
-document.getElementById("overlay-container").innerHTML = html;
-});
+/* SIDEBAR */
 
 function toggleSidebar(){
-const sidebar=document.getElementById("sidebar");
-sidebar.classList.toggle("open");
+document.getElementById("sidebar").classList.toggle("open");
 }
 
-window.addEventListener("message", e=>{
-if(e.data && e.data.type==="openStats"){
-toggleStatsPanel();
-}
-});
+/* VIDEO SYSTEM (unchanged logic) */
 
-function toggleStatsPanel(){
+const postsEl=document.getElementById("posts");
+const statusEl=document.getElementById("status");
 
-const panel=document.getElementById("nerd-stats");
+async function loadPosts(){
 
-if(panel.style.display==="block"){
-panel.style.display="none";
-return;
-}
+try{
 
-panel.style.display="block";
-updateStats();
+const r = await fetch("/data/videos.json");
+const data = await r.json();
 
-}
+const posts = (data.entries || []).map(v => ({
+id:v.id,
+title:v.title || "",
+thumb:(v.thumbnails && v.thumbnails[3] ?
+v.thumbnails[3].url :
+`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`)
+}));
 
-function updateStats(){
+statusEl.style.display="none";
 
-const panel=document.getElementById("nerd-stats");
+posts.forEach(p=>{
 
-const domNodes=document.querySelectorAll("*").length;
-const resources=performance.getEntriesByType("resource").length;
+const el=document.createElement("div");
+el.className="post";
 
-let memory="N/A";
-if(performance.memory){
-memory=Math.round(performance.memory.usedJSHeapSize/1048576)+" MB";
-}
-
-const runtime=Math.round(performance.now());
-
-panel.innerHTML=`
-<b>Stats for Nerds</b><br><br>
-DOM Nodes: ${domNodes}<br>
-Resources Loaded: ${resources}<br>
-Heap Memory: ${memory}<br>
-Page Runtime: ${runtime} ms
+el.innerHTML=`
+<div class="thumb-grid">
+<img src="${p.thumb}">
+</div>
+<div>${p.title}</div>
 `;
 
+el.onclick=()=>{
+document.getElementById("lightboxFrame").src=
+"https://www.youtube.com/embed/"+p.id;
+document.getElementById("lightbox").style.display="flex";
+};
+
+postsEl.appendChild(el);
+
+});
+
+}catch(e){
+
+statusEl.textContent="FAILED TO LOAD /data/videos.json";
+
 }
+
+}
+
+document.getElementById("closeVideo").onclick=()=>{
+document.getElementById("lightbox").style.display="none";
+document.getElementById("lightboxFrame").src="";
+};
+
+document.addEventListener("DOMContentLoaded",loadPosts);
 
 </script>
 
