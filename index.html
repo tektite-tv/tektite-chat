@@ -37,8 +37,6 @@ border:none;
 display:block;
 }
 
-/* Stats panel */
-
 #nerd-stats{
 position:fixed;
 bottom:10px;
@@ -67,8 +65,6 @@ z-index:999999;
 
 <script>
 
-/* load overlay */
-
 fetch("overlay.html")
 .then(res => res.text())
 .then(html=>{
@@ -80,15 +76,11 @@ const sidebar=document.getElementById("sidebar");
 sidebar.classList.toggle("open");
 }
 
-/* listen for overlay messages */
-
 window.addEventListener("message", e=>{
 if(e.data && e.data.type==="openStats"){
 toggleStatsPanel();
 }
 });
-
-/* stats panel */
 
 function toggleStatsPanel(){
 
@@ -100,7 +92,6 @@ return;
 }
 
 panel.style.display="block";
-
 updateStats();
 
 }
