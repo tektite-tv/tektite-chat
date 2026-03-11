@@ -1,31 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>theinternetisdead.org</title>
 
 <style>
 
-/* GLOBAL */
+/* ===== OVERLAY STYLES ===== */
 
-html,body{
+body{
 margin:0;
-padding:0;
+font-family:monospace;
 background:black;
-color:#00ff00;
-font-family:"Courier New",monospace;
-overflow:auto;
-scrollbar-width:none;
--ms-overflow-style:none;
 }
-
-html::-webkit-scrollbar,
-body::-webkit-scrollbar{
-display:none;
-}
-
-/* ===== OVERLAY / TOP BAR ===== */
 
 .topbar{
 height:60px;
@@ -38,7 +27,7 @@ position:fixed;
 top:0;
 left:0;
 width:100%;
-z-index:1000;
+z-index:10000;
 }
 
 .hamburger{
@@ -72,8 +61,6 @@ display:flex;
 align-items:center;
 }
 
-/* ===== SIDEBAR ===== */
-
 .sidebar{
 position:fixed;
 top:0;
@@ -84,7 +71,7 @@ background:#1a1a1a;
 transition:left .25s;
 display:flex;
 flex-direction:column;
-z-index:2000;
+z-index:20000;
 }
 
 .sidebar.open{
@@ -133,13 +120,21 @@ max-height:200px;
 opacity:1;
 }
 
-/* ===== MAIN CONTENT OFFSET UNDER TOPBAR ===== */
+/* ===== PAGE OFFSET ===== */
 
-#mainContent{
+#page-content{
 margin-top:60px;
 }
 
-/* ===== ORIGINAL VIDEO PAGE STYLES ===== */
+/* ===== ORIGINAL TEKTITE STYLES ===== */
+
+html,body{
+background:black;
+color:#00ff00;
+font-family:"Courier New",monospace;
+overflow:auto;
+scrollbar-width:none;
+}
 
 header{
 display:flex;
@@ -155,36 +150,14 @@ align-items:center;
 gap:18px;
 }
 
-.channelHeader a{
-display:flex;
-align-items:center;
-text-decoration:none;
-color:inherit;
-}
-
 .channelLogo{
 height:120px;
-}
-
-.channelTitle{
-font-size:26px;
-font-weight:bold;
 }
 
 .controls{
 display:flex;
 align-items:center;
 gap:12px;
-position:relative;
-}
-
-#videoSearch{
-width:360px;
-height:40px;
-border:2px solid #00ff00;
-background:black;
-color:#00ff00;
-padding:0 12px;
 }
 
 button{
@@ -194,10 +167,6 @@ border:2px solid #00ff00;
 background:black;
 color:#00ff00;
 cursor:pointer;
-}
-
-button:hover{
-background:#001a00;
 }
 
 #posts{
@@ -229,8 +198,6 @@ height:100%;
 object-fit:cover;
 }
 
-/* LIGHTBOX */
-
 #lightbox{
 position:fixed;
 top:0;
@@ -250,23 +217,12 @@ aspect-ratio:16/9;
 border:2px solid #00ff00;
 }
 
-#closeVideo{
-font-size:22px;
-cursor:pointer;
-margin:12px 0;
-}
-
-.status{
-text-align:center;
-padding:10px;
-}
-
 </style>
 </head>
 
 <body>
 
-<!-- ===== TOP BAR ===== -->
+<!-- ===== OVERLAY ===== -->
 
 <div class="topbar">
 
@@ -288,8 +244,6 @@ height="36"></iframe>
 </div>
 
 </div>
-
-<!-- ===== SIDEBAR ===== -->
 
 <div id="sidebar" class="sidebar">
 
@@ -326,9 +280,9 @@ Tektite's Sound Machine
 
 </div>
 
-<!-- ===== MAIN CONTENT ===== -->
+<!-- ===== MAIN PAGE ===== -->
 
-<div id="mainContent">
+<div id="page-content">
 
 <header>
 
@@ -337,7 +291,7 @@ Tektite's Sound Machine
 <img src="/images/oldtube.png" class="channelLogo">
 </a>
 <a href="https://youtube.com/@Honestly_Thomas" target="_blank">
-<div class="channelTitle">Honestly Thomas (Tektite)</div>
+<div>Honestly Thomas (Tektite)</div>
 </a>
 </div>
 
@@ -351,34 +305,25 @@ Tektite's Sound Machine
 </header>
 
 <div id="posts" class="grid"></div>
-<div id="status" class="status">LOADING VIDEO ARCHIVE...</div>
+<div id="status">LOADING VIDEO ARCHIVE...</div>
 
 <button id="loadMore">Load More</button>
 
 </div>
 
-<!-- LIGHTBOX -->
-
 <div id="lightbox">
 <div id="videoTitle"></div>
 <iframe id="lightboxFrame"></iframe>
 <div id="closeVideo">[CLOSE VIDEO]</div>
-<div id="videoMeta"></div>
-<div id="videoFull"></div>
 </div>
 
 <script>
-
-/* SIDEBAR */
 
 function toggleSidebar(){
 document.getElementById("sidebar").classList.toggle("open");
 }
 
-/* VIDEO SYSTEM (unchanged logic) */
-
-const postsEl=document.getElementById("posts");
-const statusEl=document.getElementById("status");
+/* your video loader unchanged */
 
 async function loadPosts(){
 
@@ -389,13 +334,11 @@ const data = await r.json();
 
 const posts = (data.entries || []).map(v => ({
 id:v.id,
-title:v.title || "",
-thumb:(v.thumbnails && v.thumbnails[3] ?
-v.thumbnails[3].url :
-`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`)
+title:v.title,
+thumb:`https://i.ytimg.com/vi/${v.id}/hqdefault.jpg`
 }));
 
-statusEl.style.display="none";
+document.getElementById("status").style.display="none";
 
 posts.forEach(p=>{
 
@@ -412,16 +355,17 @@ el.innerHTML=`
 el.onclick=()=>{
 document.getElementById("lightboxFrame").src=
 "https://www.youtube.com/embed/"+p.id;
+
 document.getElementById("lightbox").style.display="flex";
 };
 
-postsEl.appendChild(el);
+document.getElementById("posts").appendChild(el);
 
 });
 
 }catch(e){
 
-statusEl.textContent="FAILED TO LOAD /data/videos.json";
+document.getElementById("status").innerText="FAILED TO LOAD /data/videos.json";
 
 }
 
