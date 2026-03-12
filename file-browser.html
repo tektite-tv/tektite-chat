@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tektite Drive Explorer v1.1</title>
+  <style>
+    :root {
+      --bg: #120018;
+      --bg2: #1b0026;
+      --panel: #230032;
+      --panel2: #2a003d;
+      --line: #00ff00;
+      --text: #00ff00;
+      --text-dim: #87ff87;
+      --text-soft: #56c556;
+      --accent: #50006f;
+      --accent2: #6a0092;
+      --danger: #ff4a77;
+      --shadow: rgba(0, 255, 0, 0.18);
+      --card-shadow: 0 0 0 1px var(--line), 0 0 18px rgba(0, 255, 0, 0.08);
+      --font-main: "Consolas", "Lucida Console", "Courier New", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background:
+        linear-gradient(180deg, #37004f 0px, #250036 76px, #16001e 76px, #120018 100%);
+      color: var(--text);
+      font-family: var(--font-main);
+      overflow: hidden;
+    }
+
+    body {
+      display: grid;
+      grid-template-rows: 76px 74px 1fr 28px;
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      background: #000;
+      color: var(--text);
+      border: 2px solid var(--line);
+      padding: 10px 14px;
+      transition: transform 0.08s ease, background 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 0 12px rgba(0,255,0,0.05);
+    }
+
+    button:hover {
+      background: #0d0d0d;
+      box-shadow: 0 0 18px rgba(0,255,0,0.15);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button.small {
+      padding: 8px 12px;
+      min-width: 44px;
+    }
+
+    button.active {
+      background: var(--line);
+      color: #000;
+      font-weight: bold;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: #000;
+      color: var(--text);
+      border: 2px solid var(--line);
+      outline: none;
+      padding: 12px 14px;
+    }
+
+    input[type="text"]::placeholder {
+      color: var(--text-soft);
+    }
+
+    .topbar {
+      display: grid;
+      grid-template-columns: 66px 1fr auto;
+      align-items: center;
+      gap: 18px;
+      padding: 0 24px;
+      background: linear-gradient(90deg, #4d006b 0%, #3f0058 55%, #28003a 100%);
+      border-bottom: 1px solid rgba(0,255,0,0.25);
+    }
+
+    .burger {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      font-size: 34px;
+      line-height: 1;
+      color: var(--text);
+      user-select: none;
+      text-shadow: 0 0 10px rgba(0,255,0,0.35);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      font-weight: bold;
+      font-size: 20px;
+      white-space: nowrap;
+    }
+
+    .logo .old {
+      color: #f2f2f2;
+      margin-right: 2px;
+    }
+
+    .logo .tube {
+      background: #00bcd4;
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 900;
+      box-shadow: 0 0 12px rgba(0,188,212,0.25);
+    }
+
+    .brandtext {
+      font-size: 18px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-shadow: 0 0 10px rgba(0,255,0,0.2);
+    }
+
+    .clock {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text);
+      text-shadow: 0 0 12px rgba(0,255,0,0.25);
+      white-space: nowrap;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: auto auto auto auto 1fr auto auto auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 24px;
+      background: rgba(30, 0, 42, 0.95);
+      border-bottom: 1px solid rgba(0,255,0,0.2);
+    }
+
+    .pathbox {
+      min-width: 0;
+      background: #000;
+      border: 2px solid var(--line);
+      padding: 12px 14px;
+      color: var(--text-dim);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 300px 1fr 360px;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar,
+    .main,
+    .preview {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: rgba(20, 0, 28, 0.95);
+      border-right: 1px solid rgba(0,255,0,0.22);
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .panel-title {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(0,255,0,0.18);
+      color: var(--text-dim);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    .tree {
+      overflow: auto;
+      padding: 10px 8px 18px 8px;
+    }
+
+    .tree-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      margin: 2px 0;
+      border: 1px solid transparent;
+      color: var(--text-dim);
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .tree-item:hover {
+      background: rgba(0,255,0,0.05);
+      border-color: rgba(0,255,0,0.2);
+    }
+
+    .tree-item.active {
+      background: rgba(0,255,0,0.1);
+      border-color: var(--line);
+      color: var(--text);
+      box-shadow: inset 0 0 12px rgba(0,255,0,0.08);
+    }
+
+    .tree-item .twisty {
+      width: 16px;
+      color: var(--text-soft);
+      text-align: center;
+      flex: 0 0 16px;
+    }
+
+    .tree-item .icon {
+      width: 18px;
+      text-align: center;
+      flex: 0 0 18px;
+    }
+
+    .tree-item .label {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .main {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      background: linear-gradient(180deg, rgba(22,0,30,0.85), rgba(16,0,22,0.95));
+    }
+
+    .statusline {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(0,255,0,0.15);
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    .breadcrumbs {
+      padding: 12px 18px 8px 18px;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      color: var(--text-dim);
+      border-bottom: 1px solid rgba(0,255,0,0.15);
+    }
+
+    .crumb {
+      background: #000;
+      border: 1px solid rgba(0,255,0,0.35);
+      padding: 6px 8px;
+      cursor: pointer;
+    }
+
+    .crumb:hover {
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .fileview {
+      overflow: auto;
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 18px;
+    }
+
+    .file-card {
+      background: rgba(0,0,0,0.65);
+      border: 2px solid var(--line);
+      min-height: 150px;
+      display: grid;
+      grid-template-rows: 110px auto auto;
+      box-shadow: var(--card-shadow);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    .file-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 0 1px var(--line), 0 0 24px rgba(0,255,0,0.16);
+    }
+
+    .file-card.selected {
+      background: rgba(0,255,0,0.1);
+      box-shadow: 0 0 0 2px var(--line), 0 0 28px rgba(0,255,0,0.22);
+    }
+
+    .thumb {
+      display: grid;
+      place-items: center;
+      background:
+        linear-gradient(135deg, rgba(0,255,0,0.07), rgba(0,255,0,0.01)),
+        #050505;
+      border-bottom: 1px solid rgba(0,255,0,0.2);
+      font-size: 42px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .thumb img,
+    .thumb video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .file-name {
+      padding: 10px 12px 6px 12px;
+      word-break: break-word;
+      line-height: 1.25;
+    }
+
+    .file-meta {
+      padding: 0 12px 12px 12px;
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .list-row {
+      display: grid;
+      grid-template-columns: 44px 1.5fr 120px 140px 160px;
+      gap: 12px;
+      align-items: center;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid rgba(0,255,0,0.25);
+      padding: 10px 12px;
+      cursor: pointer;
+    }
+
+    .list-row:hover {
+      border-color: var(--line);
+      background: rgba(0,255,0,0.05);
+    }
+
+    .list-row.selected {
+      border-color: var(--line);
+      background: rgba(0,255,0,0.1);
+      box-shadow: inset 0 0 12px rgba(0,255,0,0.08);
+    }
+
+    .list-head {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      background: #130018;
+      border: 1px solid rgba(0,255,0,0.3);
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .list-row > div {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .preview {
+      background: rgba(16, 0, 24, 0.98);
+      border-left: 1px solid rgba(0,255,0,0.22);
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .preview-scroll {
+      overflow: auto;
+      padding: 18px;
+    }
+
+    .preview-box {
+      border: 2px solid var(--line);
+      background: #000;
+      min-height: 200px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      margin-bottom: 16px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .preview-box img,
+    .preview-box video {
+      width: 100%;
+      height: 100%;
+      max-height: 360px;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .preview-box audio {
+      width: 100%;
+    }
+
+    .meta-block {
+      border: 1px solid rgba(0,255,0,0.25);
+      background: rgba(0,0,0,0.45);
+      padding: 12px;
+      margin-bottom: 12px;
+      color: var(--text-dim);
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.45;
+    }
+
+    .empty {
+      padding: 28px;
+      color: var(--text-soft);
+      text-align: center;
+      border: 2px dashed rgba(0,255,0,0.25);
+      background: rgba(0,0,0,0.3);
+    }
+
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 14px;
+      font-size: 12px;
+      background: #080808;
+      border-top: 1px solid rgba(0,255,0,0.2);
+      color: var(--text-soft);
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    .muted {
+      color: var(--text-soft);
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    .pill {
+      border: 1px solid rgba(0,255,0,0.35);
+      padding: 4px 8px;
+      background: #000;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    a.fake-link, .inline-btn {
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid rgba(0,255,0,0.4);
+      background: #000;
+      padding: 8px 10px;
+      display: inline-block;
+      cursor: pointer;
+    }
+
+    a.fake-link:hover, .inline-btn:hover {
+      border-color: var(--line);
+      background: rgba(0,255,0,0.05);
+    }
+
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+      background: #110011;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #1f4f1f;
+      border: 2px solid #110011;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #2b7a2b;
+    }
+
+    @media (max-width: 1400px) {
+      .workspace {
+        grid-template-columns: 260px 1fr 320px;
+      }
+    }
+
+    @media (max-width: 1120px) {
+      .workspace {
+        grid-template-columns: 260px 1fr;
+      }
+
+      .preview {
+        display: none;
+      }
+    }
+
+    @media (max-width: 760px) {
+      body {
+        grid-template-rows: auto auto 1fr 28px;
+      }
+
+      .topbar {
+        grid-template-columns: 50px 1fr;
+        grid-template-areas:
+          "burger brand"
+          "clock clock";
+        gap: 8px 14px;
+        padding: 12px 14px;
+      }
+
+      .burger { grid-area: burger; }
+      .brand { grid-area: brand; }
+      .clock { grid-area: clock; font-size: 18px; }
+
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .pathbox {
+        grid-column: 1 / -1;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .list-row,
+      .list-head {
+        grid-template-columns: 34px 1.2fr 90px 110px;
+      }
+
+      .hide-mobile {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="burger">☰</div>
+    <div class="brand">
+      <div class="logo">
+        <span class="old">Old</span><span class="tube">Drive</span>
+      </div>
+      <div class="brandtext" id="brandText">Tektite SSD Explorer</div>
+    </div>
+    <div class="clock" id="clock">--:--:--</div>
+  </header>
+
+  <section class="toolbar">
+    <button id="openFolderBtn">OPEN ROOT FOLDER</button>
+    <button id="upBtn" class="small">↑</button>
+    <button id="refreshBtn" class="small">⟳</button>
+    <button id="rescanBtn">RESCAN</button>
+    <div class="pathbox" id="pathBox">No folder opened yet. Human civilization remains inefficient.</div>
+    <button id="gridBtn" class="active">GRID</button>
+    <button id="listBtn">LIST</button>
+    <input id="searchInput" type="text" placeholder="Search files..." />
+  </section>
+
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="panel-title">FOLDER TREE</div>
+      <div class="tree" id="tree"></div>
+    </aside>
+
+    <section class="main">
+      <div class="statusline">
+        <div id="folderLabel">No folder loaded</div>
+        <div id="statsLabel">0 items</div>
+      </div>
+      <div class="breadcrumbs" id="breadcrumbs"></div>
+      <div class="fileview" id="fileview"></div>
+    </section>
+
+    <aside class="preview">
+      <div class="panel-title">PREVIEW / DETAILS</div>
+      <div class="preview-scroll" id="preview">
+        <div class="empty">Select a file or folder to preview it.</div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="footer">
+    <div id="footerLeft">Ready.</div>
+    <div class="pill">Chrome / Edge + localhost recommended</div>
+  </footer>
+
+  <input class="hidden-input" id="fallbackPicker" type="file" webkitdirectory multiple />
+
+  <script>
+  /* ==========================================================================
+     Tektite Drive Explorer v2.0
+     Real fix:
+     - lazy loads folders instead of recursively scanning the whole drive
+     - clicking folders in tree/grid/list opens them properly
+     - protected/system folders fail gracefully instead of poisoning everything
+     ========================================================================== */
+
+  const state = {
+    rootHandle: null,
+    rootName: "",
+    currentFolderPath: "",
+    selectedItem: null,
+    view: "grid",
+    search: "",
+    fallbackMode: false,
+    fallbackFiles: [],
+    objectUrls: new Map(),
+
+    // path -> folder record
+    folderMap: new Map(),
+
+    // expanded folders in left tree
+    expandedPaths: new Set([""]),
+
+    // used only in fallback mode
+    fallbackReady: false
+  };
+
+  const el = {
+    clock: document.getElementById("clock"),
+    openFolderBtn: document.getElementById("openFolderBtn"),
+    upBtn: document.getElementById("upBtn"),
+    refreshBtn: document.getElementById("refreshBtn"),
+    rescanBtn: document.getElementById("rescanBtn"),
+    gridBtn: document.getElementById("gridBtn"),
+    listBtn: document.getElementById("listBtn"),
+    searchInput: document.getElementById("searchInput"),
+    pathBox: document.getElementById("pathBox"),
+    tree: document.getElementById("tree"),
+    fileview: document.getElementById("fileview"),
+    preview: document.getElementById("preview"),
+    breadcrumbs: document.getElementById("breadcrumbs"),
+    folderLabel: document.getElementById("folderLabel"),
+    statsLabel: document.getElementById("statsLabel"),
+    footerLeft: document.getElementById("footerLeft"),
+    brandText: document.getElementById("brandText"),
+    fallbackPicker: document.getElementById("fallbackPicker")
+  };
+
+  function tickClock() {
+    const d = new Date();
+    let h = d.getHours();
+    const m = String(d.getMinutes()).padStart(2, "0");
+    const s = String(d.getSeconds()).padStart(2, "0");
+    const ampm = h >= 12 ? "pm" : "am";
+    h = h % 12 || 12;
+    el.clock.textContent = `${h}:${m}:${s} ${ampm}`;
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  function escapeHtml(str = "") {
+    return String(str).replace(/[&<>"']/g, m => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[m]));
+  }
+
+  function formatBytes(bytes = 0) {
+    if (!bytes && bytes !== 0) return "";
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    let i = 0;
+    let n = bytes;
+    while (n >= 1024 && i < units.length - 1) {
+      n /= 1024;
+      i++;
+    }
+    return `${n.toFixed(n >= 100 || i === 0 ? 0 : 1)} ${units[i]}`;
+  }
+
+  function formatDate(d) {
+    if (!d) return "";
+    const date = d instanceof Date ? d : new Date(d);
+    if (isNaN(date)) return "";
+    return date.toLocaleString();
+  }
+
+  function getExt(name = "") {
+    const i = name.lastIndexOf(".");
+    return i >= 0 ? name.slice(i + 1).toLowerCase() : "";
+  }
+
+  function getKindIcon(item) {
+    if (item.kind === "directory") return "📁";
+    const ext = getExt(item.name);
+    if (["png","jpg","jpeg","gif","webp","bmp","svg","avif"].includes(ext)) return "🖼";
+    if (["mp4","webm","mov","mkv","avi"].includes(ext)) return "🎬";
+    if (["mp3","wav","ogg","flac","m4a"].includes(ext)) return "🎵";
+    if (["txt","md","json","js","html","css","py","xml","csv","log"].includes(ext)) return "📄";
+    if (["zip","7z","rar","tar","gz"].includes(ext)) return "🗜";
+    return "◼";
+  }
+
+  function getMimeFromExt(ext) {
+    const map = {
+      png: "image/png",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      gif: "image/gif",
+      webp: "image/webp",
+      bmp: "image/bmp",
+      svg: "image/svg+xml",
+      avif: "image/avif",
+      mp4: "video/mp4",
+      webm: "video/webm",
+      mp3: "audio/mpeg",
+      wav: "audio/wav",
+      ogg: "audio/ogg",
+      flac: "audio/flac",
+      txt: "text/plain",
+      md: "text/markdown",
+      html: "text/html",
+      css: "text/css",
+      js: "text/javascript",
+      json: "application/json",
+      py: "text/plain",
+      csv: "text/csv",
+      log: "text/plain"
+    };
+    return map[ext] || "application/octet-stream";
+  }
+
+  function clearObjectUrls() {
+    for (const url of state.objectUrls.values()) {
+      try { URL.revokeObjectURL(url); } catch {}
+    }
+    state.objectUrls.clear();
+  }
+
+  function setFooter(text) {
+    el.footerLeft.textContent = text;
+  }
+
+  function normalizePath(path) {
+    if (path == null) return "";
+    const s = String(path).replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+    return s === "." ? "" : s;
+  }
+
+  function splitPath(path) {
+    const p = normalizePath(path);
+    return p ? p.split("/") : [];
+  }
+
+  function joinPath(...parts) {
+    return parts
+      .map(p => normalizePath(p))
+      .filter(Boolean)
+      .join("/");
+  }
+
+  function getParentPath(path) {
+    const parts = splitPath(path);
+    parts.pop();
+    return parts.join("/");
+  }
+
+  function folderDisplayName(path) {
+    const p = normalizePath(path);
+    if (!p) return state.rootName || "ROOT";
+    const parts = p.split("/");
+    return parts[parts.length - 1];
+  }
+
+  function compareItems(a, b) {
+    if (a.kind !== b.kind) return a.kind === "directory" ? -1 : 1;
+    return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+  }
+
+  function makeFolderRecord(path, handle = null, parentPath = "") {
+    const normalized = normalizePath(path);
+    return {
+      kind: "directory",
+      path: normalized,
+      name: normalized ? folderDisplayName(normalized) : (state.rootName || "ROOT"),
+      parentPath: normalizePath(parentPath),
+      handle,
+      directories: [],
+      files: [],
+      loaded: false,
+      loading: false,
+      error: null
+    };
+  }
+
+  function getFolder(path) {
+    return state.folderMap.get(normalizePath(path)) || null;
+  }
+
+  function ensureFolderRecord(path, handle = null, parentPath = "") {
+    const normalized = normalizePath(path);
+    if (!state.folderMap.has(normalized)) {
+      state.folderMap.set(normalized, makeFolderRecord(normalized, handle, parentPath));
+    }
+    const folder = state.folderMap.get(normalized);
+    if (handle && !folder.handle) folder.handle = handle;
+    if (normalized) folder.name = folderDisplayName(normalized);
+    return folder;
+  }
+
+  async function loadFolder(path) {
+    const normalized = normalizePath(path);
+    const folder = getFolder(normalized);
+    if (!folder) return null;
+    if (folder.loaded || folder.loading) return folder;
+    if (state.fallbackMode) return folder;
+    if (!folder.handle) return folder;
+
+    folder.loading = true;
+    folder.error = null;
+
+    try {
+      const directories = [];
+      const files = [];
+
+      for await (const [name, handle] of folder.handle.entries()) {
+        try {
+          if (handle.kind === "directory") {
+            const childPath = joinPath(normalized, name);
+            ensureFolderRecord(childPath, handle, normalized);
+            directories.push({
+              kind: "directory",
+              name,
+              path: childPath,
+              parentPath: normalized,
+              handle
+            });
+          } else {
+            let file;
+            try {
+              file = await handle.getFile();
+            } catch {
+              continue;
+            }
+
+            files.push({
+              kind: "file",
+              name,
+              path: joinPath(normalized, name),
+              parentPath: normalized,
+              handle,
+              size: file.size,
+              lastModified: file.lastModified,
+              type: file.type || getMimeFromExt(getExt(name))
+            });
+          }
+        } catch {
+          // skip weird/broken entries and keep going
+        }
+      }
+
+      directories.sort(compareItems);
+      files.sort(compareItems);
+
+      folder.directories = directories;
+      folder.files = files;
+      folder.loaded = true;
+      folder.loading = false;
+      folder.error = null;
+      return folder;
+    } catch (err) {
+      console.error(err);
+      folder.loading = false;
+      folder.loaded = true;
+      folder.error = err?.message || "Could not open folder";
+      folder.directories = [];
+      folder.files = [];
+      return folder;
+    }
+  }
+
+  async function openRootFolder() {
+    try {
+      state.fallbackMode = false;
+      clearObjectUrls();
+      state.folderMap.clear();
+      state.expandedPaths = new Set([""]);
+      state.selectedItem = null;
+      state.currentFolderPath = "";
+      state.search = "";
+      el.searchInput.value = "";
+
+      if ("showDirectoryPicker" in window) {
+        const dirHandle = await window.showDirectoryPicker({ mode: "read" });
+        state.rootHandle = dirHandle;
+        state.rootName = dirHandle.name || "ROOT";
+        el.brandText.textContent = `Tektite SSD Explorer :: ${state.rootName}`;
+
+        ensureFolderRecord("", dirHandle, "");
+        await loadFolder("");
+        renderAll();
+        setFooter(`Loaded ${state.rootName}. Lazy mode enabled, like a proper organism.`);
+        return;
+      }
+
+      el.fallbackPicker.click();
+    } catch (err) {
+      if (err && err.name === "AbortError") {
+        setFooter("Folder selection cancelled.");
+        return;
+      }
+      console.error(err);
+      setFooter("Could not open folder.");
+    }
+  }
+
+  function buildFallbackStructure(fileList) {
+    clearObjectUrls();
+    state.folderMap.clear();
+    state.expandedPaths = new Set([""]);
+    state.selectedItem = null;
+    state.fallbackMode = true;
+    state.fallbackReady = true;
+    state.fallbackFiles = Array.from(fileList);
+    state.currentFolderPath = "";
+    state.search = "";
+    el.searchInput.value = "";
+
+    const root = ensureFolderRecord("", null, "");
+    root.loaded = true;
+
+    for (const file of state.fallbackFiles) {
+      const rel = (file.webkitRelativePath || file.name).replace(/\\/g, "/");
+      const parts = rel.split("/");
+      const name = parts.pop();
+      const parentPath = normalizePath(parts.join("/"));
+
+      let acc = "";
+      for (const seg of parts) {
+        const current = acc;
+        const next = joinPath(acc, seg);
+
+        const parentFolder = ensureFolderRecord(current, null, getParentPath(current));
+        const nextFolder = ensureFolderRecord(next, null, current);
+        parentFolder.loaded = true;
+
+        if (!parentFolder.directories.find(d => d.path === next)) {
+          parentFolder.directories.push({
+            kind: "directory",
+            name: seg,
+            path: next,
+            parentPath: current,
+            handle: null
+          });
+        }
+        acc = next;
+        nextFolder.loaded = true;
+      }
+
+      const folder = ensureFolderRecord(parentPath, null, getParentPath(parentPath));
+      folder.loaded = true;
+
+      folder.files.push({
+        kind: "file",
+        name,
+        path: normalizePath(rel),
+        parentPath,
+        handle: null,
+        file,
+        size: file.size,
+        lastModified: file.lastModified,
+        type: file.type || getMimeFromExt(getExt(name))
+      });
+    }
+
+    for (const folder of state.folderMap.values()) {
+      folder.directories.sort(compareItems);
+      folder.files.sort(compareItems);
+    }
+
+    renderAll();
+    setFooter(`Loaded ${state.fallbackFiles.length} fallback files.`);
+  }
+
+  async function getFileFromItem(item) {
+    try {
+      if (item.file) return item.file;
+      if (item.handle && item.kind === "file") return await item.handle.getFile();
+    } catch (err) {
+      console.error(err);
+    }
+    return null;
+  }
+
+  async function getObjectUrl(item) {
+    if (state.objectUrls.has(item.path)) return state.objectUrls.get(item.path);
+    const file = await getFileFromItem(item);
+    if (!file) return null;
+    const url = URL.createObjectURL(file);
+    state.objectUrls.set(item.path, url);
+    return url;
+  }
+
+  function getCurrentFolder() {
+    return getFolder(state.currentFolderPath) || getFolder("") || null;
+  }
+
+  function getVisibleItems() {
+    const folder = getCurrentFolder();
+    if (!folder) return [];
+    const items = [...folder.directories, ...folder.files];
+    const q = state.search.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter(item => item.name.toLowerCase().includes(q));
+  }
+
+  function getFolderEntry(path) {
+    const folder = getFolder(path);
+    if (!folder) return null;
+    return {
+      kind: "directory",
+      name: folder.path ? folder.name : (state.rootName || folder.name || "ROOT"),
+      path: folder.path,
+      parentPath: folder.parentPath || "",
+      handle: folder.handle || null,
+      error: folder.error || null
+    };
+  }
+
+  function findItemByPath(path) {
+    const normalized = normalizePath(path);
+    const folderEntry = getFolderEntry(normalized);
+    if (folderEntry) return folderEntry;
+
+    for (const folder of state.folderMap.values()) {
+      const file = folder.files.find(x => x.path === normalized);
+      if (file) return file;
+    }
+    return null;
+  }
+
+  async function openFolder(path) {
+    const normalized = normalizePath(path);
+    const folder = getFolder(normalized);
+    if (!folder) return;
+
+    state.currentFolderPath = normalized;
+    state.selectedItem = getFolderEntry(normalized);
+
+    await loadFolder(normalized);
+    renderAll();
+    await previewItem(getFolderEntry(normalized));
+  }
+
+  async function activateItem(path) {
+    const item = findItemByPath(path);
+    if (!item) return;
+
+    if (item.kind === "directory") {
+      await openFolder(item.path);
+      return;
+    }
+
+    await previewItem(item);
+  }
+
+  function renderTree() {
+    const root = getFolder("");
+    if (!root) {
+      el.tree.innerHTML = `<div class="empty">No folder tree yet.</div>`;
+      return;
+    }
+
+    const rows = [];
+
+    function rowHtml(path, depth) {
+      const folder = getFolder(path);
+      if (!folder) return "";
+
+      const active = path === state.currentFolderPath ? "active" : "";
+      const isExpanded = state.expandedPaths.has(path);
+      const hasKnownChildren = folder.directories.length > 0 || !folder.loaded;
+      const twisty = hasKnownChildren ? (isExpanded ? "▾" : "▸") : "•";
+      const name = path ? folder.name : (state.rootName || "ROOT");
+
+      return `
+        <div class="tree-item ${active}" data-folder-path="${escapeHtml(path)}" style="padding-left:${10 + depth * 18}px">
+          <div class="twisty" data-toggle-path="${escapeHtml(path)}">${twisty}</div>
+          <div class="icon">📁</div>
+          <div class="label">${escapeHtml(name)}</div>
+        </div>
+      `;
+    }
+
+    async function walk(path, depth) {
+      rows.push(rowHtml(path, depth));
+      const folder = getFolder(path);
+      if (!folder) return;
+      if (!state.expandedPaths.has(path)) return;
+
+      // only show loaded children in tree; load on expand/open
+      if (folder.loaded) {
+        for (const dir of folder.directories) {
+          await walk(dir.path, depth + 1);
+        }
+      }
+    }
+
+    walk("", 0).then(() => {
+      el.tree.innerHTML = rows.join("");
+    });
+  }
+
+  function renderBreadcrumbs() {
+    const parts = splitPath(state.currentFolderPath);
+    const crumbs = [];
+    crumbs.push(`<span class="crumb" data-crumb-path="">${escapeHtml(state.rootName || "ROOT")}</span>`);
+
+    let acc = "";
+    for (const part of parts) {
+      acc = joinPath(acc, part);
+      crumbs.push(`<span>/</span>`);
+      crumbs.push(`<span class="crumb" data-crumb-path="${escapeHtml(acc)}">${escapeHtml(part)}</span>`);
+    }
+
+    el.breadcrumbs.innerHTML = crumbs.join("");
+  }
+
+  function renderStatus() {
+    const folder = getCurrentFolder();
+    const items = getVisibleItems();
+    const total = folder ? (folder.directories.length + folder.files.length) : 0;
+    const currentLabel = state.currentFolderPath || "\\";
+    el.folderLabel.textContent = `Folder: ${currentLabel}`;
+    el.statsLabel.textContent = `${items.length} shown / ${total} total`;
+    el.pathBox.textContent = `\\${state.currentFolderPath ? " / " + state.currentFolderPath : ""}`.replace("\\ /", "\\");
+  }
+
+  function fileCardTemplate(item) {
+    const selected = state.selectedItem && state.selectedItem.path === item.path ? "selected" : "";
+    const typeText = item.kind === "directory" ? "Folder" : (getExt(item.name).toUpperCase() || "FILE");
+    const meta = item.kind === "directory"
+      ? "Directory"
+      : `${formatBytes(item.size)} • ${formatDate(item.lastModified)}`;
+
+    return `
+      <div class="file-card ${selected}" data-item-path="${escapeHtml(item.path)}">
+        <div class="thumb" data-thumb-path="${escapeHtml(item.path)}">${escapeHtml(getKindIcon(item))}</div>
+        <div class="file-name">${escapeHtml(item.name)}</div>
+        <div class="file-meta">${escapeHtml(typeText)}<br>${escapeHtml(meta)}</div>
+      </div>
+    `;
+  }
+
+  function fileRowTemplate(item, isHead = false) {
+    if (isHead) {
+      return `
+        <div class="list-row list-head">
+          <div>TYPE</div>
+          <div>NAME</div>
+          <div>SIZE</div>
+          <div>MODIFIED</div>
+          <div class="hide-mobile">PATH</div>
+        </div>
+      `;
+    }
+
+    const selected = state.selectedItem && state.selectedItem.path === item.path ? "selected" : "";
+    return `
+      <div class="list-row ${selected}" data-item-path="${escapeHtml(item.path)}">
+        <div>${escapeHtml(getKindIcon(item))}</div>
+        <div>${escapeHtml(item.name)}</div>
+        <div>${item.kind === "directory" ? "—" : escapeHtml(formatBytes(item.size))}</div>
+        <div>${item.kind === "directory" ? "—" : escapeHtml(formatDate(item.lastModified))}</div>
+        <div class="hide-mobile">${escapeHtml(item.path || "\\")}</div>
+      </div>
+    `;
+  }
+
+  function renderFileView() {
+    const items = getVisibleItems();
+
+    if (!state.rootHandle && !state.fallbackMode) {
+      el.fileview.innerHTML = `
+        <div class="empty">
+          Click <strong>OPEN ROOT FOLDER</strong> and choose your SSD root.<br><br>
+          Because browsers still need your permission to touch your own drive. Sensational species.
+        </div>
+      `;
+      return;
+    }
+
+    if (!items.length) {
+      el.fileview.innerHTML = `<div class="empty">Nothing here matching that search.</div>`;
+      return;
+    }
+
+    if (state.view === "grid") {
+      el.fileview.innerHTML = `<div class="grid">${items.map(fileCardTemplate).join("")}</div>`;
+      hydrateThumbs(items);
+    } else {
+      el.fileview.innerHTML = `<div class="list">${fileRowTemplate(null, true)}${items.map(item => fileRowTemplate(item)).join("")}</div>`;
+    }
+  }
+
+  async function hydrateThumbs(items) {
+    for (const item of items) {
+      if (item.kind !== "file") continue;
+      const ext = getExt(item.name);
+      const escapedPath = CSS.escape(item.path);
+      const thumbEl = document.querySelector(`.thumb[data-thumb-path="${escapedPath}"]`);
+      if (!thumbEl) continue;
+
+      try {
+        if (["png","jpg","jpeg","gif","webp","bmp","svg","avif"].includes(ext)) {
+          const url = await getObjectUrl(item);
+          if (url && thumbEl.isConnected) {
+            thumbEl.innerHTML = `<img src="${url}" alt="${escapeHtml(item.name)}">`;
+          }
+        } else if (["mp4","webm"].includes(ext)) {
+          const url = await getObjectUrl(item);
+          if (url && thumbEl.isConnected) {
+            thumbEl.innerHTML = `<video src="${url}" muted playsinline></video>`;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  async function previewItem(item) {
+    state.selectedItem = item;
+    renderFileView();
+
+    if (!item) {
+      el.preview.innerHTML = `<div class="empty">Select a file or folder to preview it.</div>`;
+      return;
+    }
+
+    if (item.kind === "directory") {
+      const folder = getFolder(item.path);
+      const dirCount = folder ? folder.directories.length : 0;
+      const fileCount = folder ? folder.files.length : 0;
+      const errorLine = folder && folder.error
+        ? `\nStatus: inaccessible or protected folder`
+        : "";
+
+      el.preview.innerHTML = `
+        <div class="preview-box" style="font-size:72px;">📁</div>
+        <div class="meta-block"><strong>${escapeHtml(item.name || state.rootName || "ROOT")}</strong></div>
+        <div class="meta-block">Path: ${escapeHtml(item.path || "\\")}
+Folders: ${dirCount}
+Files: ${fileCount}${escapeHtml(errorLine)}</div>
+        <div class="preview-actions">
+          <span class="inline-btn" data-open-folder="${escapeHtml(item.path)}">OPEN FOLDER</span>
+        </div>
+      `;
+      return;
+    }
+
+    const ext = getExt(item.name);
+    const file = await getFileFromItem(item);
+    const url = await getObjectUrl(item);
+
+    let previewHtml = `<div class="preview-box">${escapeHtml(getKindIcon(item))}</div>`;
+
+    if (file && url) {
+      if (["png","jpg","jpeg","gif","webp","bmp","svg","avif"].includes(ext)) {
+        previewHtml = `<div class="preview-box"><img src="${url}" alt="${escapeHtml(item.name)}"></div>`;
+      } else if (["mp4","webm","mov"].includes(ext)) {
+        previewHtml = `<div class="preview-box"><video src="${url}" controls></video></div>`;
+      } else if (["mp3","wav","ogg","flac","m4a"].includes(ext)) {
+        previewHtml = `<div class="preview-box" style="padding:18px;"><audio src="${url}" controls></audio></div>`;
+      } else if (["txt","md","json","js","html","css","py","xml","csv","log"].includes(ext)) {
+        try {
+          const text = await file.text();
+          previewHtml = `<div class="preview-box" style="display:block; padding:0; min-height:220px; max-height:360px; overflow:auto;"><pre style="margin:0; padding:14px; color:var(--text-dim); background:#000;">${escapeHtml(text.slice(0, 12000))}</pre></div>`;
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }
+
+    const actionBits = [];
+    if (url) {
+      actionBits.push(`<a class="fake-link" href="${url}" download="${escapeHtml(item.name)}">DOWNLOAD / OPEN BLOB</a>`);
+    }
+
+    el.preview.innerHTML = `
+      ${previewHtml}
+      <div class="meta-block"><strong>${escapeHtml(item.name)}</strong></div>
+      <div class="meta-block">Path: ${escapeHtml(item.path)}
+Type: ${escapeHtml(file?.type || item.type || "unknown")}
+Extension: ${escapeHtml(ext || "none")}
+Size: ${escapeHtml(formatBytes(file?.size ?? item.size ?? 0))}
+Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</div>
+      ${actionBits.length ? `<div class="preview-actions">${actionBits.join("")}</div>` : ""}
+    `;
+  }
+
+  function renderAll() {
+    renderTree();
+    renderBreadcrumbs();
+    renderStatus();
+    renderFileView();
+
+    if (state.selectedItem) {
+      previewItem(state.selectedItem);
+    } else {
+      el.preview.innerHTML = `<div class="empty">Select a file or folder to preview it.</div>`;
+    }
+  }
+
+  el.openFolderBtn.addEventListener("click", openRootFolder);
+
+  el.fallbackPicker.addEventListener("change", (e) => {
+    const files = e.target.files;
+    if (!files || !files.length) return;
+    state.rootHandle = null;
+    state.rootName = files[0].webkitRelativePath.split("/")[0] || "ROOT";
+    el.brandText.textContent = `Tektite SSD Explorer :: ${state.rootName}`;
+    buildFallbackStructure(files);
+  });
+
+  el.upBtn.addEventListener("click", async () => {
+    if (!state.currentFolderPath) return;
+    await openFolder(getParentPath(state.currentFolderPath));
+  });
+
+  el.refreshBtn.addEventListener("click", async () => {
+    const folder = getCurrentFolder();
+    if (!folder) return;
+
+    if (state.fallbackMode) {
+      renderAll();
+      setFooter("Refreshed fallback view.");
+      return;
+    }
+
+    folder.loaded = false;
+    folder.loading = false;
+    folder.error = null;
+    await loadFolder(folder.path);
+    renderAll();
+    setFooter(`Refreshed ${folder.path || state.rootName}.`);
+  });
+
+  el.rescanBtn.addEventListener("click", async () => {
+    if (state.fallbackMode) {
+      buildFallbackStructure(state.fallbackFiles);
+      return;
+    }
+
+    if (!state.rootHandle) return;
+
+    clearObjectUrls();
+    state.folderMap.clear();
+    state.expandedPaths = new Set([""]);
+    state.selectedItem = null;
+    state.currentFolderPath = "";
+    ensureFolderRecord("", state.rootHandle, "");
+    await loadFolder("");
+    renderAll();
+    setFooter("Rescanned root.");
+  });
+
+  el.gridBtn.addEventListener("click", () => {
+    state.view = "grid";
+    el.gridBtn.classList.add("active");
+    el.listBtn.classList.remove("active");
+    renderFileView();
+    if (state.selectedItem) previewItem(state.selectedItem);
+  });
+
+  el.listBtn.addEventListener("click", () => {
+    state.view = "list";
+    el.listBtn.classList.add("active");
+    el.gridBtn.classList.remove("active");
+    renderFileView();
+    if (state.selectedItem) previewItem(state.selectedItem);
+  });
+
+  el.searchInput.addEventListener("input", () => {
+    state.search = el.searchInput.value || "";
+    renderStatus();
+    renderFileView();
+  });
+
+  el.tree.addEventListener("click", async (e) => {
+    const toggle = e.target.closest("[data-toggle-path]");
+    if (toggle) {
+      const path = normalizePath(toggle.dataset.togglePath);
+      if (state.expandedPaths.has(path)) {
+        state.expandedPaths.delete(path);
+        renderTree();
+      } else {
+        state.expandedPaths.add(path);
+        await loadFolder(path);
+        renderTree();
+      }
+      return;
+    }
+
+    const row = e.target.closest(".tree-item[data-folder-path]");
+    if (!row) return;
+    const path = normalizePath(row.dataset.folderPath);
+    state.expandedPaths.add(path);
+    await openFolder(path);
+  });
+
+  el.breadcrumbs.addEventListener("click", async (e) => {
+    const crumb = e.target.closest("[data-crumb-path]");
+    if (!crumb) return;
+    const path = normalizePath(crumb.dataset.crumbPath);
+    state.expandedPaths.add(path);
+    await openFolder(path);
+  });
+
+  el.fileview.addEventListener("click", async (e) => {
+    const itemEl = e.target.closest("[data-item-path]");
+    if (!itemEl) return;
+    await activateItem(itemEl.dataset.itemPath);
+  });
+
+  el.fileview.addEventListener("dblclick", async (e) => {
+    const itemEl = e.target.closest("[data-item-path]");
+    if (!itemEl) return;
+    const item = findItemByPath(itemEl.dataset.itemPath);
+    if (!item || item.kind !== "file") return;
+    const url = await getObjectUrl(item);
+    if (url) window.open(url, "_blank");
+  });
+
+  el.preview.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-open-folder]");
+    if (!btn) return;
+    await openFolder(btn.dataset.openFolder);
+  });
+
+  document.addEventListener("keydown", async (e) => {
+    if (e.target.matches("input, textarea")) return;
+
+    if (e.key === "/") {
+      e.preventDefault();
+      el.searchInput.focus();
+      el.searchInput.select();
+      return;
+    }
+
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      if (state.currentFolderPath) await openFolder(getParentPath(state.currentFolderPath));
+      return;
+    }
+
+    if (e.key.toLowerCase() === "r") {
+      e.preventDefault();
+      const folder = getCurrentFolder();
+      if (!folder) return;
+      if (!state.fallbackMode) {
+        folder.loaded = false;
+        folder.loading = false;
+        folder.error = null;
+        await loadFolder(folder.path);
+      }
+      renderAll();
+      return;
+    }
+
+    if (e.key.toLowerCase() === "g") {
+      state.view = "grid";
+      el.gridBtn.classList.add("active");
+      el.listBtn.classList.remove("active");
+      renderFileView();
+      return;
+    }
+
+    if (e.key.toLowerCase() === "l") {
+      state.view = "list";
+      el.listBtn.classList.add("active");
+      el.gridBtn.classList.remove("active");
+      renderFileView();
+    }
+  });
+
+  renderAll();
+  setFooter("Load this through localhost, then pick I:\\ as the root folder.");
+</script>
+</body>
+</html>
