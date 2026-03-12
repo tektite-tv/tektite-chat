@@ -30,7 +30,7 @@
       margin: 0;
       height: 100%;
       background:
-        linear-gradient(180deg, #37004f 0px, #250036 76px, #16001e 76px, #120018 100%);
+        linear-gradient(180deg, #1f002c 0px, #16001e 120px, #120018 100%);
       color: var(--text);
       font-family: var(--font-main);
       overflow: hidden;
@@ -38,7 +38,7 @@
 
     body {
       display: grid;
-      grid-template-rows: 76px 74px 1fr 28px;
+      grid-template-rows: 74px 1fr 28px;
     }
 
     button, input, select {
@@ -86,76 +86,6 @@
 
     input[type="text"]::placeholder {
       color: var(--text-soft);
-    }
-
-    .topbar {
-      display: grid;
-      grid-template-columns: 66px 1fr auto;
-      align-items: center;
-      gap: 18px;
-      padding: 0 24px;
-      background: linear-gradient(90deg, #4d006b 0%, #3f0058 55%, #28003a 100%);
-      border-bottom: 1px solid rgba(0,255,0,0.25);
-    }
-
-    .burger {
-      width: 36px;
-      height: 36px;
-      display: grid;
-      place-items: center;
-      font-size: 34px;
-      line-height: 1;
-      color: var(--text);
-      user-select: none;
-      text-shadow: 0 0 10px rgba(0,255,0,0.35);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 18px;
-      min-width: 0;
-    }
-
-    .logo {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0;
-      font-weight: bold;
-      font-size: 20px;
-      white-space: nowrap;
-    }
-
-    .logo .old {
-      color: #f2f2f2;
-      margin-right: 2px;
-    }
-
-    .logo .tube {
-      background: #00bcd4;
-      color: #000;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-weight: 900;
-      box-shadow: 0 0 12px rgba(0,188,212,0.25);
-    }
-
-    .brandtext {
-      font-size: 18px;
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-shadow: 0 0 10px rgba(0,255,0,0.2);
-    }
-
-    .clock {
-      font-size: 24px;
-      font-weight: 800;
-      color: var(--text);
-      text-shadow: 0 0 12px rgba(0,255,0,0.25);
-      white-space: nowrap;
     }
 
     .toolbar {
@@ -542,24 +472,7 @@
 
     @media (max-width: 760px) {
       body {
-        grid-template-rows: auto auto 1fr 28px;
-      }
-
-      .topbar {
-        grid-template-columns: 50px 1fr;
-        grid-template-areas:
-          "burger brand"
-          "clock clock";
-        gap: 8px 14px;
-        padding: 12px 14px;
-      }
-
-      .burger { grid-area: burger; }
-      .brand { grid-area: brand; }
-      .clock { grid-area: clock; font-size: 18px; }
-
-      .toolbar {
-        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto 1fr 28px;
       }
 
       .pathbox {
@@ -586,16 +499,6 @@
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="burger">☰</div>
-    <div class="brand">
-      <div class="logo">
-        <span class="old">Old</span><span class="tube">Drive</span>
-      </div>
-      <div class="brandtext" id="brandText">Tektite SSD Explorer</div>
-    </div>
-    <div class="clock" id="clock">--:--:--</div>
-  </header>
 
   <section class="toolbar">
     <button id="openFolderBtn">OPEN ROOT FOLDER</button>
@@ -668,9 +571,7 @@
     fallbackReady: false
   };
 
-  const el = {
-    clock: document.getElementById("clock"),
-    openFolderBtn: document.getElementById("openFolderBtn"),
+  const el = {    openFolderBtn: document.getElementById("openFolderBtn"),
     upBtn: document.getElementById("upBtn"),
     refreshBtn: document.getElementById("refreshBtn"),
     rescanBtn: document.getElementById("rescanBtn"),
@@ -684,22 +585,8 @@
     breadcrumbs: document.getElementById("breadcrumbs"),
     folderLabel: document.getElementById("folderLabel"),
     statsLabel: document.getElementById("statsLabel"),
-    footerLeft: document.getElementById("footerLeft"),
-    brandText: document.getElementById("brandText"),
-    fallbackPicker: document.getElementById("fallbackPicker")
+    footerLeft: document.getElementById("footerLeft"),    fallbackPicker: document.getElementById("fallbackPicker")
   };
-
-  function tickClock() {
-    const d = new Date();
-    let h = d.getHours();
-    const m = String(d.getMinutes()).padStart(2, "0");
-    const s = String(d.getSeconds()).padStart(2, "0");
-    const ampm = h >= 12 ? "pm" : "am";
-    h = h % 12 || 12;
-    el.clock.textContent = `${h}:${m}:${s} ${ampm}`;
-  }
-  tickClock();
-  setInterval(tickClock, 1000);
 
   function escapeHtml(str = "") {
     return String(str).replace(/[&<>"']/g, m => ({
@@ -939,7 +826,6 @@
         const dirHandle = await window.showDirectoryPicker({ mode: "read" });
         state.rootHandle = dirHandle;
         state.rootName = dirHandle.name || "ROOT";
-        el.brandText.textContent = `Tektite SSD Explorer :: ${state.rootName}`;
 
         ensureFolderRecord("", dirHandle, "");
         await loadFolder("");
@@ -1364,7 +1250,6 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
     if (!files || !files.length) return;
     state.rootHandle = null;
     state.rootName = files[0].webkitRelativePath.split("/")[0] || "ROOT";
-    el.brandText.textContent = `Tektite SSD Explorer :: ${state.rootName}`;
     buildFallbackStructure(files);
   });
 
