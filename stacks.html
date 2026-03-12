@@ -59,7 +59,7 @@ window.innerWidth/window.innerHeight,
 100000
 )
 
-camera.position.set(0,40,0)
+camera.position.set(0,40,40)
 camera.lookAt(0,0,0)
 
 const renderer = new THREE.WebGLRenderer({antialias:true})
@@ -72,8 +72,44 @@ camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 })
 
-const loader = new THREE.TextureLoader()
+/* ---------------- STARFIELD ---------------- */
 
+function createStarfield(){
+
+const starCount = 15000
+const geometry = new THREE.BufferGeometry()
+
+const positions = new Float32Array(starCount * 3)
+
+for(let i=0;i<starCount;i++){
+
+positions[i*3+0]=(Math.random()-0.5)*20000
+positions[i*3+1]=(Math.random()-0.5)*20000
+positions[i*3+2]=(Math.random()-0.5)*20000
+
+}
+
+geometry.setAttribute(
+'position',
+new THREE.BufferAttribute(positions,3)
+)
+
+const material = new THREE.PointsMaterial({
+color:0xbbddff,
+size:2,
+sizeAttenuation:true
+})
+
+const stars = new THREE.Points(geometry,material)
+scene.add(stars)
+
+}
+
+createStarfield()
+
+/* ---------------- TEXTURE ---------------- */
+
+const loader = new THREE.TextureLoader()
 let texture = loader.load("L_0.jpg")
 
 let layers=[]
@@ -83,11 +119,7 @@ function makeLayer(size,height,tex){
 const geometry = new THREE.BoxGeometry(size,height,size)
 
 const topMaterial = new THREE.MeshBasicMaterial({map:tex})
-
-const sideMaterial = new THREE.MeshBasicMaterial({
-map:tex
-})
-
+const sideMaterial = new THREE.MeshBasicMaterial({map:tex})
 const bottomMaterial = new THREE.MeshBasicMaterial({color:0x000000})
 
 const materials=[
@@ -112,7 +144,7 @@ let size=2
 let height=1
 let y=0
 
-for(let i=0;i<50;i++){
+for(let i=0;i<40;i++){
 
 const mesh = makeLayer(size,height,tex)
 
@@ -121,8 +153,11 @@ mesh.position.y=-y
 scene.add(mesh)
 layers.push(mesh)
 
-size*=2
-y+=height
+/* FIX 1: reduced growth */
+size *= 1.35
+
+/* FIX 2: added vertical spacing */
+y += height * 2
 
 }
 
@@ -130,9 +165,10 @@ y+=height
 
 build(texture)
 
-let yaw=0
-let pitch=-Math.PI/2
+/* ---------------- CAMERA CONTROLS ---------------- */
 
+let yaw=0
+let pitch=-Math.PI/4
 let dragging=false
 
 document.addEventListener("mousedown",e=>{
@@ -145,10 +181,10 @@ document.addEventListener("mousemove",e=>{
 
 if(!dragging) return
 
-yaw-=e.movementX*0.002
-pitch-=e.movementY*0.002
+yaw -= e.movementX * 0.002
+pitch -= e.movementY * 0.002
 
-pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch))
+pitch = Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch))
 
 })
 
@@ -156,6 +192,8 @@ const keys={}
 
 document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
 document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
+
+/* ---------------- MENU ---------------- */
 
 document.addEventListener("keydown",e=>{
 if(e.key==="Escape"){
@@ -174,7 +212,6 @@ const reader=new FileReader()
 reader.onload=function(ev){
 
 texture=new THREE.TextureLoader().load(ev.target.result)
-
 build(texture)
 
 }
@@ -182,6 +219,8 @@ build(texture)
 reader.readAsDataURL(file)
 
 })
+
+/* ---------------- MOVEMENT ---------------- */
 
 function move(){
 
