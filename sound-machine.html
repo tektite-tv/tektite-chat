@@ -14,6 +14,19 @@ font-family:monospace;
 color:#00ff00;
 }
 
+/* restored grid background */
+
+#scopeGrid{
+position:fixed;
+inset:0;
+z-index:0;
+pointer-events:none;
+background:#001010;
+background-image:
+repeating-linear-gradient(0deg, rgba(0,255,0,0.2) 0px, rgba(0,255,0,0.2) 1px, transparent 1px, transparent 40px),
+repeating-linear-gradient(90deg, rgba(0,255,0,0.2) 0px, rgba(0,255,0,0.2) 1px, transparent 1px, transparent 40px);
+}
+
 #topBar{
 position:fixed;
 top:0;
@@ -82,13 +95,13 @@ color:#00ff00;
 border:1px solid #00ff00;
 padding:6px;
 font-family:monospace;
+margin-bottom:10px;
 }
 
 canvas{
-position:fixed;
-top:0;
-left:0;
-z-index:0;
+position:absolute;
+z-index:1;
+background:transparent;
 }
 
 #muteButton{
@@ -109,6 +122,8 @@ z-index:30;
 
 <body>
 
+<div id="scopeGrid"></div>
+
 <div id="topBar">
 <div id="settingsButton" onclick="toggleMenu()">Esc = Settings</div>
 <div id="topTitle">Tektite's Sound Machine</div>
@@ -120,19 +135,13 @@ z-index:30;
 
 <h3>CHAOS OPTIONS</h3>
 
-<!-- NEW: procedural seed -->
-<div style="margin-bottom:12px;">
-<div style="font-size:12px;">Procedural Seed</div>
-<input id="seedInput" placeholder="enter chaos seed">
-</div>
+<input id="seedInput" placeholder="procedural seed">
 
 <label><input type="checkbox" onchange="toggle('pink', this.checked)"> Pink Noise</label>
 <label><input type="checkbox" onchange="toggle('drone', this.checked)"> Drone</label>
 <label><input type="checkbox" onchange="toggle('synth', this.checked)"> Synth</label>
 <label><input type="checkbox" onchange="toggle('glitch', this.checked)"> Glitch</label>
 <label><input type="checkbox" onchange="toggle('chirps', this.checked)"> Chirps</label>
-
-<button onclick="toggleRecord()" id="recBtn">Start Recording</button>
 
 </div>
 </div>
@@ -144,22 +153,18 @@ z-index:30;
 
 <script>
 
-/* ================================
-AUDIO ENGINE
-================================ */
+/* audio engine */
 
-const ctx = new (window.AudioContext||window.webkitAudioContext)();
-const analyser = ctx.createAnalyser();
-analyser.fftSize = 2048;
+const ctx=new (window.AudioContext||window.webkitAudioContext)();
+const analyser=ctx.createAnalyser();
+analyser.fftSize=2048;
 
-const master = ctx.createGain();
-master.gain.value = 0.7;
+const master=ctx.createGain();
+master.gain.value=0.7;
 master.connect(analyser).connect(ctx.destination);
 
 
-/* ================================
-SEEDED RANDOM
-================================ */
+/* seeded RNG */
 
 let seed=1;
 
@@ -186,12 +191,10 @@ return seed/4294967296;
 
 }
 
-document.getElementById("seedInput").addEventListener("change",setSeedFromInput);
+document.getElementById("seedInput").addEventListener("input",setSeedFromInput);
 
 
-/* ================================
-MUSIC THEORY
-================================ */
+/* music system */
 
 const scales={
 minor:[0,2,3,5,7,8,10],
@@ -206,13 +209,10 @@ let activeScale=scales.minor;
 function generateMusicWorld(){
 
 const names=Object.keys(scales);
-const idx=Math.floor(seededRandom()*names.length);
-
-activeScale=scales[names[idx]];
+activeScale=scales[names[Math.floor(seededRandom()*names.length)]];
 rootNote=36+Math.floor(seededRandom()*24);
 
 }
-
 
 let chordProgression=[];
 let chordIndex=0;
@@ -224,22 +224,14 @@ chordProgression=[];
 let len=4+Math.floor(seededRandom()*4);
 
 for(let i=0;i<len;i++){
-
-let degree=Math.floor(seededRandom()*activeScale.length);
-chordProgression.push(degree);
-
+chordProgression.push(Math.floor(seededRandom()*activeScale.length));
 }
 
 }
-
 
 setInterval(()=>{
-
-chordIndex++;
-if(chordIndex>=chordProgression.length) chordIndex=0;
-
+chordIndex=(chordIndex+1)%chordProgression.length;
 },4000);
-
 
 function midiToFreq(m){
 return 440*Math.pow(2,(m-69)/12);
@@ -254,16 +246,12 @@ let interval=activeScale[degree];
 
 let octave=Math.floor(seededRandom()*2)*12;
 
-let midi=rootNote+interval+octave;
-
-return midiToFreq(midi);
+return midiToFreq(rootNote+interval+octave);
 
 }
 
 
-/* ================================
-MENU
-================================ */
+/* menu */
 
 function toggleMenu(){
 
@@ -273,15 +261,11 @@ overlay.style.display = overlay.style.display==="flex" ? "none":"flex";
 }
 
 document.addEventListener("keydown",e=>{
-
 if(e.key==="Escape") toggleMenu();
-
 });
 
 
-/* ================================
-SOUND GENERATORS
-================================ */
+/* sound generators */
 
 let active={};
 
@@ -290,23 +274,17 @@ if(ctx.state!=="running") await ctx.resume();
 }
 
 function toggle(type,on){
-
-if(on) start(type);
-else stop(type);
-
+if(on) start(type); else stop(type);
 }
 
 function stop(type){
 
 if(active[type]){
-
 active[type].forEach(n=>{
 try{n.stop&&n.stop();}catch{}
 try{n.disconnect&&n.disconnect();}catch{}
 });
-
 delete active[type];
-
 }
 
 }
@@ -315,12 +293,35 @@ async function start(type){
 
 await ensureAudio();
 
+/* restored pink noise */
+
+if(type==="pink"){
+
+const node=ctx.createScriptProcessor(4096,1,1);
+const gain=ctx.createGain();
+
+node.onaudioprocess=e=>{
+let out=e.outputBuffer.getChannelData(0);
+
+for(let i=0;i<out.length;i++){
+out[i]=(seededRandom()*2-1)*0.2;
+}
+};
+
+node.connect(gain).connect(master);
+
+active[type]=[node,gain];
+}
+
+/* drone */
+
 if(type==="drone"){
 
 let osc=ctx.createOscillator();
 let gain=ctx.createGain();
 
 osc.type="sawtooth";
+
 osc.connect(gain).connect(master);
 osc.start();
 
@@ -329,16 +330,15 @@ function update(){
 if(!active["drone"]) return;
 
 osc.frequency.value=getNote();
-gain.gain.value=0.2;
 
 requestAnimationFrame(update);
-
 }
 
 active[type]=[osc,gain];
 update();
-
 }
+
+/* synth */
 
 if(type==="synth"){
 
@@ -346,6 +346,7 @@ let osc=ctx.createOscillator();
 let gain=ctx.createGain();
 
 osc.type="square";
+
 osc.connect(gain).connect(master);
 osc.start();
 
@@ -354,16 +355,15 @@ function update(){
 if(!active["synth"]) return;
 
 osc.frequency.value=getNote();
-gain.gain.value=0.15;
 
 requestAnimationFrame(update);
-
 }
 
 active[type]=[osc,gain];
 update();
-
 }
+
+/* glitch */
 
 if(type==="glitch"){
 
@@ -390,8 +390,9 @@ setTimeout(burst,60);
 
 active[type]=[];
 burst();
-
 }
+
+/* chirps */
 
 if(type==="chirps"){
 
@@ -420,15 +421,12 @@ setTimeout(chirp,200);
 
 active[type]=[];
 chirp();
-
 }
 
 }
 
 
-/* ================================
-MUTE
-================================ */
+/* mute */
 
 let muted=false;
 
@@ -444,9 +442,7 @@ muteBtn.textContent=muted?"Unmute":"Mute";
 };
 
 
-/* ================================
-VISUALIZER
-================================ */
+/* visualizer */
 
 const canvas=document.getElementById("viz");
 const c=canvas.getContext("2d");
@@ -454,10 +450,8 @@ const c=canvas.getContext("2d");
 let dataArray=new Uint8Array(analyser.fftSize);
 
 function resize(){
-
 canvas.width=window.innerWidth;
 canvas.height=window.innerHeight;
-
 }
 
 window.onresize=resize;
