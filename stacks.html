@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Infinite Image Layers</title>
+<style>
+body {
+    margin:0;
+    overflow:hidden;
+    background:black;
+    font-family:monospace;
+}
+
+#menu {
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    background:rgba(0,0,0,0.9);
+    border:1px solid #444;
+    padding:20px;
+    display:none;
+    z-index:10;
+    color:white;
+}
+
+#menu input {
+    margin-top:10px;
+}
+
+#hint {
+    position:fixed;
+    bottom:10px;
+    left:10px;
+    color:#aaa;
+    font-size:12px;
+}
+</style>
+</head>
+<body>
+
+<div id="menu">
+<h3>Settings</h3>
+Upload Image<br>
+<input type="file" id="imgUpload">
+</div>
+
+<div id="hint">
+WASD move | QE up/down | Middle mouse rotate | ESC settings
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+let scene = new THREE.Scene()
+
+let camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+100000
+)
+
+camera.position.set(0,2,5)
+
+let renderer = new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+window.addEventListener('resize',()=>{
+renderer.setSize(window.innerWidth,window.innerHeight)
+camera.aspect = window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+})
+
+let textureLoader = new THREE.TextureLoader()
+
+let texture = textureLoader.load("your-image.jpg")
+
+let planes = []
+
+function buildLayers(tex){
+
+planes.forEach(p=>scene.remove(p))
+planes=[]
+
+let size = 2
+let y = 0
+
+for(let i=0;i<60;i++){
+
+let geo = new THREE.PlaneGeometry(size,size)
+
+let mat = new THREE.MeshBasicMaterial({
+map:tex,
+side:THREE.DoubleSide
+})
+
+let plane = new THREE.Mesh(geo,mat)
+
+plane.position.y = -y
+
+scene.add(plane)
+planes.push(plane)
+
+y += size*1.5
+size *= 2
+}
+
+}
+
+buildLayers(texture)
+
+let keys={}
+
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
+
+let pitch=0
+let yaw=0
+
+let dragging=false
+
+document.addEventListener("mousedown",e=>{
+if(e.button===1) dragging=true
+})
+
+document.addEventListener("mouseup",()=>dragging=false)
+
+document.addEventListener("mousemove",e=>{
+
+if(!dragging) return
+
+yaw -= e.movementX * 0.002
+pitch -= e.movementY * 0.002
+
+pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch))
+
+})
+
+let menu=document.getElementById("menu")
+
+document.addEventListener("keydown",e=>{
+
+if(e.key==="Escape"){
+menu.style.display =
+menu.style.display==="none"?"block":"none"
+}
+
+})
+
+document.getElementById("imgUpload").addEventListener("change",e=>{
+
+let file=e.target.files[0]
+
+if(!file) return
+
+let reader=new FileReader()
+
+reader.onload=function(ev){
+
+let newTex=new THREE.TextureLoader().load(ev.target.result)
+
+buildLayers(newTex)
+
+}
+
+reader.readAsDataURL(file)
+
+})
+
+let velocity=new THREE.Vector3()
+
+function animate(){
+
+requestAnimationFrame(animate)
+
+let speed=0.2
+
+let dir=new THREE.Vector3()
+
+camera.rotation.order="YXZ"
+camera.rotation.y=yaw
+camera.rotation.x=pitch
+
+let forward=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion)
+let right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion)
+
+if(keys["w"]) dir.add(forward)
+if(keys["s"]) dir.sub(forward)
+if(keys["a"]) dir.sub(right)
+if(keys["d"]) dir.add(right)
+if(keys["q"]) dir.y+=1
+if(keys["e"]) dir.y-=1
+
+dir.normalize().multiplyScalar(speed)
+
+camera.position.add(dir)
+
+renderer.render(scene,camera)
+
+}
+
+animate()
+
+</script>
+</body>
+</html>
