@@ -43,18 +43,17 @@ font-size:12px;
 </div>
 
 <div id="hint">
-Left drag rotate | Scroll zoom | Right drag pan | ESC menu
+Left drag rotate • Scroll zoom • ESC menu
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
 
 /* ---------- SCENE ---------- */
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.FogExp2(0x000000,0.0003)
+scene.fog = new THREE.FogExp2(0x000000,0.00025)
 
 const camera = new THREE.PerspectiveCamera(
 70,
@@ -63,7 +62,21 @@ window.innerWidth/window.innerHeight,
 100000
 )
 
-camera.position.set(0,40,80)
+let radius = 120
+let theta = 0
+let phi = 0.6
+
+function updateCamera(){
+
+camera.position.x = radius * Math.sin(phi) * Math.cos(theta)
+camera.position.y = radius * Math.cos(phi)
+camera.position.z = radius * Math.sin(phi) * Math.sin(theta)
+
+camera.lookAt(0,0,0)
+
+}
+
+updateCamera()
 
 const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
@@ -75,16 +88,6 @@ camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 })
 
-/* ---------- ORBIT CAMERA ---------- */
-
-const controls = new THREE.OrbitControls(camera,renderer.domElement)
-
-controls.target.set(0,0,0)
-controls.enableDamping = true
-controls.dampingFactor = 0.05
-controls.minDistance = 10
-controls.maxDistance = 2000
-
 /* ---------- STARFIELD ---------- */
 
 function createStarfield(){
@@ -93,7 +96,7 @@ const starCount = 20000
 const geometry = new THREE.BufferGeometry()
 
 const positions = new Float32Array(starCount*3)
-const radius = 15000
+const radius = 20000
 
 for(let i=0;i<starCount;i++){
 
@@ -113,8 +116,7 @@ new THREE.BufferAttribute(positions,3)
 
 const material = new THREE.PointsMaterial({
 color:0xffffff,
-size:4,
-sizeAttenuation:true
+size:5
 })
 
 const stars = new THREE.Points(geometry,material)
@@ -142,12 +144,12 @@ function build(tex){
 wormholeGroup.clear()
 mirrorGroup.clear()
 
-let radius = 5
+let r = 5
 let depth = 0
 
 for(let i=0;i<80;i++){
 
-const geo = new THREE.RingGeometry(radius,radius+2,64,1)
+const geo = new THREE.RingGeometry(r,r+2,64)
 
 const mat = new THREE.MeshBasicMaterial({
 map:tex,
@@ -161,8 +163,6 @@ ring.position.y = -depth
 
 wormholeGroup.add(ring)
 
-/* mirrored ceiling */
-
 const mirror = ring.clone()
 mirror.scale.y = -1
 mirror.position.y = depth
@@ -170,7 +170,7 @@ mirror.position.y = depth
 mirrorGroup.add(mirror)
 
 depth += 2
-radius *= 1.05
+r *= 1.05
 
 }
 
@@ -178,43 +178,71 @@ radius *= 1.05
 
 build(texture)
 
+/* ---------- CAMERA CONTROLS ---------- */
+
+let dragging=false
+let lastX=0
+let lastY=0
+
+renderer.domElement.addEventListener("mousedown",(e)=>{
+if(menuOpen) return
+dragging=true
+lastX=e.clientX
+lastY=e.clientY
+})
+
+window.addEventListener("mouseup",()=>dragging=false)
+
+window.addEventListener("mousemove",(e)=>{
+
+if(!dragging) return
+
+theta -= (e.clientX-lastX)*0.005
+phi -= (e.clientY-lastY)*0.005
+
+phi=Math.max(0.1,Math.min(Math.PI-0.1,phi))
+
+lastX=e.clientX
+lastY=e.clientY
+
+updateCamera()
+
+})
+
+renderer.domElement.addEventListener("wheel",(e)=>{
+
+radius += e.deltaY*0.05
+radius=Math.max(10,Math.min(2000,radius))
+
+updateCamera()
+
+})
+
 /* ---------- MENU ---------- */
 
-const menu = document.getElementById("menu")
+let menuOpen=false
+const menu=document.getElementById("menu")
 
 window.addEventListener("keydown",(e)=>{
 
 if(e.key==="Escape"){
 
-e.preventDefault()
+menuOpen=!menuOpen
 
-if(menu.style.display==="none"||menu.style.display===""){
-
-menu.style.display="block"
-controls.enabled=false
-
-}else{
-
-menu.style.display="none"
-controls.enabled=true
-
-}
+menu.style.display = menuOpen ? "block":"none"
 
 }
 
 })
 
-menu.addEventListener("mouseenter",()=>controls.enabled=false)
-menu.addEventListener("mouseleave",()=>controls.enabled=true)
-
 /* ---------- TEXTURE UPLOAD ---------- */
 
 document.getElementById("upload").addEventListener("change",(e)=>{
 
-const file = e.target.files[0]
+const file=e.target.files[0]
 if(!file) return
 
-const reader = new FileReader()
+const reader=new FileReader()
 
 reader.onload=function(ev){
 
@@ -232,8 +260,6 @@ reader.readAsDataURL(file)
 function animate(){
 
 requestAnimationFrame(animate)
-
-controls.update()
 
 renderer.render(scene,camera)
 
