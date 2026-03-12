@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Texture Wormhole</title>
+<title>Torus Portal</title>
 
 <style>
 body{
@@ -62,15 +62,15 @@ window.innerWidth/window.innerHeight,
 100000
 )
 
-let radius = 120
+let camRadius = 180
 let theta = 0
 let phi = 0.6
 
 function updateCamera(){
 
-camera.position.x = radius * Math.sin(phi) * Math.cos(theta)
-camera.position.y = radius * Math.cos(phi)
-camera.position.z = radius * Math.sin(phi) * Math.sin(theta)
+camera.position.x = camRadius * Math.sin(phi) * Math.cos(theta)
+camera.position.y = camRadius * Math.cos(phi)
+camera.position.z = camRadius * Math.sin(phi) * Math.sin(theta)
 
 camera.lookAt(0,0,0)
 
@@ -92,11 +92,11 @@ camera.updateProjectionMatrix()
 
 function createStarfield(){
 
-const starCount = 20000
+const starCount = 25000
 const geometry = new THREE.BufferGeometry()
 
 const positions = new Float32Array(starCount*3)
-const radius = 20000
+const radius = 25000
 
 for(let i=0;i<starCount;i++){
 
@@ -131,46 +131,44 @@ createStarfield()
 const loader = new THREE.TextureLoader()
 let texture = loader.load("L_0.jpg")
 
-/* ---------- WORMHOLE ---------- */
+/* ---------- TORUS GEOMETRY ---------- */
 
-let wormholeGroup = new THREE.Group()
-scene.add(wormholeGroup)
-
-let mirrorGroup = new THREE.Group()
-scene.add(mirrorGroup)
+let torusGroup = new THREE.Group()
+scene.add(torusGroup)
 
 function build(tex){
 
-wormholeGroup.clear()
-mirrorGroup.clear()
+torusGroup.clear()
 
-let r = 5
-let depth = 0
-
-for(let i=0;i<80;i++){
-
-const geo = new THREE.RingGeometry(r,r+2,64)
+const majorRadius = 70   // size of donut
+const tubeRadius = 22    // thickness
+const rings = 180
 
 const mat = new THREE.MeshBasicMaterial({
-map:tex,
-side:THREE.DoubleSide
+map: tex,
+side: THREE.DoubleSide
 })
+
+for(let i=0;i<rings;i++){
+
+const u = (i / rings) * Math.PI * 2
+
+const cx = Math.cos(u) * majorRadius
+const cz = Math.sin(u) * majorRadius
+
+const geo = new THREE.RingGeometry(
+tubeRadius,
+tubeRadius + 0.6,
+128
+)
 
 const ring = new THREE.Mesh(geo,mat)
 
-ring.rotation.x = Math.PI/2
-ring.position.y = -depth
+ring.position.set(cx,0,cz)
 
-wormholeGroup.add(ring)
+ring.lookAt(0,0,0)
 
-const mirror = ring.clone()
-mirror.scale.y = -1
-mirror.position.y = depth
-
-mirrorGroup.add(mirror)
-
-depth += 2
-r *= 1.05
+torusGroup.add(ring)
 
 }
 
@@ -211,8 +209,8 @@ updateCamera()
 
 renderer.domElement.addEventListener("wheel",(e)=>{
 
-radius += e.deltaY*0.05
-radius=Math.max(10,Math.min(2000,radius))
+camRadius += e.deltaY*0.08
+camRadius=Math.max(30,Math.min(4000,camRadius))
 
 updateCamera()
 
@@ -228,7 +226,6 @@ window.addEventListener("keydown",(e)=>{
 if(e.key==="Escape"){
 
 menuOpen=!menuOpen
-
 menu.style.display = menuOpen ? "block":"none"
 
 }
