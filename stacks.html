@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Texture Pyramid</title>
+<title>Texture Wormhole</title>
 
 <style>
 body{
@@ -50,7 +50,10 @@ WASD move | QE up/down | Middle mouse rotate | ESC menu
 
 <script>
 
+/* ---------- SCENE ---------- */
+
 const scene = new THREE.Scene()
+scene.fog = new THREE.FogExp2(0x000000,0.0006)
 
 const camera = new THREE.PerspectiveCamera(
 70,
@@ -59,8 +62,7 @@ window.innerWidth/window.innerHeight,
 100000
 )
 
-camera.position.set(0,40,40)
-camera.lookAt(0,0,0)
+camera.position.set(0,20,40)
 
 const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
@@ -72,7 +74,7 @@ camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 })
 
-/* ---------------- STARFIELD ---------------- */
+/* ---------- STARFIELD ---------- */
 
 function createStarfield(){
 
@@ -107,57 +109,62 @@ scene.add(stars)
 
 createStarfield()
 
-/* ---------------- TEXTURE ---------------- */
+/* ---------- TEXTURE ---------- */
 
 const loader = new THREE.TextureLoader()
 let texture = loader.load("L_0.jpg")
 
-let layers=[]
+/* ---------- WORMHOLE GROUPS ---------- */
 
-function makeLayer(size,height,tex){
+let wormholeGroup = new THREE.Group()
+scene.add(wormholeGroup)
 
-const geometry = new THREE.BoxGeometry(size,height,size)
+let mirrorGroup = new THREE.Group()
+scene.add(mirrorGroup)
 
-const topMaterial = new THREE.MeshBasicMaterial({map:tex})
-const sideMaterial = new THREE.MeshBasicMaterial({map:tex})
-const bottomMaterial = new THREE.MeshBasicMaterial({color:0x000000})
-
-const materials=[
-sideMaterial,
-sideMaterial,
-topMaterial,
-bottomMaterial,
-sideMaterial,
-sideMaterial
-]
-
-return new THREE.Mesh(geometry,materials)
-
-}
+/* ---------- BUILD GEOMETRY ---------- */
 
 function build(tex){
 
-layers.forEach(l=>scene.remove(l))
-layers=[]
+wormholeGroup.clear()
+mirrorGroup.clear()
 
-let size=2
-let height=1
-let y=0
+let radius = 5
+let depth = 0
 
-for(let i=0;i<40;i++){
+const layers = 80
 
-const mesh = makeLayer(size,height,tex)
+for(let i=0;i<layers;i++){
 
-mesh.position.y=-y
+const geo = new THREE.RingGeometry(
+radius,
+radius + 2,
+64,
+1
+)
 
-scene.add(mesh)
-layers.push(mesh)
+const mat = new THREE.MeshBasicMaterial({
+map:tex,
+side:THREE.DoubleSide
+})
 
-/* FIX 1: reduced growth */
-size *= 1.35
+const ring = new THREE.Mesh(geo,mat)
 
-/* FIX 2: added vertical spacing */
-y += height * 2
+ring.rotation.x = Math.PI / 2
+ring.position.y = -depth
+
+wormholeGroup.add(ring)
+
+/* mirrored copy above */
+
+const mirror = ring.clone()
+mirror.scale.y = -1
+mirror.position.y = depth
+
+mirrorGroup.add(mirror)
+
+depth += 2
+radius *= 1.05
 
 }
 
@@ -165,10 +172,10 @@ y += height * 2
 
 build(texture)
 
-/* ---------------- CAMERA CONTROLS ---------------- */
+/* ---------- CAMERA ROTATION ---------- */
 
 let yaw=0
-let pitch=-Math.PI/4
+let pitch=-Math.PI/6
 let dragging=false
 
 document.addEventListener("mousedown",e=>{
@@ -184,16 +191,11 @@ if(!dragging) return
 yaw -= e.movementX * 0.002
 pitch -= e.movementY * 0.002
 
-pitch = Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch))
+pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch))
 
 })
 
-const keys={}
-
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
-
-/* ---------------- MENU ---------------- */
+/* ---------- MENU ---------- */
 
 document.addEventListener("keydown",e=>{
 if(e.key==="Escape"){
@@ -220,7 +222,12 @@ reader.readAsDataURL(file)
 
 })
 
-/* ---------------- MOVEMENT ---------------- */
+/* ---------- MOVEMENT ---------- */
+
+const keys={}
+
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
 
 function move(){
 
@@ -237,6 +244,8 @@ if(keys["q"]) camera.position.y+=speed
 if(keys["e"]) camera.position.y-=speed
 
 }
+
+/* ---------- LOOP ---------- */
 
 function animate(){
 
