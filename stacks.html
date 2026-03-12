@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Infinite Pyramid Layers</title>
+<title>Texture Pyramid</title>
 
 <style>
 body{
@@ -18,11 +18,11 @@ top:50%;
 left:50%;
 transform:translate(-50%,-50%);
 background:#000;
-border:1px solid #444;
+border:1px solid #555;
 padding:20px;
 display:none;
 color:white;
-z-index:5;
+z-index:10;
 }
 
 #hint{
@@ -39,7 +39,6 @@ font-size:12px;
 
 <div id="menu">
 <h3>Settings</h3>
-Upload Image<br>
 <input type="file" id="upload">
 </div>
 
@@ -51,19 +50,19 @@ WASD move | QE up/down | Middle mouse rotate | ESC menu
 
 <script>
 
-let scene=new THREE.Scene()
+const scene = new THREE.Scene()
 
-let camera=new THREE.PerspectiveCamera(
+const camera = new THREE.PerspectiveCamera(
 70,
 window.innerWidth/window.innerHeight,
 0.1,
 100000
 )
 
-camera.position.set(0,30,0)
+camera.position.set(0,40,0)
 camera.lookAt(0,0,0)
 
-let renderer=new THREE.WebGLRenderer({antialias:true})
+const renderer = new THREE.WebGLRenderer({antialias:true})
 renderer.setSize(window.innerWidth,window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
@@ -73,11 +72,36 @@ camera.aspect=window.innerWidth/window.innerHeight
 camera.updateProjectionMatrix()
 })
 
-let loader=new THREE.TextureLoader()
+const loader = new THREE.TextureLoader()
 
-let texture=loader.load("texture.jpg")
+let texture = loader.load("L_0.jpg")
 
 let layers=[]
+
+function makeLayer(size,height,tex){
+
+const geometry = new THREE.BoxGeometry(size,height,size)
+
+const topMaterial = new THREE.MeshBasicMaterial({map:tex})
+
+const sideMaterial = new THREE.MeshBasicMaterial({
+map:tex
+})
+
+const bottomMaterial = new THREE.MeshBasicMaterial({color:0x000000})
+
+const materials=[
+sideMaterial,
+sideMaterial,
+topMaterial,
+bottomMaterial,
+sideMaterial,
+sideMaterial
+]
+
+return new THREE.Mesh(geometry,materials)
+
+}
 
 function build(tex){
 
@@ -88,49 +112,23 @@ let size=2
 let height=1
 let y=0
 
-for(let i=0;i<40;i++){
+for(let i=0;i<50;i++){
 
-let geo=new THREE.BoxGeometry(size,height,size)
-
-let topMat=new THREE.MeshBasicMaterial({
-map:tex
-})
-
-let sideMat=new THREE.MeshBasicMaterial({
-map:tex
-})
-
-let bottomMat=new THREE.MeshBasicMaterial({color:0x000000})
-
-let mats=[
-sideMat, // right
-sideMat, // left
-topMat,  // top
-bottomMat,
-sideMat,
-sideMat
-]
-
-let mesh=new THREE.Mesh(geo,mats)
+const mesh = makeLayer(size,height,tex)
 
 mesh.position.y=-y
 
 scene.add(mesh)
 layers.push(mesh)
 
-y+=height
 size*=2
+y+=height
 
 }
 
 }
 
 build(texture)
-
-let keys={}
-
-document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
-document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
 
 let yaw=0
 let pitch=-Math.PI/2
@@ -154,24 +152,30 @@ pitch=Math.max(-Math.PI/2,Math.min(Math.PI/2,pitch))
 
 })
 
+const keys={}
+
+document.addEventListener("keydown",e=>keys[e.key.toLowerCase()]=true)
+document.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false)
+
 document.addEventListener("keydown",e=>{
 if(e.key==="Escape"){
-let m=document.getElementById("menu")
-m.style.display=m.style.display==="none"?"block":"none"
+const m=document.getElementById("menu")
+m.style.display = m.style.display==="none"?"block":"none"
 }
 })
 
 document.getElementById("upload").addEventListener("change",e=>{
 
-let file=e.target.files[0]
+const file=e.target.files[0]
 if(!file) return
 
-let reader=new FileReader()
+const reader=new FileReader()
 
 reader.onload=function(ev){
 
-let tex=new THREE.TextureLoader().load(ev.target.result)
-build(tex)
+texture=new THREE.TextureLoader().load(ev.target.result)
+
+build(texture)
 
 }
 
@@ -181,10 +185,10 @@ reader.readAsDataURL(file)
 
 function move(){
 
-let speed=0.5
+const speed=0.6
 
-let forward=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion)
-let right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion)
+const forward=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion)
+const right=new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion)
 
 if(keys["w"]) camera.position.add(forward.multiplyScalar(speed))
 if(keys["s"]) camera.position.add(forward.multiplyScalar(-speed))
@@ -212,5 +216,6 @@ renderer.render(scene,camera)
 animate()
 
 </script>
+
 </body>
 </html>
