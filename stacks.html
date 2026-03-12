@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Torus Portal</title>
+<title>4D Torus Portal</title>
 
 <style>
 body{
@@ -53,7 +53,6 @@ Left drag rotate • Scroll zoom • ESC menu
 /* ---------- SCENE ---------- */
 
 const scene = new THREE.Scene()
-scene.fog = new THREE.FogExp2(0x000000,0.00025)
 
 const camera = new THREE.PerspectiveCamera(
 70,
@@ -92,11 +91,11 @@ camera.updateProjectionMatrix()
 
 function createStarfield(){
 
-const starCount = 25000
+const starCount = 20000
 const geometry = new THREE.BufferGeometry()
 
 const positions = new Float32Array(starCount*3)
-const radius = 25000
+const radius = 20000
 
 for(let i=0;i<starCount;i++){
 
@@ -116,7 +115,7 @@ new THREE.BufferAttribute(positions,3)
 
 const material = new THREE.PointsMaterial({
 color:0xffffff,
-size:5
+size:4
 })
 
 const stars = new THREE.Points(geometry,material)
@@ -131,7 +130,7 @@ createStarfield()
 const loader = new THREE.TextureLoader()
 let texture = loader.load("L_0.jpg")
 
-/* ---------- TORUS GEOMETRY ---------- */
+/* ---------- TORUS ---------- */
 
 let torusGroup = new THREE.Group()
 scene.add(torusGroup)
@@ -140,8 +139,8 @@ function build(tex){
 
 torusGroup.clear()
 
-const majorRadius = 70   // size of donut
-const tubeRadius = 22    // thickness
+const majorRadius = 70
+const tubeRadius = 22
 const rings = 180
 
 const mat = new THREE.MeshBasicMaterial({
@@ -164,9 +163,16 @@ tubeRadius + 0.6,
 
 const ring = new THREE.Mesh(geo,mat)
 
-ring.position.set(cx,0,cz)
-
 ring.lookAt(0,0,0)
+
+/* store 4D position */
+
+ring.userData.p4 = {
+x: cx,
+y: 0,
+z: cz,
+w: 0
+}
 
 torusGroup.add(ring)
 
@@ -197,8 +203,6 @@ if(!dragging) return
 
 theta -= (e.clientX-lastX)*0.005
 phi -= (e.clientY-lastY)*0.005
-
-phi=Math.max(0.1,Math.min(Math.PI-0.1,phi))
 
 lastX=e.clientX
 lastY=e.clientY
@@ -252,11 +256,40 @@ reader.readAsDataURL(file)
 
 })
 
+/* ---------- 4D ROTATION ---------- */
+
+let rot4 = 0
+const projDist = 6
+
 /* ---------- LOOP ---------- */
 
 function animate(){
 
 requestAnimationFrame(animate)
+
+rot4 += 0.01
+
+torusGroup.children.forEach(ring => {
+
+const p = ring.userData.p4
+
+const cos = Math.cos(rot4)
+const sin = Math.sin(rot4)
+
+/* rotate in z-w plane */
+
+const z = p.z * cos - p.w * sin
+const w = p.z * sin + p.w * cos
+
+/* 4D projection */
+
+const scale = projDist / (projDist - w)
+
+ring.position.x = p.x * scale
+ring.position.y = p.y * scale
+ring.position.z = z * scale
+
+})
 
 renderer.render(scene,camera)
 
