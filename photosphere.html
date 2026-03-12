@@ -65,7 +65,10 @@ select, button { margin-top:10px; display:block; width: 100%; }
   <label><input type="checkbox" id="axisToggle"> Axis Lines</label>
 <div class="small">6 white axes from sphere center to skybox</div>
 
-<label>WASD Rotation Speed</label>
+<label><input type="checkbox" id="walkModeToggle"> Walk Around Inner Sphere</label>
+  <div class="small">Turns WASD into simple surface walking, like a game camera moving around the sphere.</div>
+
+  <label>WASD Rotation Speed</label>
   <input type="range" id="wasdSpeed" min="1" max="4" step="1" value="1">
   <div class="small">1x, 2x, 3x, 4x speed</div>
 
@@ -728,6 +731,23 @@ const accel = 0.0008;
 const maxSpeed = 0.05;
 const rotDamping = 0.96;
 
+// ===== WALK MODE (SURFACE CAMERA) =====
+let walkModeEnabled = false;
+let walkTheta = 0;                 // latitude-like angle
+let walkPhi = 0;                   // longitude-like angle
+let walkHeading = 0;               // facing direction around local up axis
+const sphereRadius = 2.0;
+const walkHeight = 0.22;           // camera offset above sphere surface
+const walkMoveSpeed = 0.012;
+const walkTurnSpeed = 0.03;
+const walkLookAhead = 0.6;
+const walkUp = new THREE.Vector3();
+const walkEast = new THREE.Vector3();
+const walkNorth = new THREE.Vector3();
+const walkPos = new THREE.Vector3();
+const walkForward = new THREE.Vector3();
+const walkTarget = new THREE.Vector3();
+
 document.addEventListener("keydown", (e)=>{
   if(e.key === "w") keys.w = true;
   if(e.key === "s") keys.s = true;
@@ -740,6 +760,29 @@ const wasdSlider = document.getElementById("wasdSpeed");
 if(wasdSlider){
   wasdSlider.addEventListener("input", e=>{
     speedMultiplier = parseInt(e.target.value);
+  });
+}
+
+const walkModeToggle = document.getElementById("walkModeToggle");
+if(walkModeToggle){
+  walkModeToggle.addEventListener("change", e=>{
+    walkModeEnabled = e.target.checked;
+
+    if(walkModeEnabled){
+      autoOrbitEnabled = false;
+      chaosEnabled = false;
+      if(autoOrbitToggle) autoOrbitToggle.checked = false;
+      if(chaosToggle) chaosToggle.checked = false;
+
+      rotVelX = 0;
+      rotVelY = 0;
+
+      walkTheta = 0;
+      walkPhi = 0;
+      walkHeading = Math.PI * 0.5;
+      camera.fov = baseFov;
+      camera.updateProjectionMatrix();
+    }
   });
 }
 
@@ -902,21 +945,23 @@ if(bandMode && bandMode.value === "2" && fieldGroup.visible){
   velX *= damping;
   velY *= damping;
 
-  // WASD rotation inertia
-  if(keys.w) rotVelX -= accel * speedMultiplier;
-  if(keys.s) rotVelX += accel * speedMultiplier;
-  if(keys.a) rotVelY -= accel * speedMultiplier;
-  if(keys.d) rotVelY += accel * speedMultiplier;
+  // WASD rotation inertia (disabled during walk mode)
+  if(!walkModeEnabled){
+    if(keys.w) rotVelX -= accel * speedMultiplier;
+    if(keys.s) rotVelX += accel * speedMultiplier;
+    if(keys.a) rotVelY -= accel * speedMultiplier;
+    if(keys.d) rotVelY += accel * speedMultiplier;
 
-  // clamp speed
-  rotVelX = Math.max(-maxSpeed, Math.min(maxSpeed, rotVelX));
-  rotVelY = Math.max(-maxSpeed, Math.min(maxSpeed, rotVelY));
+    // clamp speed
+    rotVelX = Math.max(-maxSpeed, Math.min(maxSpeed, rotVelX));
+    rotVelY = Math.max(-maxSpeed, Math.min(maxSpeed, rotVelY));
 
-  sphere.rotation.x += rotVelX;
-  sphere.rotation.y += rotVelY;
+    sphere.rotation.x += rotVelX;
+    sphere.rotation.y += rotVelY;
 
-  rotVelX *= rotDamping;
-  rotVelY *= rotDamping;
+    rotVelX *= rotDamping;
+    rotVelY *= rotDamping;
+  }
 
 
   // Inner Sphere Pulse (non-destructive: only scales meshes)
@@ -976,8 +1021,44 @@ if(!chaosEnabled){
   camera.updateProjectionMatrix();
 }
 
-// Camera placement (preserves zoom via cameraDistance)
-  if(!chaosEnabled && autoOrbitEnabled){
+// Camera placement (preserves zoom via cameraDistance unless walk mode overrides it)
+  if(walkModeEnabled){
+    const turnStep = walkTurnSpeed * speedMultiplier;
+    if(keys.a) walkHeading += turnStep;
+    if(keys.d) walkHeading -= turnStep;
+
+    const moveStep = walkMoveSpeed * speedMultiplier;
+    if(keys.w){
+      walkTheta += Math.cos(walkHeading) * moveStep;
+      walkPhi += Math.sin(walkHeading) * moveStep;
+    }
+    if(keys.s){
+      walkTheta -= Math.cos(walkHeading) * moveStep;
+      walkPhi -= Math.sin(walkHeading) * moveStep;
+    }
+
+    const thetaLimit = Math.PI * 0.48;
+    walkTheta = Math.max(-thetaLimit, Math.min(thetaLimit, walkTheta));
+
+    const cosTheta = Math.cos(walkTheta);
+    walkUp.set(
+      cosTheta * Math.cos(walkPhi),
+      Math.sin(walkTheta),
+      cosTheta * Math.sin(walkPhi)
+    ).normalize();
+
+    walkEast.set(-Math.sin(walkPhi), 0, Math.cos(walkPhi)).normalize();
+    walkNorth.crossVectors(walkUp, walkEast).normalize();
+
+    walkForward.copy(walkNorth).multiplyScalar(Math.cos(walkHeading)).addScaledVector(walkEast, Math.sin(walkHeading)).normalize();
+
+    walkPos.copy(walkUp).multiplyScalar(sphereRadius + walkHeight);
+    camera.position.copy(walkPos);
+
+    walkTarget.copy(walkPos).addScaledVector(walkForward, walkLookAhead);
+    camera.up.copy(walkUp);
+    camera.lookAt(walkTarget);
+  } else if(!chaosEnabled && autoOrbitEnabled){
     // intensified spiral orbit (tornado vibe)
     orbitAngle += 0.01;
 
@@ -992,10 +1073,11 @@ if(!chaosEnabled){
       vertical,
       Math.sin(orbitAngle) * r * radiusMod
     );
-} else {
+    camera.lookAt(0,0,0);
+  } else {
     camera.position.set(0,0,cameraDistance);
+    camera.lookAt(0,0,0);
   }
-  camera.lookAt(0,0,0);
   // --- keep Post FX center mask locked to the sphere (no aspect-ratio oval) ---
   // Compute sphere center + projected radius in pixels each frame, so the Post FX "hole" hugs the planet.
   // Uses current cameraDistance, auto-orbit, and inner pulse scale.
@@ -1022,7 +1104,7 @@ if(!chaosEnabled){
   }
 
   // ===== CHAOS MODE (GLIDING / ORGANIC) =====
-if(chaosEnabled){
+if(chaosEnabled && !walkModeEnabled){
 
   autoOrbitEnabled = false;
 
