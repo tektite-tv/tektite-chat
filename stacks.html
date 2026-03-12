@@ -147,17 +147,11 @@ mirrorGroup.clear()
 
 let radius = 5
 let depth = 0
-
 const layers = 80
 
 for(let i=0;i<layers;i++){
 
-const geo = new THREE.RingGeometry(
-radius,
-radius + 2,
-64,
-1
-)
+const geo = new THREE.RingGeometry(radius,radius+2,64,1)
 
 const mat = new THREE.MeshBasicMaterial({
 map:tex,
@@ -166,12 +160,10 @@ side:THREE.DoubleSide
 
 const ring = new THREE.Mesh(geo,mat)
 
-ring.rotation.x = Math.PI / 2
+ring.rotation.x = Math.PI/2
 ring.position.y = -depth
 
 wormholeGroup.add(ring)
-
-/* mirrored ceiling */
 
 const mirror = ring.clone()
 mirror.scale.y = -1
@@ -188,25 +180,49 @@ radius *= 1.05
 
 build(texture)
 
-/* ---------- MENU ---------- */
+/* ---------- MENU / ESC FIX ---------- */
 
-document.addEventListener("keydown",e=>{
-if(e.key==="Escape"){
-const m=document.getElementById("menu")
-m.style.display = m.style.display==="none"?"block":"none"
+const menu = document.getElementById("menu")
+
+window.addEventListener("keydown",(e)=>{
+
+if(e.key === "Escape"){
+
+e.preventDefault()
+
+if(menu.style.display === "none" || menu.style.display === ""){
+
+menu.style.display = "block"
+controls.enabled = false
+
+}else{
+
+menu.style.display = "none"
+controls.enabled = true
+
 }
+
+}
+
 })
 
-document.getElementById("upload").addEventListener("change",e=>{
+/* disable camera while interacting with menu */
 
-const file=e.target.files[0]
+menu.addEventListener("mouseenter",()=>controls.enabled=false)
+menu.addEventListener("mouseleave",()=>controls.enabled=true)
+
+/* ---------- IMAGE UPLOAD ---------- */
+
+document.getElementById("upload").addEventListener("change",(e)=>{
+
+const file = e.target.files[0]
 if(!file) return
 
-const reader=new FileReader()
+const reader = new FileReader()
 
-reader.onload=function(ev){
+reader.onload = function(ev){
 
-texture=new THREE.TextureLoader().load(ev.target.result)
+texture = new THREE.TextureLoader().load(ev.target.result)
 build(texture)
 
 }
