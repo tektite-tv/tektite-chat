@@ -43,7 +43,7 @@ font-size:12px;
 </div>
 
 <div id="hint">
-Left drag rotate • Scroll zoom • ESC menu
+Mouse rotate • Scroll zoom • WASD control 4D rotation • ESC menu
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
@@ -141,7 +141,7 @@ torusGroup.clear()
 
 const majorRadius = 70
 const tubeRadius = 22
-const rings = 180
+const rings = 200
 
 const mat = new THREE.MeshBasicMaterial({
 map: tex,
@@ -164,8 +164,6 @@ tubeRadius + 0.6,
 const ring = new THREE.Mesh(geo,mat)
 
 ring.lookAt(0,0,0)
-
-/* store 4D position */
 
 ring.userData.p4 = {
 x: cx,
@@ -256,9 +254,22 @@ reader.readAsDataURL(file)
 
 })
 
+/* ---------- KEYBOARD CONTROL ---------- */
+
+const keys={}
+
+window.addEventListener("keydown",(e)=>{
+keys[e.key.toLowerCase()] = true
+})
+
+window.addEventListener("keyup",(e)=>{
+keys[e.key.toLowerCase()] = false
+})
+
 /* ---------- 4D ROTATION ---------- */
 
-let rot4 = 0
+let rotZW = 0
+let rotXW = 0
 const projDist = 6
 
 /* ---------- LOOP ---------- */
@@ -267,25 +278,38 @@ function animate(){
 
 requestAnimationFrame(animate)
 
-rot4 += 0.01
+const speed = 0.03
+
+if(keys["w"]) rotZW += speed
+if(keys["s"]) rotZW -= speed
+if(keys["a"]) rotXW += speed
+if(keys["d"]) rotXW -= speed
+
+const cosZW = Math.cos(rotZW)
+const sinZW = Math.sin(rotZW)
+
+const cosXW = Math.cos(rotXW)
+const sinXW = Math.sin(rotXW)
 
 torusGroup.children.forEach(ring => {
 
-const p = ring.userData.p4
+let p = ring.userData.p4
 
-const cos = Math.cos(rot4)
-const sin = Math.sin(rot4)
+/* ZW rotation */
 
-/* rotate in z-w plane */
+let z = p.z * cosZW - p.w * sinZW
+let w = p.z * sinZW + p.w * cosZW
 
-const z = p.z * cos - p.w * sin
-const w = p.z * sin + p.w * cos
+/* XW rotation */
 
-/* 4D projection */
+let x = p.x * cosXW - w * sinXW
+w = p.x * sinXW + w * cosXW
+
+/* projection */
 
 const scale = projDist / (projDist - w)
 
-ring.position.x = p.x * scale
+ring.position.x = x * scale
 ring.position.y = p.y * scale
 ring.position.z = z * scale
 
