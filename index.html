@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>theinternetisdead.org</title>
 
 <style>
+
 html,body{
     margin:0;
     padding:0;
@@ -15,30 +15,29 @@ html,body{
     font-family:"Courier New", monospace;
 }
 
-:root{
-    --overlay-height:60px;
-}
-
 #overlay-container{
     position:fixed;
     top:0;
     left:0;
     width:100%;
-    height:var(--overlay-height);
+    height:120px;
     border:none;
     overflow:hidden;
     z-index:1000;
 }
 
+/* main content iframe fills remaining space under overlay */
 #main-frame{
     position:absolute;
-    top:var(--overlay-height);
+    top:120px;
     left:0;
     width:100vw;
-    height:calc(100vh - var(--overlay-height));
+    height:calc(100vh - 120px);
     border:none;
     display:block;
 }
+
+/* Stats panel */
 
 #nerd-stats{
     position:fixed;
@@ -54,27 +53,28 @@ html,body{
     z-index:999999;
 }
 
-@media (max-width: 768px){
-    :root{
-        --overlay-height:232px;
-    }
 
-    #nerd-stats{
-        width:min(86vw,280px);
-        right:8px;
-        bottom:8px;
-    }
+@media (max-width: 768px){
+    #overlay-container{height:120px;background:transparent;}
+    #main-frame{top:120px;height:calc(100vh - 120px);}
 }
+
 </style>
 
 </head>
+
 <body>
 
 <div id="overlay-container"></div>
+
 <iframe id="main-frame" src="/tektite-index.html" loading="lazy"></iframe>
+
 <div id="nerd-stats"></div>
 
 <script>
+
+/* load overlay */
+
 fetch("overlay.html")
 .then(res => res.text())
 .then(html=>{
@@ -83,8 +83,10 @@ fetch("overlay.html")
 
 function toggleSidebar(){
     const sidebar=document.getElementById("sidebar");
-    if(sidebar) sidebar.classList.toggle("open");
+    sidebar.classList.toggle("open");
 }
+
+/* listen for overlay messages */
 
 window.addEventListener("message", e=>{
     if(e.data && e.data.type==="openStats"){
@@ -92,18 +94,27 @@ window.addEventListener("message", e=>{
     }
 });
 
+/* stats panel */
+
 function toggleStatsPanel(){
+
     const panel=document.getElementById("nerd-stats");
+
     if(panel.style.display==="block"){
         panel.style.display="none";
         return;
     }
+
     panel.style.display="block";
+
     updateStats();
+
 }
 
 function updateStats(){
+
     const panel=document.getElementById("nerd-stats");
+
     const domNodes=document.querySelectorAll("*").length;
     const resources=performance.getEntriesByType("resource").length;
 
@@ -121,7 +132,9 @@ Resources Loaded: ${resources}<br>
 Heap Memory: ${memory}<br>
 Page Runtime: ${runtime} ms
 `;
+
 }
+
 </script>
 
 </body>
