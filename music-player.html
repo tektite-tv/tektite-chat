@@ -518,46 +518,20 @@
 
     .fullscreen-bottom {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: minmax(0, 1fr);
       gap: 16px;
       align-items: end;
     }
 
-    .fullscreen-track {
+    .fullscreen-info-slot {
       min-width: 0;
-      padding: 14px 18px;
+      align-self: end;
+    }
+
+    .fullscreen-info-slot #playerInfoPanel {
       border: 1px solid rgba(0,255,0,0.18);
       background: linear-gradient(180deg, rgba(102,0,204,0.16), rgba(0,0,0,0.35));
       box-shadow: 0 0 24px rgba(102,0,204,0.12);
-    }
-
-    .fullscreen-track .label {
-      color: var(--text-soft);
-      font-size: 12px;
-      margin-bottom: 6px;
-      letter-spacing: 0.08em;
-    }
-
-    .fullscreen-track .title {
-      font-size: clamp(20px, 3vw, 34px);
-      color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      text-shadow: 0 0 16px rgba(0,255,0,0.22);
-    }
-
-    .fullscreen-track .meta {
-      font-size: 12px;
-      margin-top: 8px;
-      color: var(--text-dim);
-    }
-
-    .fullscreen-bottom .transport {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-self: end;
     }
 
     ::-webkit-scrollbar {
@@ -637,10 +611,6 @@
       .fullscreen-bottom {
         grid-template-columns: 1fr;
       }
-
-      .fullscreen-bottom .transport {
-        justify-self: start;
-      }
     }
   </style>
 </head>
@@ -675,48 +645,51 @@
         </div>
       </div>
 
-      <div class="track-card">
-        <div class="now-playing-label">NOW PLAYING</div>
-        <div class="track-title" id="trackTitle">No track selected</div>
-        <div class="track-meta">
-          <span id="trackFolder">Folder: none</span>
-          <span id="trackCount">0 tracks</span>
-          <span id="trackDurationMeta">Duration: --:--</span>
+      <div id="playerInfoHome"></div>
+      <div id="playerInfoPanel">
+        <div class="track-card">
+          <div class="now-playing-label">NOW PLAYING</div>
+          <div class="track-title" id="trackTitle">No track selected</div>
+          <div class="track-meta">
+            <span id="trackFolder">Folder: none</span>
+            <span id="trackCount">0 tracks</span>
+            <span id="trackDurationMeta">Duration: --:--</span>
+          </div>
         </div>
-      </div>
 
-      <div class="seek-wrap">
-        <div class="time-row">
-          <span id="currentTime">0:00</span>
-          <span id="timeHint">SPACE play/pause • ←/→ seek • F fullscreen</span>
-          <span id="totalTime">0:00</span>
+        <div class="seek-wrap">
+          <div class="time-row">
+            <span id="currentTime">0:00</span>
+            <span id="timeHint">SPACE play/pause • ←/→ seek • F fullscreen</span>
+            <span id="totalTime">0:00</span>
+          </div>
+          <input id="seekBar" type="range" min="0" max="1000" value="0" step="1" />
         </div>
-        <input id="seekBar" type="range" min="0" max="1000" value="0" step="1" />
-      </div>
 
-      <div class="controls">
-        <div class="control-group">
-          <button id="prevBtn" class="small">⏮</button>
-          <button id="playBtn">▶ PLAY</button>
-          <button id="nextBtn" class="small">⏭</button>
-        </div>
-        <div class="control-group">
-          <button id="stopBtn" class="small">■</button>
-          <button id="muteBtn" class="small">🔊</button>
-        </div>
-        <div class="control-group">
-          <button id="backBtn" class="small">-10s</button>
-          <button id="forwardBtn" class="small">+10s</button>
-        </div>
-        <div class="control-group">
-          <button id="visualModeBtn" class="small">MODE</button>
-        </div>
-        <div class="control-group">
-          <button id="focusCurrentBtn" class="small">FIND</button>
-        </div>
-        <div class="vol-wrap">
-          <span>VOL</span>
-          <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
+        <div class="controls">
+          <div class="control-group">
+            <button id="prevBtn" class="small">⏮</button>
+            <button id="playBtn">▶ PLAY</button>
+            <button id="nextBtn" class="small">⏭</button>
+          </div>
+          <div class="control-group">
+            <button id="stopBtn" class="small">■</button>
+            <button id="muteBtn" class="small">🔊</button>
+          </div>
+          <div class="control-group">
+            <button id="backBtn" class="small">-10s</button>
+            <button id="forwardBtn" class="small">+10s</button>
+          </div>
+          <div class="control-group">
+            <button id="visualModeBtn" class="small">MODE</button>
+          </div>
+          <div class="control-group">
+            <button id="focusCurrentBtn" class="small">FIND</button>
+          </div>
+          <div class="vol-wrap">
+            <span>VOL</span>
+            <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
+          </div>
         </div>
       </div>
     </section>
@@ -755,19 +728,7 @@
     </div>
 
     <div class="fullscreen-bottom">
-      <div class="fullscreen-track">
-        <div class="label">CURRENTLY PLAYING</div>
-        <div class="title" id="fullscreenTrackTitle">No track selected</div>
-        <div class="meta" id="fullscreenTrackMeta">0:00 / 0:00</div>
-      </div>
-      <div class="transport">
-        <button id="fullscreenPrevBtn" class="small">⏮</button>
-        <button id="fullscreenPlayBtn">▶ PLAY</button>
-        <button id="fullscreenNextBtn" class="small">⏭</button>
-      </div>
-      <div class="transport">
-        <button id="fullscreenMuteBtn" class="small">🔊</button>
-      </div>
+      <div class="fullscreen-info-slot" id="fullscreenInfoSlot"></div>
     </div>
   </div>
 
@@ -821,6 +782,8 @@
       currentTime: document.getElementById("currentTime"),
       totalTime: document.getElementById("totalTime"),
       seekBar: document.getElementById("seekBar"),
+      playerInfoHome: document.getElementById("playerInfoHome"),
+      playerInfoPanel: document.getElementById("playerInfoPanel"),
       playBtn: document.getElementById("playBtn"),
       prevBtn: document.getElementById("prevBtn"),
       nextBtn: document.getElementById("nextBtn"),
@@ -839,14 +802,9 @@
       fallbackPicker: document.getElementById("fallbackPicker"),
       audioPlayer: document.getElementById("audioPlayer"),
       fullscreenOverlay: document.getElementById("fullscreenOverlay"),
+      fullscreenInfoSlot: document.getElementById("fullscreenInfoSlot"),
       fullscreenModeBtn: document.getElementById("fullscreenModeBtn"),
-      fullscreenCloseBtn: document.getElementById("fullscreenCloseBtn"),
-      fullscreenTrackTitle: document.getElementById("fullscreenTrackTitle"),
-      fullscreenTrackMeta: document.getElementById("fullscreenTrackMeta"),
-      fullscreenPrevBtn: document.getElementById("fullscreenPrevBtn"),
-      fullscreenPlayBtn: document.getElementById("fullscreenPlayBtn"),
-      fullscreenNextBtn: document.getElementById("fullscreenNextBtn"),
-      fullscreenMuteBtn: document.getElementById("fullscreenMuteBtn")
+      fullscreenCloseBtn: document.getElementById("fullscreenCloseBtn")
     };
 
     function escapeHtml(str = "") {
@@ -1194,15 +1152,13 @@
       const label = playing ? "⏸ PAUSE" : "▶ PLAY";
       el.playBtn.textContent = label;
       el.playTopBtn.textContent = playing ? "⏸" : "▶";
-      el.fullscreenPlayBtn.textContent = label;
       el.visualStatus.textContent = playing ? "Signal live." : (state.tracks.length ? "Standing by." : "No signal.");
     }
 
     function updateTransportButtons() {
       const hasTracks = state.tracks.length > 0;
       [el.playBtn, el.playTopBtn, el.prevBtn, el.nextBtn, el.stopBtn, el.backBtn, el.forwardBtn,
-       el.focusCurrentBtn, el.fullscreenBtn, el.fullscreenPrevBtn, el.fullscreenPlayBtn,
-       el.fullscreenNextBtn].forEach(btn => btn.disabled = !hasTracks && btn !== el.fullscreenBtn);
+       el.focusCurrentBtn, el.fullscreenBtn].forEach(btn => btn.disabled = !hasTracks && btn !== el.fullscreenBtn);
       el.fullscreenBtn.disabled = !hasTracks;
     }
 
@@ -1210,14 +1166,12 @@
       const track = getTrack();
       const title = track ? getDisplayTitle(track) : "No track selected";
       el.trackTitle.textContent = title;
-      el.fullscreenTrackTitle.textContent = title;
       el.trackFolder.textContent = `Folder: ${track ? track.folder : "none"}`;
 
       const total = isFinite(el.audioPlayer.duration) ? el.audioPlayer.duration : (track ? state.durationCache.get(track.path) || 0 : 0);
       el.trackDurationMeta.textContent = `Duration: ${formatTime(total)}`;
       el.totalTime.textContent = formatTime(total);
       el.currentTime.textContent = formatTime(el.audioPlayer.currentTime || 0);
-      el.fullscreenTrackMeta.textContent = `${formatTime(el.audioPlayer.currentTime || 0)} / ${formatTime(total)}`;
 
       if (track) {
         el.toolbarTitle.textContent = `${title} • ${track.folder}`;
@@ -1462,7 +1416,6 @@
       const muted = el.audioPlayer.muted || el.audioPlayer.volume === 0;
       const label = muted ? "🔇" : "🔊";
       el.muteBtn.textContent = label;
-      el.fullscreenMuteBtn.textContent = label;
     }
 
     function isAnyFullscreen() {
@@ -1470,7 +1423,7 @@
     }
 
     async function enterScopedFullscreen() {
-      const target = el.fullscreenCanvasWrap;
+      const target = el.fullscreenOverlay;
       if (!target) return false;
       try {
         if (target.requestFullscreen) {
@@ -1509,16 +1462,27 @@
       }
     }
 
+
+    function mountPlayerInfoPanel(inFullscreen) {
+      const target = inFullscreen ? el.fullscreenInfoSlot : el.playerInfoHome;
+      if (!target || !el.playerInfoPanel) return;
+      if (el.playerInfoPanel.parentElement !== target) {
+        target.appendChild(el.playerInfoPanel);
+      }
+    }
+
     async function toggleFullscreenOverlay() {
       if (!state.tracks.length) return;
       const opening = !el.fullscreenOverlay.classList.contains("open");
 
       if (opening) {
+        mountPlayerInfoPanel(true);
         el.fullscreenOverlay.classList.add("open");
         renderVisualizerToCanvas(el.fullscreenCanvas);
         await enterScopedFullscreen();
       } else {
         el.fullscreenOverlay.classList.remove("open");
+        mountPlayerInfoPanel(false);
         if (isAnyFullscreen()) {
           await exitScopedFullscreen();
         }
@@ -1557,9 +1521,6 @@
     el.playTopBtn.addEventListener("click", togglePlay);
     el.prevBtn.addEventListener("click", () => playAdjacent(-1));
     el.nextBtn.addEventListener("click", () => playAdjacent(1));
-    el.fullscreenPrevBtn.addEventListener("click", () => playAdjacent(-1));
-    el.fullscreenNextBtn.addEventListener("click", () => playAdjacent(1));
-    el.fullscreenPlayBtn.addEventListener("click", togglePlay);
 
     el.stopBtn.addEventListener("click", () => stopPlayback(false));
     el.backBtn.addEventListener("click", () => {
@@ -1617,7 +1578,6 @@
     }
 
     el.muteBtn.addEventListener("click", toggleMute);
-    el.fullscreenMuteBtn.addEventListener("click", toggleMute);
 
     el.searchInput.addEventListener("input", () => {
       state.search = el.searchInput.value || "";
@@ -1745,12 +1705,14 @@
     document.addEventListener("fullscreenchange", () => {
       if (!document.fullscreenElement && el.fullscreenOverlay.classList.contains("open")) {
         el.fullscreenOverlay.classList.remove("open");
+        mountPlayerInfoPanel(false);
       }
     });
 
     document.addEventListener("webkitfullscreenchange", () => {
       if (!document.webkitFullscreenElement && el.fullscreenOverlay.classList.contains("open")) {
         el.fullscreenOverlay.classList.remove("open");
+        mountPlayerInfoPanel(false);
       }
     });
 
@@ -1759,6 +1721,7 @@
       renderVisualizerToCanvas(el.fullscreenCanvas);
     });
 
+    mountPlayerInfoPanel(false);
     syncMuteButtons();
     updatePathBar();
     updatePlayButtons();
