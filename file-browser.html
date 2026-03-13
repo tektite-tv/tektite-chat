@@ -1861,7 +1861,11 @@
 
           <div class="music-wave-wrap" id="musicWaveWrap">
             <canvas id="musicVisualizer" width="1200" height="160"></canvas>
-            <button id="musicVisualizerFsBtn" class="visualizer-fs-btn" title="Fullscreen visualizer" aria-label="Fullscreen visualizer">⛶</button>
+            <div class="fullscreen-nowplaying" id="fullscreenNowPlaying">
+              <div class="fullscreen-nowplaying-label">Now Playing</div>
+              <div class="fullscreen-nowplaying-title" id="fullscreenNowPlayingTitle">${currentTrack ? escapeHtml(currentTrack.name) : "No track loaded yet"}</div>
+            </div>
+            <button id="musicVisualizerFsBtn" class="visualizer-fs-btn" title="Fullscreen player" aria-label="Fullscreen player">⛶</button>
           </div>
 
           <div class="music-nowplaying">
@@ -2172,6 +2176,8 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     const volume = document.getElementById("musicVolume");
     const volumeLabel = document.getElementById("musicVolumeLabel");
     const nowPlayingTitle = document.getElementById("musicNowPlayingTitle");
+    const fullscreenNowPlayingTitle = document.getElementById("fullscreenNowPlayingTitle");
+    const fsBtn = document.getElementById("musicVisualizerFsBtn");
 
     if (playPauseBtn) {
       playPauseBtn.textContent = audio && !audio.paused ? "PAUSE" : "PLAY";
@@ -2189,10 +2195,19 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     if (volumeLabel && audio) {
       volumeLabel.textContent = `${Math.round(audio.volume * 100)}%`;
     }
-    if (nowPlayingTitle) {
-      const currentTrack = getVisibleTracks().find(t => t.path === state.currentTrackPath)
-        || (state.selectedItem && isAudioItem(state.selectedItem) ? state.selectedItem : null);
-      nowPlayingTitle.textContent = currentTrack ? currentTrack.name : "No track loaded yet";
+
+    const currentTrack = getVisibleTracks().find(t => t.path === state.currentTrackPath)
+      || (state.selectedItem && isAudioItem(state.selectedItem) ? state.selectedItem : null);
+    const trackName = currentTrack ? currentTrack.name : "No track loaded yet";
+
+    if (nowPlayingTitle) nowPlayingTitle.textContent = trackName;
+    if (fullscreenNowPlayingTitle) fullscreenNowPlayingTitle.textContent = trackName;
+
+    if (fsBtn) {
+      const isFs = document.fullscreenElement === document.getElementById("musicWaveWrap");
+      fsBtn.textContent = isFs ? "✕" : "⛶";
+      fsBtn.title = isFs ? "Exit fullscreen" : "Fullscreen player";
+      fsBtn.setAttribute("aria-label", fsBtn.title);
     }
   }
 
@@ -2234,6 +2249,11 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     const canvas = state.visualizerCanvas;
     if (!canvas) return;
 
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      canvas.width = Math.max(640, Math.floor(rect.width * (window.devicePixelRatio || 1)));
+      canvas.height = Math.max(120, Math.floor(rect.height * (window.devicePixelRatio || 1)));
+    }
     const ctx = canvas.getContext("2d");
     const w = canvas.width;
     const h = canvas.height;
@@ -2519,6 +2539,11 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
       console.error(err);
     }
   }, true);
+
+  document.addEventListener("fullscreenchange", () => {
+    syncMusicUi();
+    ensureVisualizer();
+  });
 
   document.addEventListener("click", (e) => {
     const panelCheckbox = e.target.closest("[data-panel-check-ui]");
