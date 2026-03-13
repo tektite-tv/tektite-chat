@@ -2,15 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-
-body{
+html,body{
 margin:0;
+padding:0;
+width:100%;
+height:100%;
+overflow:hidden;
+background:transparent;
 font-family:monospace;
 }
 
-/* TOP BAR */
+body{
+color:lime;
+}
 
 .topbar{
 height:60px;
@@ -19,9 +26,8 @@ display:flex;
 align-items:center;
 padding-left:15px;
 padding-right:15px;
+box-sizing:border-box;
 }
-
-/* HAMBURGER */
 
 .hamburger{
 width:40px;
@@ -36,6 +42,7 @@ color:lime;
 line-height:1;
 transform:translateY(-2px);
 transition:box-shadow .15s ease, background .15s ease, transform .15s ease;
+flex:0 0 auto;
 }
 
 .hamburger:hover{
@@ -43,8 +50,6 @@ background:rgba(0,255,0,0.5);
 box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
 transform:translateY(-2px) scale(1.1);
 }
-
-/* LOGO */
 
 .logo{
 margin-left:15px;
@@ -77,8 +82,6 @@ box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
 flex:1;
 }
 
-/* CLOCK */
-
 .clock{
 display:flex;
 align-items:center;
@@ -98,8 +101,6 @@ background:rgba(0,255,0,0.5);
 box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
 }
 
-/* SIDEBAR */
-
 .sidebar{
 position:fixed;
 top:0;
@@ -107,10 +108,11 @@ left:-260px;
 width:260px;
 height:100%;
 background:#1a1a1a;
-transition:left .25s;
+transition:left .25s ease;
 box-shadow:2px 0 10px rgba(0,0,0,.6);
 display:flex;
 flex-direction:column;
+z-index:9999;
 }
 
 .sidebar.open{
@@ -120,9 +122,8 @@ left:0;
 .sidebar-menu{
 padding:20px;
 flex:1;
+overflow:auto;
 }
-
-/* SIDEBAR ITEM */
 
 .sidebar-item{
 margin-bottom:12px;
@@ -132,8 +133,6 @@ transition:box-shadow .15s ease;
 .sidebar-item:hover{
 box-shadow:0 0 0 2px lime,0 0 10px lime,0 0 20px lime;
 }
-
-/* LINK CARD */
 
 .sidebar-item a{
 display:block;
@@ -145,8 +144,6 @@ font-weight:bold;
 text-align:center;
 padding:10px;
 }
-
-/* PREVIEW */
 
 .sidebar-preview{
 width:100%;
@@ -176,8 +173,6 @@ max-height:200px;
 opacity:1;
 }
 
-/* SETTINGS BUTTON */
-
 .sidebar-bottom{
 padding:0 20px 20px 20px;
 }
@@ -195,23 +190,153 @@ font-family:inherit;
 cursor:pointer;
 }
 
+.sidebar-backdrop{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.65);
+opacity:0;
+pointer-events:none;
+transition:opacity .2s ease;
+z-index:9998;
+}
+
+.sidebar-backdrop.open{
+opacity:1;
+pointer-events:auto;
+}
+
+@media (max-width: 768px){
+body{
+overflow:visible;
+}
+
+.topbar{
+height:auto;
+min-height:0;
+padding:0;
+display:grid;
+grid-template-columns:72px 1fr;
+grid-template-rows:92px 1fr;
+align-items:center;
+background:#4b0076;
+border-top:2px solid rgba(255,255,255,.05);
+border-bottom:1px solid rgba(0,0,0,.35);
+}
+
+.hamburger{
+width:72px;
+height:92px;
+font-size:48px;
+justify-self:center;
+align-self:center;
+transform:none;
+}
+
+.hamburger:hover{
+transform:scale(1.06);
+}
+
+.logo{
+margin:0;
+height:92px;
+display:flex;
+align-items:center;
+justify-content:center;
+padding-right:8px;
+}
+
+.logo img{
+height:auto;
+width:min(86vw,520px);
+max-height:68px;
+object-fit:contain;
+}
+
+.spacer{
+display:none;
+}
+
+.clock{
+grid-column:1 / span 2;
+width:100%;
+display:flex;
+justify-content:center;
+align-items:center;
+padding:18px 0 22px;
+background:rgba(88,0,130,.55);
+}
+
+.clock-box{
+padding:0;
+}
+
+.clock iframe{
+width:min(92vw,760px);
+height:110px;
+}
+
+.sidebar{
+left:-100vw;
+width:100vw;
+height:100dvh;
+box-shadow:none;
+background:#14001f;
+}
+
+.sidebar.open{
+left:0;
+}
+
+.sidebar .topbar{
+grid-template-columns:72px 1fr;
+grid-template-rows:92px;
+}
+
+.sidebar .logo{
+justify-content:center;
+padding-right:72px;
+}
+
+.sidebar .clock,
+.sidebar .spacer{
+display:none;
+}
+
+.sidebar-menu{
+padding:16px;
+}
+
+.sidebar-item{
+margin-bottom:16px;
+}
+
+.sidebar-item a{
+padding:14px 12px;
+font-size:20px;
+}
+
+.sidebar-preview{
+max-height:none;
+opacity:1;
+margin-top:12px;
+}
+
+.sidebar-bottom{
+padding:0 16px 16px;
+}
+}
 </style>
 </head>
-
 <body>
 
 <div class="topbar">
-
 <div class="hamburger" onclick="toggleSidebar()">☰</div>
-
 <div class="logo">
 <a href="/">
-<img src="/images/deadlogo-green.png">
+<img src="/images/deadlogo-green.png" alt="The Internet Is Dead logo">
 </a>
 </div>
-
 <div class="spacer"></div>
-
 <div class="clock">
 <div class="clock-box">
 <iframe src="https://free.timeanddate.com/clock/iabiy632/n250/fn8/fs30/fc0f0/tct/pct/ftb/th2"
@@ -220,30 +345,27 @@ width="200"
 height="36"></iframe>
 </div>
 </div>
-
 </div>
+
+<div id="sidebar-backdrop" class="sidebar-backdrop" onclick="closeSidebar()"></div>
 
 <div id="sidebar" class="sidebar">
-
 <div class="topbar">
-
 <div class="hamburger" onclick="toggleSidebar()">✕</div>
-
 <div class="logo">
 <a href="/">
-<img src="/images/deadlogo-green.png">
+<img src="/images/deadlogo-green.png" alt="The Internet Is Dead logo">
 </a>
 </div>
-
+<div class="spacer"></div>
 </div>
 
 <div class="sidebar-menu">
-
 <div class="sidebar-item">
 <a href="/tektite-photosphere.html">
 Tektite's Photosphere
 <div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-photosphere.png">
+<img src="/images/link-thumbnails/tektite-photosphere.png" alt="Photosphere preview">
 </div>
 </a>
 </div>
@@ -252,7 +374,7 @@ Tektite's Photosphere
 <a href="/tektite-image-editor.html">
 Tektite's Image Editor
 <div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-image-editor.png">
+<img src="/images/link-thumbnails/tektite-image-editor.png" alt="Image Editor preview">
 </div>
 </a>
 </div>
@@ -261,7 +383,7 @@ Tektite's Image Editor
 <a href="/tektite-sound-machine.html">
 Tektite's Sound Machine
 <div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-sound-machine.png">
+<img src="/images/link-thumbnails/tektite-sound-machine.png" alt="Sound Machine preview">
 </div>
 </a>
 </div>
@@ -270,11 +392,10 @@ Tektite's Sound Machine
 <a href="/tektite-explorer.html">
 Tektite's File Explorer
 <div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-file-browser.png">
+<img src="/images/link-thumbnails/tektite-file-browser.png" alt="File Browser preview">
 </div>
 </a>
 </div>
-
 </div>
 
 <div class="sidebar-bottom">
@@ -282,24 +403,41 @@ Tektite's File Explorer
 <a href="/tektite-chat.html">
 Tektite's Chat
 <div class="sidebar-preview">
-<img src="/images/link-thumbnails/tektite-chat.png">
+<img src="/images/link-thumbnails/tektite-chat.png" alt="Chat preview">
 </div>
 </a>
 </div>
 </div>
-
 </div>
 
 <script>
+function syncSidebarBackdrop(){
+const sidebar=document.getElementById("sidebar");
+const backdrop=document.getElementById("sidebar-backdrop");
+const open=sidebar.classList.contains("open");
+backdrop.classList.toggle("open", open);
+document.body.style.overflow = open ? "hidden" : "";
+}
 
 function toggleSidebar(){
 document.getElementById("sidebar").classList.toggle("open");
+syncSidebarBackdrop();
+}
+
+function closeSidebar(){
+document.getElementById("sidebar").classList.remove("open");
+syncSidebarBackdrop();
 }
 
 function openStats(){
 window.parent.postMessage({type:"openStats"}, "*");
 }
 
+window.addEventListener("resize", ()=>{
+if(window.innerWidth > 768){
+closeSidebar();
+}
+});
 </script>
 
 </body>
