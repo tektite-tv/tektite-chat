@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>theinternetisdead.org</title>
+<style>
+html,body{
+    margin:0;
+    padding:0;
+    height:100%;
+    overflow:hidden;
+    background:#111;
+    font-family:"Courier New", monospace;
+}
+
+:root{
+    --overlay-height-desktop: 76px;
+    --overlay-height-mobile: 112px;
+}
+
+#overlay-container{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:var(--overlay-height-desktop);
+    border:none;
+    overflow:hidden;
+    z-index:1000;
+    background:transparent;
+}
+
+#main-frame{
+    position:absolute;
+    top:var(--overlay-height-desktop);
+    left:0;
+    width:100vw;
+    height:calc(100vh - var(--overlay-height-desktop));
+    border:none;
+    display:block;
+    background:black;
+}
+
+#nerd-stats{
+    position:fixed;
+    bottom:10px;
+    right:10px;
+    width:280px;
+    background:black;
+    color:lime;
+    font-size:12px;
+    padding:10px;
+    border:2px solid lime;
+    display:none;
+    z-index:999999;
+}
+
+@media (max-width: 768px){
+    #overlay-container{
+        height:var(--overlay-height-mobile);
+    }
+    #main-frame{
+        top:var(--overlay-height-mobile);
+        height:calc(100vh - var(--overlay-height-mobile));
+    }
+}
+</style>
+</head>
+<body>
+<div id="overlay-container"></div>
+<iframe id="main-frame" src="/tektite-index.html" loading="lazy"></iframe>
+<div id="nerd-stats"></div>
+<script>
+fetch("overlay.html")
+.then(res => res.text())
+.then(html => {
+    document.getElementById("overlay-container").innerHTML = html;
+});
+
+window.addEventListener("message", e=>{
+    if(e.data && e.data.type==="openStats") toggleStatsPanel();
+});
+
+function toggleStatsPanel(){
+    const panel=document.getElementById("nerd-stats");
+    if(panel.style.display==="block"){
+        panel.style.display="none";
+        return;
+    }
+    panel.style.display="block";
+    updateStats();
+}
+
+function updateStats(){
+    const panel=document.getElementById("nerd-stats");
+    const domNodes=document.querySelectorAll("*").length;
+    const resources=performance.getEntriesByType("resource").length;
+    let memory="N/A";
+    if(performance.memory){
+        memory=Math.round(performance.memory.usedJSHeapSize/1048576)+" MB";
+    }
+    const runtime=Math.round(performance.now());
+    panel.innerHTML=`
+<b>Stats for Nerds</b><br><br>
+DOM Nodes: ${domNodes}<br>
+Resources Loaded: ${resources}<br>
+Heap Memory: ${memory}<br>
+Page Runtime: ${runtime} ms
+`;
+}
+</script>
+</body>
+</html>
