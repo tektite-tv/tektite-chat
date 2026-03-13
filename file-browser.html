@@ -1859,15 +1859,21 @@
             </div>
           </div>
 
-          <div class="music-wave-wrap">
-            <canvas id="musicVisualizer" width="1200" height="120"></canvas>
+          <div class="music-wave-wrap" id="musicWaveWrap">
+            <canvas id="musicVisualizer" width="1200" height="160"></canvas>
+            <button id="musicVisualizerFsBtn" class="visualizer-fs-btn" title="Fullscreen visualizer" aria-label="Fullscreen visualizer">⛶</button>
+          </div>
+
+          <div class="music-nowplaying">
+            <div class="music-nowplaying-label">Now Playing</div>
+            <div class="music-nowplaying-title" id="musicNowPlayingTitle">${currentTrack ? escapeHtml(currentTrack.name) : "No track loaded yet"}</div>
           </div>
 
           <div class="music-controls">
             <button id="musicPrevBtn" class="small">⏮</button>
             <button id="musicPlayPauseBtn">${state.audioElement && !state.audioElement.paused ? "PAUSE" : "PLAY"}</button>
             <button id="musicNextBtn" class="small">⏭</button>
-            <div class="queue-note">${currentTrack ? `Now playing: ${escapeHtml(currentTrack.name)}` : "No track loaded yet"}</div>
+            <div class="queue-note">${currentTrack ? `Loaded: ${escapeHtml(currentTrack.name)}` : "Awaiting audio sacrifice"}</div>
             <button id="musicStopBtn" class="small">■</button>
           </div>
 
@@ -2165,6 +2171,7 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     const duration = document.getElementById("musicDuration");
     const volume = document.getElementById("musicVolume");
     const volumeLabel = document.getElementById("musicVolumeLabel");
+    const nowPlayingTitle = document.getElementById("musicNowPlayingTitle");
 
     if (playPauseBtn) {
       playPauseBtn.textContent = audio && !audio.paused ? "PAUSE" : "PLAY";
@@ -2181,6 +2188,11 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     }
     if (volumeLabel && audio) {
       volumeLabel.textContent = `${Math.round(audio.volume * 100)}%`;
+    }
+    if (nowPlayingTitle) {
+      const currentTrack = getVisibleTracks().find(t => t.path === state.currentTrackPath)
+        || (state.selectedItem && isAudioItem(state.selectedItem) ? state.selectedItem : null);
+      nowPlayingTitle.textContent = currentTrack ? currentTrack.name : "No track loaded yet";
     }
   }
 
@@ -2226,27 +2238,46 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     const w = canvas.width;
     const h = canvas.height;
 
-    const drawIdle = () => {
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "#000";
-      ctx.fillRect(0, 0, w, h);
-      ctx.strokeStyle = "rgba(0,255,0,0.2)";
+    const drawGrid = () => {
+      ctx.strokeStyle = "rgba(0,255,0,0.08)";
       ctx.lineWidth = 1;
-      for (let x = 0; x < w; x += 40) {
+      for (let x = 0; x <= w; x += 48) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
         ctx.lineTo(x, h);
         ctx.stroke();
       }
-      ctx.strokeStyle = "rgba(0,255,0,0.75)";
-      ctx.lineWidth = 2;
+      for (let y = 0; y <= h; y += 24) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = "rgba(0,255,0,0.18)";
       ctx.beginPath();
-      for (let x = 0; x < w; x += 10) {
-        const y = h / 2 + Math.sin((x / w) * 16) * 12;
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+    };
+
+    const drawIdle = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, h);
+      drawGrid();
+
+      ctx.strokeStyle = "rgba(0,255,0,0.8)";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "rgba(0,255,0,0.55)";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += 6) {
+        const y = h / 2 + Math.sin((x / w) * Math.PI * 7) * 10;
         if (x === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.stroke();
+      ctx.shadowBlur = 0;
     };
 
     if (!state.analyser || !state.audioElement || state.audioElement.paused) {
@@ -2254,32 +2285,39 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
       return;
     }
 
-    const bufferLength = state.analyser.frequencyBinCount;
+    state.analyser.fftSize = 2048;
+    const bufferLength = state.analyser.fftSize;
     const dataArray = new Uint8Array(bufferLength);
 
     const draw = () => {
       if (!state.visualizerCanvas) return;
       state.visualizerFrame = requestAnimationFrame(draw);
 
-      state.analyser.getByteFrequencyData(dataArray);
+      state.analyser.getByteTimeDomainData(dataArray);
       ctx.clearRect(0, 0, w, h);
       ctx.fillStyle = "#000";
       ctx.fillRect(0, 0, w, h);
+      drawGrid();
 
-      const barWidth = w / bufferLength;
+      ctx.strokeStyle = "rgba(0,255,0,0.98)";
+      ctx.lineWidth = 2.2;
+      ctx.shadowColor = "rgba(0,255,0,0.7)";
+      ctx.shadowBlur = 14;
+      ctx.beginPath();
+
+      const sliceWidth = w / bufferLength;
+      let x = 0;
+
       for (let i = 0; i < bufferLength; i++) {
-        const val = dataArray[i] / 255;
-        const barHeight = Math.max(2, val * (h - 12));
-        const x = i * barWidth;
-        ctx.fillStyle = i % 3 === 0 ? "rgba(0,255,0,0.95)" : "rgba(120,255,120,0.82)";
-        ctx.fillRect(x, h - barHeight, Math.max(2, barWidth - 1), barHeight);
+        const v = dataArray[i] / 128.0;
+        const y = (v * h) / 2;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+        x += sliceWidth;
       }
 
-      ctx.strokeStyle = "rgba(255,255,255,0.18)";
-      ctx.beginPath();
-      ctx.moveTo(0, h / 2);
-      ctx.lineTo(w, h / 2);
       ctx.stroke();
+      ctx.shadowBlur = 0;
     };
 
     draw();
@@ -2465,6 +2503,22 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
       toggleUiPanel(false);
     });
   }
+
+  document.addEventListener("click", async (e) => {
+    const fsBtn = e.target.closest("#musicVisualizerFsBtn");
+    if (!fsBtn) return;
+    const wrap = document.getElementById("musicWaveWrap");
+    if (!wrap) return;
+    try {
+      if (document.fullscreenElement === wrap) {
+        await document.exitFullscreen();
+      } else {
+        await wrap.requestFullscreen();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }, true);
 
   document.addEventListener("click", (e) => {
     const panelCheckbox = e.target.closest("[data-panel-check-ui]");
