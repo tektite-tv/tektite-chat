@@ -14,6 +14,10 @@ html,body{
     font-family:"Courier New", monospace;
 }
 
+body.sidebar-open{
+    overflow:hidden;
+}
+
 :root{
     --overlay-height-desktop: 76px;
     --overlay-height-mobile: 112px;
@@ -77,6 +81,13 @@ fetch("overlay.html")
 .then(html => {
     document.getElementById("overlay-container").innerHTML = html;
 });
+
+function toggleSidebar(){
+    const sidebar = document.getElementById("sidebar");
+    if(!sidebar) return;
+    const open = sidebar.classList.toggle("open");
+    document.body.classList.toggle("sidebar-open", open);
+}
 
 window.addEventListener("message", e=>{
     if(e.data && e.data.type==="openStats") toggleStatsPanel();
