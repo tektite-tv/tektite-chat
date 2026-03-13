@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tektite Drive Explorer v2.1</title>
+  <title>Tektite Drive Explorer v2.3</title>
   <style>
     :root {
       --bg: #120018;
@@ -135,36 +135,104 @@
       color: var(--text-soft);
     }
 
-    .restore-dock {
-      position: fixed;
-      left: 16px;
-      bottom: 52px;
-      z-index: 40;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      max-width: calc(100vw - 32px);
-      pointer-events: none;
-    }
-
-    .restore-dock:empty { display: none; }
-
-    .restore-chip {
-      pointer-events: auto;
+    .ui-launcher {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: rgba(0,0,0,0.9);
-      border: 1px solid var(--line);
-      color: var(--text);
-      box-shadow: 0 0 18px rgba(0,255,0,0.12);
-      cursor: pointer;
-      user-select: none;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1;
     }
 
-    .restore-chip:hover {
-      background: rgba(0,255,0,0.08);
+    .ui-launcher-fab {
+      position: fixed;
+      right: 18px;
+      bottom: 58px;
+      z-index: 45;
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      font-size: 18px;
+      box-shadow: 0 0 20px rgba(0,255,0,0.15);
+    }
+
+    .ui-launcher-fab.visible {
+      display: inline-flex;
+    }
+
+    .ui-panel {
+      position: fixed;
+      right: 18px;
+      top: 70px;
+      z-index: 50;
+      width: min(320px, calc(100vw - 24px));
+      background: rgba(10,0,14,0.97);
+      border: 2px solid var(--line);
+      box-shadow: 0 0 28px rgba(0,255,0,0.12);
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .ui-panel.hidden {
+      display: none;
+    }
+
+    .ui-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: bold;
+      color: var(--text);
+    }
+
+    .ui-panel-sub {
+      color: var(--text-soft);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .ui-panel-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .ui-panel-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border: 1px solid rgba(0,255,0,0.25);
+      background: rgba(255,255,255,0.02);
+      min-height: 48px;
+    }
+
+    .ui-panel-item strong {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .ui-panel-item span {
+      color: var(--text-soft);
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    .ui-panel-item button {
+      flex: 0 0 auto;
+      min-width: 72px;
     }
 
     .source-menu {
@@ -864,10 +932,14 @@
       .source-dropdown {
         width: min(92vw, 320px);
       }
-      .restore-dock {
-        left: 10px;
-        right: 10px;
-        bottom: 58px;
+      .ui-panel {
+        right: 12px;
+        top: 62px;
+        width: min(320px, calc(100vw - 24px));
+      }
+      .ui-launcher-fab {
+        right: 12px;
+        bottom: 62px;
       }
     }
   </style>
@@ -909,7 +981,7 @@
     <button id="gridBtn" class="active">GRID</button>
     <button id="listBtn">LIST</button>
     <input id="searchInput" type="text" placeholder="Search files..." />
-    <button id="hideToolbarBtn" class="small ghost ui-toggle" title="Hide toolbar">TOP</button>
+    <button id="uiLauncherBtn" class="small ghost ui-toggle ui-launcher" title="Show layout controls" aria-label="Show layout controls">⌕</button>
   </section>
 
   <main class="workspace" id="workspace">
@@ -949,7 +1021,16 @@
     </aside>
   </main>
 
-  <div class="restore-dock" id="restoreDock"></div>
+  <div class="ui-panel hidden" id="uiPanel">
+    <div class="ui-panel-header">
+      <span>LAYOUT CONTROLS</span>
+      <button id="closeUiPanelBtn" class="small ghost ui-toggle" title="Close layout controls">✕</button>
+    </div>
+    <div class="ui-panel-sub">Show or hide the major UI chunks without littering the screen with little rescue buttons.</div>
+    <div class="ui-panel-grid" id="uiPanelGrid"></div>
+  </div>
+
+  <button id="uiLauncherFab" class="small ghost ui-toggle ui-launcher-fab" title="Show layout controls" aria-label="Show layout controls">⌕</button>
 
   <footer class="footer">
     <div id="footerLeft">Ready.</div>
@@ -960,7 +1041,7 @@
 
   <script>
   /* ==========================================================================
-     Tektite Drive Explorer v2.1
+     Tektite Drive Explorer v2.3
      Changes:
      - replaces OPEN ROOT FOLDER with multi-folder dropdown
      - Root Folder keeps the regular file browser view
@@ -997,7 +1078,8 @@
     sources: {
       root: makeSourceState("root", "ROOT"),
       music: makeSourceState("music", "MUSIC")
-    }
+    },
+    uiPanelOpen: false
   };
 
   function makeSourceState(id, fallbackName) {
@@ -1032,7 +1114,11 @@
     gridBtn: document.getElementById("gridBtn"),
     listBtn: document.getElementById("listBtn"),
     searchInput: document.getElementById("searchInput"),
-    hideToolbarBtn: document.getElementById("hideToolbarBtn"),
+    uiLauncherBtn: document.getElementById("uiLauncherBtn"),
+    uiLauncherFab: document.getElementById("uiLauncherFab"),
+    uiPanel: document.getElementById("uiPanel"),
+    uiPanelGrid: document.getElementById("uiPanelGrid"),
+    closeUiPanelBtn: document.getElementById("closeUiPanelBtn"),
     pathBox: document.getElementById("pathBox"),
     tree: document.getElementById("tree"),
     fileview: document.getElementById("fileview"),
@@ -1044,7 +1130,7 @@
     fallbackPicker: document.getElementById("fallbackPicker"),
     sidebarTitle: document.getElementById("sidebarTitle"),
     previewTitle: document.getElementById("previewTitle"),
-    restoreDock: document.getElementById("restoreDock"),
+
     workspace: document.getElementById("workspace"),
     statusline: document.getElementById("statusline")
   };
@@ -1182,6 +1268,11 @@
     renderUiToggles();
   }
 
+  function toggleUiPanel(forceValue = null) {
+    state.uiPanelOpen = forceValue == null ? !state.uiPanelOpen : !!forceValue;
+    renderUiToggles();
+  }
+
   function renderUiToggles() {
     document.querySelectorAll("[data-toggle-ui]").forEach(btn => {
       const section = btn.dataset.toggleUi;
@@ -1196,23 +1287,46 @@
       }
     });
 
-    if (el.hideToolbarBtn) {
-      el.hideToolbarBtn.classList.toggle("active", state.ui.toolbar);
-      el.hideToolbarBtn.textContent = state.ui.toolbar ? "TOP" : "SHOW TOP";
-      el.hideToolbarBtn.title = state.ui.toolbar ? "Hide toolbar" : "Show toolbar";
+    if (el.uiLauncherBtn) {
+      el.uiLauncherBtn.classList.toggle("active", state.uiPanelOpen);
+      el.uiLauncherBtn.title = state.uiPanelOpen ? "Hide layout controls" : "Show layout controls";
+      el.uiLauncherBtn.setAttribute("aria-label", el.uiLauncherBtn.title);
     }
 
-    const hidden = [
-      ["sidebar", "Tree"],
-      ["preview", "Preview"],
-      ["breadcrumbs", "Breadcrumbs"],
-      ["statusline", "Info strip"],
-      ["toolbar", "Top bar"]
-    ].filter(([key]) => !state.ui[key]);
+    if (el.uiLauncherFab) {
+      const needsFab = !state.ui.toolbar;
+      el.uiLauncherFab.classList.toggle("visible", needsFab);
+      el.uiLauncherFab.classList.toggle("active", state.uiPanelOpen);
+      el.uiLauncherFab.title = state.uiPanelOpen ? "Hide layout controls" : "Show layout controls";
+      el.uiLauncherFab.setAttribute("aria-label", el.uiLauncherFab.title);
+    }
 
-    el.restoreDock.innerHTML = hidden.map(([key, label]) =>
-      `<button class="restore-chip" data-restore-ui="${escapeHtml(key)}">Show ${escapeHtml(label)}</button>`
-    ).join("");
+    if (el.uiPanel) {
+      el.uiPanel.classList.toggle("hidden", !state.uiPanelOpen);
+    }
+
+    if (el.uiPanelGrid) {
+      const entries = [
+        ["toolbar", "Top bar", "Navigation and global controls"],
+        ["sidebar", "Tree", "Folder tree and directory navigation"],
+        ["preview", "Preview", "Details, media preview, and metadata"],
+        ["breadcrumbs", "Breadcrumbs", "Current path trail"],
+        ["statusline", "Info strip", "Folder name and item counts"]
+      ];
+
+      el.uiPanelGrid.innerHTML = entries.map(([key, label, sub]) => {
+        const shown = !!state.ui[key];
+        return `
+          <div class="ui-panel-item">
+            <div>
+              <strong>${escapeHtml(label)}</strong>
+              <span>${escapeHtml(sub)}</span>
+            </div>
+            <button class="small ghost ui-toggle ${shown ? "active" : ""}" data-panel-toggle-ui="${escapeHtml(key)}">${shown ? "Hide" : "Show"}</button>
+          </div>
+        `;
+      }).join("");
+    }
   }
 
   function normalizePath(path) {
@@ -2332,22 +2446,43 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     setFooter(`Rescanned ${state.activeSource === "music" ? "music" : "root"} folder.`);
   });
 
-  if (el.hideToolbarBtn) {
-    el.hideToolbarBtn.addEventListener("click", () => {
-      toggleUiSection("toolbar");
+  if (el.uiLauncherBtn) {
+    el.uiLauncherBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleUiPanel();
+    });
+  }
+
+  if (el.uiLauncherFab) {
+    el.uiLauncherFab.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleUiPanel();
+    });
+  }
+
+  if (el.closeUiPanelBtn) {
+    el.closeUiPanelBtn.addEventListener("click", () => {
+      toggleUiPanel(false);
     });
   }
 
   document.addEventListener("click", (e) => {
-    const toggleBtn = e.target.closest("[data-toggle-ui]");
-    if (toggleBtn) {
-      toggleUiSection(toggleBtn.dataset.toggleUi);
+    const panelToggleBtn = e.target.closest("[data-panel-toggle-ui]");
+    if (panelToggleBtn) {
+      toggleUiSection(panelToggleBtn.dataset.panelToggleUi);
       return;
     }
 
-    const restoreBtn = e.target.closest("[data-restore-ui]");
-    if (restoreBtn) {
-      toggleUiSection(restoreBtn.dataset.restoreUi, true);
+    const inlineToggleBtn = e.target.closest("[data-toggle-ui]");
+    if (inlineToggleBtn) {
+      toggleUiSection(inlineToggleBtn.dataset.toggleUi);
+      return;
+    }
+
+    const clickedLauncher = e.target.closest("#uiLauncherBtn, #uiLauncherFab");
+    const clickedPanel = e.target.closest("#uiPanel");
+    if (!clickedLauncher && !clickedPanel && state.uiPanelOpen) {
+      toggleUiPanel(false);
     }
   });
 
@@ -2513,6 +2648,12 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
   });
 
   document.addEventListener("keydown", async (e) => {
+    if (e.key === "Escape" && state.uiPanelOpen) {
+      e.preventDefault();
+      toggleUiPanel(false);
+      return;
+    }
+
     if (e.target.matches("input, textarea")) return;
 
     if (e.key === "/") {
