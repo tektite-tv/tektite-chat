@@ -29,6 +29,15 @@
     }
 
     body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #app-scale-shell {
+      width: 125%;
+      height: 125%;
+      transform: scale(0.8);
+      transform-origin: top left;
       display: grid;
       grid-template-rows: auto auto 1fr;
     }
@@ -345,6 +354,7 @@
   </style>
 </head>
 <body>
+  <div id="app-scale-shell">
   <section class="toolbar">
     <button id="openBtn">OPEN FOLDER</button>
     <button id="upBtn" class="small">↑</button>
@@ -1038,5 +1048,6 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
 
     renderAll();
   </script>
+  </div>
 </body>
 </html>
