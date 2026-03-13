@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tektite Drive Explorer v1.1</title>
+  <title>Tektite Drive Explorer v2.1</title>
   <style>
     :root {
       --bg: #120018;
@@ -22,15 +23,12 @@
       --font-main: "Consolas", "Lucida Console", "Courier New", monospace;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
       height: 100%;
-      background:
-        linear-gradient(180deg, #1f002c 0px, #16001e 120px, #120018 100%);
+      background: linear-gradient(180deg, #1f002c 0px, #16001e 120px, #120018 100%);
       color: var(--text);
       font-family: var(--font-main);
       overflow: hidden;
@@ -39,6 +37,12 @@
     body {
       display: grid;
       grid-template-rows: 74px 1fr 28px;
+    }
+
+    body.music-mode {
+      background:
+        radial-gradient(circle at top, rgba(0,255,0,0.08), transparent 32%),
+        linear-gradient(180deg, #15001f 0px, #100016 100%);
     }
 
     button, input, select {
@@ -60,20 +64,9 @@
       box-shadow: 0 0 18px rgba(0,255,0,0.15);
     }
 
-    button:active {
-      transform: translateY(1px);
-    }
-
-    button.small {
-      padding: 8px 12px;
-      min-width: 44px;
-    }
-
-    button.active {
-      background: var(--line);
-      color: #000;
-      font-weight: bold;
-    }
+    button:active { transform: translateY(1px); }
+    button.small { padding: 8px 12px; min-width: 44px; }
+    button.active { background: var(--line); color: #000; font-weight: bold; }
 
     input[type="text"] {
       width: 100%;
@@ -84,9 +77,7 @@
       padding: 12px 14px;
     }
 
-    input[type="text"]::placeholder {
-      color: var(--text-soft);
-    }
+    input[type="text"]::placeholder { color: var(--text-soft); }
 
     .toolbar {
       display: grid;
@@ -96,6 +87,111 @@
       padding: 14px 24px;
       background: rgba(30, 0, 42, 0.95);
       border-bottom: 1px solid rgba(0,255,0,0.2);
+    }
+
+    .source-menu {
+      position: relative;
+      min-width: 230px;
+    }
+
+    .source-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      text-align: left;
+      padding-right: 12px;
+    }
+
+    .source-trigger .trigger-main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .source-trigger .trigger-label {
+      color: var(--text);
+      font-weight: bold;
+    }
+
+    .source-trigger .trigger-sub {
+      color: var(--text-soft);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 150px;
+    }
+
+    .caret {
+      font-size: 14px;
+      color: var(--text-dim);
+      flex: 0 0 auto;
+    }
+
+    .source-dropdown {
+      position: absolute;
+      left: 0;
+      top: calc(100% + 8px);
+      width: 320px;
+      background: rgba(10, 0, 14, 0.98);
+      border: 2px solid var(--line);
+      box-shadow: 0 0 28px rgba(0,255,0,0.1);
+      padding: 10px;
+      z-index: 20;
+    }
+
+    .source-dropdown.hidden { display: none; }
+
+    .source-option {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid rgba(0,255,0,0.15);
+      background: rgba(0,0,0,0.6);
+      margin-bottom: 8px;
+    }
+
+    .source-option:last-child { margin-bottom: 0; }
+
+    .source-option.selected {
+      border-color: var(--line);
+      background: rgba(0,255,0,0.08);
+      box-shadow: inset 0 0 12px rgba(0,255,0,0.08);
+    }
+
+    .source-option-main {
+      min-width: 0;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .source-option-title {
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .source-option-sub {
+      color: var(--text-soft);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .source-plus {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      font-size: 22px;
+      line-height: 1;
+      display: grid;
+      place-items: center;
     }
 
     .pathbox {
@@ -116,9 +212,7 @@
       overflow: hidden;
     }
 
-    .sidebar,
-    .main,
-    .preview {
+    .sidebar, .main, .preview {
       min-height: 0;
       overflow: hidden;
     }
@@ -128,6 +222,10 @@
       border-right: 1px solid rgba(0,255,0,0.22);
       display: grid;
       grid-template-rows: auto 1fr;
+    }
+
+    body.music-mode .sidebar {
+      background: rgba(12, 0, 18, 0.97);
     }
 
     .panel-title {
@@ -167,30 +265,20 @@
       box-shadow: inset 0 0 12px rgba(0,255,0,0.08);
     }
 
-    .tree-item .twisty {
-      width: 16px;
-      color: var(--text-soft);
-      text-align: center;
-      flex: 0 0 16px;
-    }
-
-    .tree-item .icon {
-      width: 18px;
-      text-align: center;
-      flex: 0 0 18px;
-    }
-
-    .tree-item .label {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .tree-item .twisty { width: 16px; color: var(--text-soft); text-align: center; flex: 0 0 16px; }
+    .tree-item .icon { width: 18px; text-align: center; flex: 0 0 18px; }
+    .tree-item .label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .main {
       display: grid;
       grid-template-rows: auto auto 1fr;
       background: linear-gradient(180deg, rgba(22,0,30,0.85), rgba(16,0,22,0.95));
+    }
+
+    body.music-mode .main {
+      background:
+        linear-gradient(180deg, rgba(18,0,24,0.95), rgba(8,0,14,0.98)),
+        radial-gradient(circle at 20% 0%, rgba(0,255,0,0.08), transparent 30%);
     }
 
     .statusline {
@@ -260,17 +348,14 @@
     .thumb {
       display: grid;
       place-items: center;
-      background:
-        linear-gradient(135deg, rgba(0,255,0,0.07), rgba(0,255,0,0.01)),
-        #050505;
+      background: linear-gradient(135deg, rgba(0,255,0,0.07), rgba(0,255,0,0.01)), #050505;
       border-bottom: 1px solid rgba(0,255,0,0.2);
       font-size: 42px;
       overflow: hidden;
       position: relative;
     }
 
-    .thumb img,
-    .thumb video {
+    .thumb img, .thumb video {
       width: 100%;
       height: 100%;
       object-fit: cover;
@@ -288,10 +373,7 @@
       font-size: 12px;
     }
 
-    .list {
-      display: grid;
-      gap: 8px;
-    }
+    .list { display: grid; gap: 8px; }
 
     .list-row {
       display: grid;
@@ -355,8 +437,7 @@
       box-shadow: var(--card-shadow);
     }
 
-    .preview-box img,
-    .preview-box video {
+    .preview-box img, .preview-box video {
       width: 100%;
       height: 100%;
       max-height: 360px;
@@ -364,9 +445,7 @@
       background: #000;
     }
 
-    .preview-box audio {
-      width: 100%;
-    }
+    .preview-box audio { width: 100%; }
 
     .meta-block {
       border: 1px solid rgba(0,255,0,0.25);
@@ -399,23 +478,10 @@
       color: var(--text-soft);
     }
 
-    .hidden-input {
-      display: none;
-    }
-
-    .muted {
-      color: var(--text-soft);
-    }
-
-    .danger {
-      color: var(--danger);
-    }
-
-    .pill {
-      border: 1px solid rgba(0,255,0,0.35);
-      padding: 4px 8px;
-      background: #000;
-    }
+    .hidden-input { display: none; }
+    .muted { color: var(--text-soft); }
+    .danger { color: var(--danger); }
+    .pill { border: 1px solid rgba(0,255,0,0.35); padding: 4px 8px; background: #000; }
 
     .preview-actions {
       display: flex;
@@ -439,6 +505,210 @@
       background: rgba(0,255,0,0.05);
     }
 
+    /* Music mode extras */
+    .music-shell {
+      display: grid;
+      gap: 18px;
+    }
+
+    .music-hero {
+      border: 2px solid var(--line);
+      background:
+        linear-gradient(180deg, rgba(0,255,0,0.05), rgba(0,0,0,0.75)),
+        #000;
+      box-shadow: var(--card-shadow);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .music-titlebar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .music-title {
+      font-size: 20px;
+      color: var(--text);
+      font-weight: bold;
+    }
+
+    .music-sub {
+      color: var(--text-soft);
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .music-pillrow {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .music-wave-wrap {
+      border: 1px solid rgba(0,255,0,0.35);
+      background: rgba(0,0,0,0.7);
+      padding: 10px;
+    }
+
+    #musicVisualizer {
+      width: 100%;
+      height: 120px;
+      display: block;
+      background:
+        linear-gradient(180deg, rgba(0,255,0,0.06), rgba(0,0,0,0.85));
+    }
+
+    .music-controls {
+      display: grid;
+      grid-template-columns: auto auto auto 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .music-scrub {
+      display: grid;
+      grid-template-columns: 62px 1fr 62px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .music-scrub input[type="range"],
+    .music-volume input[type="range"] {
+      width: 100%;
+      accent-color: #00ff00;
+    }
+
+    .music-volume {
+      display: grid;
+      grid-template-columns: 70px 1fr 50px;
+      gap: 8px;
+      align-items: center;
+      color: var(--text-dim);
+      font-size: 12px;
+    }
+
+    .music-library {
+      display: grid;
+      gap: 10px;
+    }
+
+    .track-head, .track-row {
+      display: grid;
+      grid-template-columns: 54px 1.8fr 110px 130px 140px;
+      gap: 12px;
+      align-items: center;
+      background: rgba(0,0,0,0.68);
+      border: 1px solid rgba(0,255,0,0.22);
+      padding: 12px;
+    }
+
+    .track-head {
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      border-color: rgba(0,255,0,0.35);
+      background: #140019;
+      font-weight: bold;
+    }
+
+    .track-row {
+      cursor: pointer;
+      transition: border-color 0.12s ease, background 0.12s ease;
+    }
+
+    .track-row:hover {
+      border-color: var(--line);
+      background: rgba(0,255,0,0.06);
+    }
+
+    .track-row.selected {
+      border-color: var(--line);
+      background: rgba(0,255,0,0.12);
+      box-shadow: inset 0 0 12px rgba(0,255,0,0.08);
+    }
+
+    .track-play {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .track-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .track-name {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--text);
+    }
+
+    .track-path {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .track-badge {
+      color: var(--text-soft);
+      font-size: 12px;
+      border: 1px solid rgba(0,255,0,0.25);
+      padding: 7px 8px;
+      background: rgba(0,0,0,0.65);
+      text-align: center;
+    }
+
+    .queue-note {
+      color: var(--text-soft);
+      font-size: 12px;
+    }
+
+    .now-playing-block {
+      display: grid;
+      gap: 12px;
+    }
+
+    .music-preview-card {
+      border: 2px solid var(--line);
+      background: rgba(0,0,0,0.76);
+      box-shadow: var(--card-shadow);
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .music-cover {
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(0,255,0,0.3);
+      background:
+        radial-gradient(circle at center, rgba(0,255,0,0.08), transparent 50%),
+        linear-gradient(180deg, rgba(0,255,0,0.04), rgba(0,0,0,0.85));
+      font-size: 72px;
+    }
+
+    .music-mini-wave {
+      width: 100%;
+      height: 76px;
+      display: block;
+      border: 1px solid rgba(0,255,0,0.25);
+      background: rgba(0,0,0,0.85);
+    }
+
     ::-webkit-scrollbar {
       width: 12px;
       height: 12px;
@@ -455,57 +725,80 @@
     }
 
     @media (max-width: 1400px) {
-      .workspace {
-        grid-template-columns: 260px 1fr 320px;
-      }
+      .workspace { grid-template-columns: 260px 1fr 320px; }
     }
 
     @media (max-width: 1120px) {
-      .workspace {
-        grid-template-columns: 260px 1fr;
-      }
+      .workspace { grid-template-columns: 260px 1fr; }
+      .preview { display: none; }
+    }
 
-      .preview {
-        display: none;
+    @media (max-width: 980px) {
+      .toolbar {
+        grid-template-columns: 1fr auto auto auto;
+      }
+      .pathbox,
+      #searchInput {
+        grid-column: 1 / -1;
+      }
+      .source-menu {
+        min-width: 0;
+      }
+      .music-controls,
+      .music-scrub,
+      .music-volume,
+      .track-head,
+      .track-row {
+        grid-template-columns: 1fr;
       }
     }
 
     @media (max-width: 760px) {
-      body {
-        grid-template-rows: auto 1fr 28px;
-      }
-
-      .pathbox {
-        grid-column: 1 / -1;
-      }
-
-      .workspace {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .list-row,
-      .list-head {
-        grid-template-columns: 34px 1.2fr 90px 110px;
-      }
-
-      .hide-mobile {
-        display: none;
+      body { grid-template-rows: auto 1fr 28px; }
+      .workspace { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .list-row, .list-head { grid-template-columns: 34px 1.2fr 90px 110px; }
+      .hide-mobile { display: none; }
+      .source-dropdown {
+        width: min(92vw, 320px);
       }
     }
   </style>
 </head>
 <body>
-
   <section class="toolbar">
-    <button id="openFolderBtn">OPEN ROOT FOLDER</button>
+    <div class="source-menu" id="sourceMenu">
+      <button id="sourceMenuBtn" class="source-trigger">
+        <span class="trigger-main">
+          <span class="trigger-label" id="sourceMenuLabel">ROOT FOLDER</span>
+          <span class="trigger-sub" id="sourceMenuSub">No folder loaded yet</span>
+        </span>
+        <span class="caret">▾</span>
+      </button>
+
+      <div class="source-dropdown hidden" id="sourceDropdown">
+        <div class="source-option selected" data-source-option="root">
+          <div class="source-option-main" data-source-select="root">
+            <div class="source-option-title">Root Folder</div>
+            <div class="source-option-sub" id="rootOptionSub">No folder selected</div>
+          </div>
+          <button class="source-plus" data-source-pick="root" title="Pick Root Folder">+</button>
+        </div>
+
+        <div class="source-option" data-source-option="music">
+          <div class="source-option-main" data-source-select="music">
+            <div class="source-option-title">Music Folder</div>
+            <div class="source-option-sub" id="musicOptionSub">No folder selected</div>
+          </div>
+          <button class="source-plus" data-source-pick="music" title="Pick Music Folder">+</button>
+        </div>
+      </div>
+    </div>
+
     <button id="upBtn" class="small">↑</button>
     <button id="refreshBtn" class="small">⟳</button>
     <button id="rescanBtn">RESCAN</button>
-    <div class="pathbox" id="pathBox">No folder opened yet. Human civilization remains inefficient.</div>
+    <div class="pathbox" id="pathBox">No folder opened yet. Humanity required a dropdown for two folders and somehow still made that dramatic.</div>
     <button id="gridBtn" class="active">GRID</button>
     <button id="listBtn">LIST</button>
     <input id="searchInput" type="text" placeholder="Search files..." />
@@ -513,7 +806,7 @@
 
   <main class="workspace">
     <aside class="sidebar">
-      <div class="panel-title">FOLDER TREE</div>
+      <div class="panel-title" id="sidebarTitle">FOLDER TREE</div>
       <div class="tree" id="tree"></div>
     </aside>
 
@@ -527,7 +820,7 @@
     </section>
 
     <aside class="preview">
-      <div class="panel-title">PREVIEW / DETAILS</div>
+      <div class="panel-title" id="previewTitle">PREVIEW / DETAILS</div>
       <div class="preview-scroll" id="preview">
         <div class="empty">Select a file or folder to preview it.</div>
       </div>
@@ -543,35 +836,65 @@
 
   <script>
   /* ==========================================================================
-     Tektite Drive Explorer v2.0
-     Real fix:
-     - lazy loads folders instead of recursively scanning the whole drive
-     - clicking folders in tree/grid/list opens them properly
-     - protected/system folders fail gracefully instead of poisoning everything
+     Tektite Drive Explorer v2.1
+     Changes:
+     - replaces OPEN ROOT FOLDER with multi-folder dropdown
+     - Root Folder keeps the regular file browser view
+     - Music Folder switches to a music-first browser with player, scrubber,
+       queue-style library, and live visualizer
      ========================================================================== */
 
+  const AUDIO_EXTS = ["mp3","wav","ogg","flac","m4a","aac","opus"];
+  const IMAGE_EXTS = ["png","jpg","jpeg","gif","webp","bmp","svg","avif"];
+  const VIDEO_EXTS = ["mp4","webm","mov","mkv","avi"];
+  const TEXT_EXTS = ["txt","md","json","js","html","css","py","xml","csv","log"];
+
   const state = {
-    rootHandle: null,
-    rootName: "",
-    currentFolderPath: "",
+    activeSource: "root",
+    pickerTarget: "root",
     selectedItem: null,
-    view: "grid",
-    search: "",
-    fallbackMode: false,
-    fallbackFiles: [],
-    objectUrls: new Map(),
-
-    // path -> folder record
-    folderMap: new Map(),
-
-    // expanded folders in left tree
-    expandedPaths: new Set([""]),
-
-    // used only in fallback mode
-    fallbackReady: false
+    sourceDropdownOpen: false,
+    audioContext: null,
+    analyser: null,
+    audioElement: null,
+    audioSourceNode: null,
+    visualizerFrame: null,
+    visualizerCanvas: null,
+    musicMiniCanvas: null,
+    musicTracksCache: [],
+    currentTrackPath: "",
+    sources: {
+      root: makeSourceState("root", "ROOT"),
+      music: makeSourceState("music", "MUSIC")
+    }
   };
 
-  const el = {    openFolderBtn: document.getElementById("openFolderBtn"),
+  function makeSourceState(id, fallbackName) {
+    return {
+      id,
+      label: fallbackName,
+      rootHandle: null,
+      rootName: "",
+      currentFolderPath: "",
+      view: id === "music" ? "list" : "grid",
+      search: "",
+      fallbackMode: false,
+      fallbackFiles: [],
+      fallbackReady: false,
+      objectUrls: new Map(),
+      folderMap: new Map(),
+      expandedPaths: new Set([""])
+    };
+  }
+
+  const el = {
+    sourceMenu: document.getElementById("sourceMenu"),
+    sourceMenuBtn: document.getElementById("sourceMenuBtn"),
+    sourceMenuLabel: document.getElementById("sourceMenuLabel"),
+    sourceMenuSub: document.getElementById("sourceMenuSub"),
+    sourceDropdown: document.getElementById("sourceDropdown"),
+    rootOptionSub: document.getElementById("rootOptionSub"),
+    musicOptionSub: document.getElementById("musicOptionSub"),
     upBtn: document.getElementById("upBtn"),
     refreshBtn: document.getElementById("refreshBtn"),
     rescanBtn: document.getElementById("rescanBtn"),
@@ -585,8 +908,19 @@
     breadcrumbs: document.getElementById("breadcrumbs"),
     folderLabel: document.getElementById("folderLabel"),
     statsLabel: document.getElementById("statsLabel"),
-    footerLeft: document.getElementById("footerLeft"),    fallbackPicker: document.getElementById("fallbackPicker")
+    footerLeft: document.getElementById("footerLeft"),
+    fallbackPicker: document.getElementById("fallbackPicker"),
+    sidebarTitle: document.getElementById("sidebarTitle"),
+    previewTitle: document.getElementById("previewTitle")
   };
+
+  function getActiveSource() {
+    return state.sources[state.activeSource];
+  }
+
+  function getSourceById(id) {
+    return state.sources[id];
+  }
 
   function escapeHtml(str = "") {
     return String(str).replace(/[&<>"']/g, m => ({
@@ -617,18 +951,33 @@
     return date.toLocaleString();
   }
 
+  function formatDuration(seconds) {
+    if (!isFinite(seconds) || seconds < 0) return "--:--";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const hours = Math.floor(mins / 60);
+    if (hours > 0) {
+      return `${hours}:${String(mins % 60).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+    return `${mins}:${String(secs).padStart(2, "0")}`;
+  }
+
   function getExt(name = "") {
     const i = name.lastIndexOf(".");
     return i >= 0 ? name.slice(i + 1).toLowerCase() : "";
   }
 
+  function isAudioItem(item) {
+    return item && item.kind === "file" && AUDIO_EXTS.includes(getExt(item.name));
+  }
+
   function getKindIcon(item) {
     if (item.kind === "directory") return "📁";
     const ext = getExt(item.name);
-    if (["png","jpg","jpeg","gif","webp","bmp","svg","avif"].includes(ext)) return "🖼";
-    if (["mp4","webm","mov","mkv","avi"].includes(ext)) return "🎬";
-    if (["mp3","wav","ogg","flac","m4a"].includes(ext)) return "🎵";
-    if (["txt","md","json","js","html","css","py","xml","csv","log"].includes(ext)) return "📄";
+    if (IMAGE_EXTS.includes(ext)) return "🖼";
+    if (VIDEO_EXTS.includes(ext)) return "🎬";
+    if (AUDIO_EXTS.includes(ext)) return "🎵";
+    if (TEXT_EXTS.includes(ext)) return "📄";
     if (["zip","7z","rar","tar","gz"].includes(ext)) return "🗜";
     return "◼";
   }
@@ -649,6 +998,9 @@
       wav: "audio/wav",
       ogg: "audio/ogg",
       flac: "audio/flac",
+      m4a: "audio/mp4",
+      aac: "audio/aac",
+      opus: "audio/ogg",
       txt: "text/plain",
       md: "text/markdown",
       html: "text/html",
@@ -662,11 +1014,18 @@
     return map[ext] || "application/octet-stream";
   }
 
-  function clearObjectUrls() {
-    for (const url of state.objectUrls.values()) {
+  function clearObjectUrls(source) {
+    for (const url of source.objectUrls.values()) {
       try { URL.revokeObjectURL(url); } catch {}
     }
-    state.objectUrls.clear();
+    source.objectUrls.clear();
+  }
+
+  function stopVisualizer() {
+    if (state.visualizerFrame) {
+      cancelAnimationFrame(state.visualizerFrame);
+      state.visualizerFrame = null;
+    }
   }
 
   function setFooter(text) {
@@ -685,10 +1044,7 @@
   }
 
   function joinPath(...parts) {
-    return parts
-      .map(p => normalizePath(p))
-      .filter(Boolean)
-      .join("/");
+    return parts.map(p => normalizePath(p)).filter(Boolean).join("/");
   }
 
   function getParentPath(path) {
@@ -697,9 +1053,9 @@
     return parts.join("/");
   }
 
-  function folderDisplayName(path) {
+  function folderDisplayName(source, path) {
     const p = normalizePath(path);
-    if (!p) return state.rootName || "ROOT";
+    if (!p) return source.rootName || source.label || "ROOT";
     const parts = p.split("/");
     return parts[parts.length - 1];
   }
@@ -709,12 +1065,12 @@
     return a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
   }
 
-  function makeFolderRecord(path, handle = null, parentPath = "") {
+  function makeFolderRecord(source, path, handle = null, parentPath = "") {
     const normalized = normalizePath(path);
     return {
       kind: "directory",
       path: normalized,
-      name: normalized ? folderDisplayName(normalized) : (state.rootName || "ROOT"),
+      name: normalized ? folderDisplayName(source, normalized) : (source.rootName || source.label || "ROOT"),
       parentPath: normalizePath(parentPath),
       handle,
       directories: [],
@@ -725,27 +1081,28 @@
     };
   }
 
-  function getFolder(path) {
-    return state.folderMap.get(normalizePath(path)) || null;
+  function getFolder(source, path) {
+    return source.folderMap.get(normalizePath(path)) || null;
   }
 
-  function ensureFolderRecord(path, handle = null, parentPath = "") {
+  function ensureFolderRecord(source, path, handle = null, parentPath = "") {
     const normalized = normalizePath(path);
-    if (!state.folderMap.has(normalized)) {
-      state.folderMap.set(normalized, makeFolderRecord(normalized, handle, parentPath));
+    if (!source.folderMap.has(normalized)) {
+      source.folderMap.set(normalized, makeFolderRecord(source, normalized, handle, parentPath));
     }
-    const folder = state.folderMap.get(normalized);
+    const folder = source.folderMap.get(normalized);
     if (handle && !folder.handle) folder.handle = handle;
-    if (normalized) folder.name = folderDisplayName(normalized);
+    if (normalized) folder.name = folderDisplayName(source, normalized);
+    else folder.name = source.rootName || source.label || "ROOT";
     return folder;
   }
 
-  async function loadFolder(path) {
+  async function loadFolder(source, path) {
     const normalized = normalizePath(path);
-    const folder = getFolder(normalized);
+    const folder = getFolder(source, normalized);
     if (!folder) return null;
     if (folder.loaded || folder.loading) return folder;
-    if (state.fallbackMode) return folder;
+    if (source.fallbackMode) return folder;
     if (!folder.handle) return folder;
 
     folder.loading = true;
@@ -759,7 +1116,7 @@
         try {
           if (handle.kind === "directory") {
             const childPath = joinPath(normalized, name);
-            ensureFolderRecord(childPath, handle, normalized);
+            ensureFolderRecord(source, childPath, handle, normalized);
             directories.push({
               kind: "directory",
               name,
@@ -783,12 +1140,11 @@
               handle,
               size: file.size,
               lastModified: file.lastModified,
-              type: file.type || getMimeFromExt(getExt(name))
+              type: file.type || getMimeFromExt(getExt(name)),
+              duration: null
             });
           }
-        } catch {
-          // skip weird/broken entries and keep going
-        }
+        } catch {}
       }
 
       directories.sort(compareItems);
@@ -811,29 +1167,34 @@
     }
   }
 
-  async function openRootFolder() {
+  async function openRootFolder(targetId = state.pickerTarget) {
+    const source = getSourceById(targetId);
     try {
-      state.fallbackMode = false;
-      clearObjectUrls();
-      state.folderMap.clear();
-      state.expandedPaths = new Set([""]);
-      state.selectedItem = null;
-      state.currentFolderPath = "";
-      state.search = "";
-      el.searchInput.value = "";
+      source.fallbackMode = false;
+      clearObjectUrls(source);
+      source.folderMap.clear();
+      source.expandedPaths = new Set([""]);
+      if (state.activeSource === targetId) {
+        state.selectedItem = null;
+      }
+      source.currentFolderPath = "";
+      source.search = "";
+      if (state.activeSource === targetId) {
+        el.searchInput.value = "";
+      }
 
       if ("showDirectoryPicker" in window) {
         const dirHandle = await window.showDirectoryPicker({ mode: "read" });
-        state.rootHandle = dirHandle;
-        state.rootName = dirHandle.name || "ROOT";
-
-        ensureFolderRecord("", dirHandle, "");
-        await loadFolder("");
-        renderAll();
-        setFooter(`Loaded ${state.rootName}. Lazy mode enabled, like a proper organism.`);
+        source.rootHandle = dirHandle;
+        source.rootName = dirHandle.name || source.label;
+        ensureFolderRecord(source, "", dirHandle, "");
+        await loadFolder(source, "");
+        switchSource(targetId);
+        setFooter(`Loaded ${source.rootName} into ${targetId === "music" ? "Music Folder" : "Root Folder"}. Because one folder was apparently too simple.`);
         return;
       }
 
+      state.pickerTarget = targetId;
       el.fallbackPicker.click();
     } catch (err) {
       if (err && err.name === "AbortError") {
@@ -845,22 +1206,26 @@
     }
   }
 
-  function buildFallbackStructure(fileList) {
-    clearObjectUrls();
-    state.folderMap.clear();
-    state.expandedPaths = new Set([""]);
-    state.selectedItem = null;
-    state.fallbackMode = true;
-    state.fallbackReady = true;
-    state.fallbackFiles = Array.from(fileList);
-    state.currentFolderPath = "";
-    state.search = "";
-    el.searchInput.value = "";
+  function buildFallbackStructure(source, fileList) {
+    clearObjectUrls(source);
+    source.folderMap.clear();
+    source.expandedPaths = new Set([""]);
+    if (state.activeSource === source.id) {
+      state.selectedItem = null;
+    }
+    source.fallbackMode = true;
+    source.fallbackReady = true;
+    source.fallbackFiles = Array.from(fileList);
+    source.currentFolderPath = "";
+    source.search = "";
+    if (state.activeSource === source.id) {
+      el.searchInput.value = "";
+    }
 
-    const root = ensureFolderRecord("", null, "");
+    const root = ensureFolderRecord(source, "", null, "");
     root.loaded = true;
 
-    for (const file of state.fallbackFiles) {
+    for (const file of source.fallbackFiles) {
       const rel = (file.webkitRelativePath || file.name).replace(/\\/g, "/");
       const parts = rel.split("/");
       const name = parts.pop();
@@ -871,8 +1236,8 @@
         const current = acc;
         const next = joinPath(acc, seg);
 
-        const parentFolder = ensureFolderRecord(current, null, getParentPath(current));
-        const nextFolder = ensureFolderRecord(next, null, current);
+        const parentFolder = ensureFolderRecord(source, current, null, getParentPath(current));
+        const nextFolder = ensureFolderRecord(source, next, null, current);
         parentFolder.loaded = true;
 
         if (!parentFolder.directories.find(d => d.path === next)) {
@@ -888,7 +1253,7 @@
         nextFolder.loaded = true;
       }
 
-      const folder = ensureFolderRecord(parentPath, null, getParentPath(parentPath));
+      const folder = ensureFolderRecord(source, parentPath, null, getParentPath(parentPath));
       folder.loaded = true;
 
       folder.files.push({
@@ -900,17 +1265,18 @@
         file,
         size: file.size,
         lastModified: file.lastModified,
-        type: file.type || getMimeFromExt(getExt(name))
+        type: file.type || getMimeFromExt(getExt(name)),
+        duration: null
       });
     }
 
-    for (const folder of state.folderMap.values()) {
+    for (const folder of source.folderMap.values()) {
       folder.directories.sort(compareItems);
       folder.files.sort(compareItems);
     }
 
-    renderAll();
-    setFooter(`Loaded ${state.fallbackFiles.length} fallback files.`);
+    switchSource(source.id);
+    setFooter(`Loaded ${source.fallbackFiles.length} fallback files for ${source.id} mode.`);
   }
 
   async function getFileFromItem(item) {
@@ -923,34 +1289,34 @@
     return null;
   }
 
-  async function getObjectUrl(item) {
-    if (state.objectUrls.has(item.path)) return state.objectUrls.get(item.path);
+  async function getObjectUrl(source, item) {
+    if (source.objectUrls.has(item.path)) return source.objectUrls.get(item.path);
     const file = await getFileFromItem(item);
     if (!file) return null;
     const url = URL.createObjectURL(file);
-    state.objectUrls.set(item.path, url);
+    source.objectUrls.set(item.path, url);
     return url;
   }
 
-  function getCurrentFolder() {
-    return getFolder(state.currentFolderPath) || getFolder("") || null;
+  function getCurrentFolder(source = getActiveSource()) {
+    return getFolder(source, source.currentFolderPath) || getFolder(source, "") || null;
   }
 
-  function getVisibleItems() {
-    const folder = getCurrentFolder();
+  function getVisibleItems(source = getActiveSource()) {
+    const folder = getCurrentFolder(source);
     if (!folder) return [];
     const items = [...folder.directories, ...folder.files];
-    const q = state.search.trim().toLowerCase();
+    const q = source.search.trim().toLowerCase();
     if (!q) return items;
     return items.filter(item => item.name.toLowerCase().includes(q));
   }
 
-  function getFolderEntry(path) {
-    const folder = getFolder(path);
+  function getFolderEntry(source, path) {
+    const folder = getFolder(source, path);
     if (!folder) return null;
     return {
       kind: "directory",
-      name: folder.path ? folder.name : (state.rootName || folder.name || "ROOT"),
+      name: folder.path ? folder.name : (source.rootName || folder.name || source.label || "ROOT"),
       path: folder.path,
       parentPath: folder.parentPath || "",
       handle: folder.handle || null,
@@ -958,45 +1324,68 @@
     };
   }
 
-  function findItemByPath(path) {
+  function findItemByPath(source, path) {
     const normalized = normalizePath(path);
-    const folderEntry = getFolderEntry(normalized);
+    const folderEntry = getFolderEntry(source, normalized);
     if (folderEntry) return folderEntry;
 
-    for (const folder of state.folderMap.values()) {
+    for (const folder of source.folderMap.values()) {
       const file = folder.files.find(x => x.path === normalized);
       if (file) return file;
     }
     return null;
   }
 
-  async function openFolder(path) {
+  async function openFolder(path, source = getActiveSource()) {
     const normalized = normalizePath(path);
-    const folder = getFolder(normalized);
+    const folder = getFolder(source, normalized);
     if (!folder) return;
 
-    state.currentFolderPath = normalized;
-    state.selectedItem = getFolderEntry(normalized);
+    source.currentFolderPath = normalized;
+    state.selectedItem = getFolderEntry(source, normalized);
 
-    await loadFolder(normalized);
+    await loadFolder(source, normalized);
     renderAll();
-    await previewItem(getFolderEntry(normalized));
+    await previewItem(getFolderEntry(source, normalized));
   }
 
-  async function activateItem(path) {
-    const item = findItemByPath(path);
+  async function activateItem(path, source = getActiveSource()) {
+    const item = findItemByPath(source, path);
     if (!item) return;
 
     if (item.kind === "directory") {
-      await openFolder(item.path);
+      await openFolder(item.path, source);
       return;
     }
 
     await previewItem(item);
   }
 
+  function renderSourceMenu() {
+    const source = getActiveSource();
+    const displayName = source.rootName || (state.activeSource === "music" ? "MUSIC FOLDER" : "ROOT FOLDER");
+    const sub = source.rootName
+      ? `${displayName} • ${state.activeSource === "music" ? "music mode" : "browser mode"}`
+      : `No ${state.activeSource === "music" ? "music" : "root"} folder selected`;
+
+    el.sourceMenuLabel.textContent = state.activeSource === "music" ? "MUSIC FOLDER" : "ROOT FOLDER";
+    el.sourceMenuSub.textContent = sub;
+    el.rootOptionSub.textContent = getSourceById("root").rootName || "No folder selected";
+    el.musicOptionSub.textContent = getSourceById("music").rootName || "No folder selected";
+
+    document.querySelectorAll("[data-source-option]").forEach(node => {
+      node.classList.toggle("selected", node.dataset.sourceOption === state.activeSource);
+    });
+
+    el.sourceDropdown.classList.toggle("hidden", !state.sourceDropdownOpen);
+    document.body.classList.toggle("music-mode", state.activeSource === "music");
+    el.sidebarTitle.textContent = state.activeSource === "music" ? "MUSIC TREE" : "FOLDER TREE";
+    el.previewTitle.textContent = state.activeSource === "music" ? "NOW PLAYING / DETAILS" : "PREVIEW / DETAILS";
+  }
+
   function renderTree() {
-    const root = getFolder("");
+    const source = getActiveSource();
+    const root = getFolder(source, "");
     if (!root) {
       el.tree.innerHTML = `<div class="empty">No folder tree yet.</div>`;
       return;
@@ -1005,14 +1394,14 @@
     const rows = [];
 
     function rowHtml(path, depth) {
-      const folder = getFolder(path);
+      const folder = getFolder(source, path);
       if (!folder) return "";
 
-      const active = path === state.currentFolderPath ? "active" : "";
-      const isExpanded = state.expandedPaths.has(path);
+      const active = path === source.currentFolderPath ? "active" : "";
+      const isExpanded = source.expandedPaths.has(path);
       const hasKnownChildren = folder.directories.length > 0 || !folder.loaded;
       const twisty = hasKnownChildren ? (isExpanded ? "▾" : "▸") : "•";
-      const name = path ? folder.name : (state.rootName || "ROOT");
+      const name = path ? folder.name : (source.rootName || source.label || "ROOT");
 
       return `
         <div class="tree-item ${active}" data-folder-path="${escapeHtml(path)}" style="padding-left:${10 + depth * 18}px">
@@ -1023,29 +1412,28 @@
       `;
     }
 
-    async function walk(path, depth) {
+    function walk(path, depth) {
       rows.push(rowHtml(path, depth));
-      const folder = getFolder(path);
+      const folder = getFolder(source, path);
       if (!folder) return;
-      if (!state.expandedPaths.has(path)) return;
+      if (!source.expandedPaths.has(path)) return;
 
-      // only show loaded children in tree; load on expand/open
       if (folder.loaded) {
         for (const dir of folder.directories) {
-          await walk(dir.path, depth + 1);
+          walk(dir.path, depth + 1);
         }
       }
     }
 
-    walk("", 0).then(() => {
-      el.tree.innerHTML = rows.join("");
-    });
+    walk("", 0);
+    el.tree.innerHTML = rows.join("");
   }
 
   function renderBreadcrumbs() {
-    const parts = splitPath(state.currentFolderPath);
+    const source = getActiveSource();
+    const parts = splitPath(source.currentFolderPath);
     const crumbs = [];
-    crumbs.push(`<span class="crumb" data-crumb-path="">${escapeHtml(state.rootName || "ROOT")}</span>`);
+    crumbs.push(`<span class="crumb" data-crumb-path="">${escapeHtml(source.rootName || source.label || "ROOT")}</span>`);
 
     let acc = "";
     for (const part of parts) {
@@ -1057,14 +1445,38 @@
     el.breadcrumbs.innerHTML = crumbs.join("");
   }
 
+  function getAllMusicTracks(source) {
+    const seen = new Set();
+    const tracks = [];
+    for (const folder of source.folderMap.values()) {
+      for (const file of folder.files) {
+        if (isAudioItem(file) && !seen.has(file.path)) {
+          seen.add(file.path);
+          tracks.push(file);
+        }
+      }
+    }
+    tracks.sort(compareItems);
+    state.musicTracksCache = tracks;
+    return tracks;
+  }
+
   function renderStatus() {
-    const folder = getCurrentFolder();
-    const items = getVisibleItems();
+    const source = getActiveSource();
+    const folder = getCurrentFolder(source);
+    const items = getVisibleItems(source);
     const total = folder ? (folder.directories.length + folder.files.length) : 0;
-    const currentLabel = state.currentFolderPath || "\\";
-    el.folderLabel.textContent = `Folder: ${currentLabel}`;
-    el.statsLabel.textContent = `${items.length} shown / ${total} total`;
-    el.pathBox.textContent = `\\${state.currentFolderPath ? " / " + state.currentFolderPath : ""}`.replace("\\ /", "\\");
+    const currentLabel = source.currentFolderPath || "\\";
+    const isMusic = state.activeSource === "music";
+    const allTracks = isMusic ? getAllMusicTracks(source) : [];
+    const audioCount = isMusic ? allTracks.length : 0;
+
+    el.folderLabel.textContent = `${isMusic ? "Library" : "Folder"}: ${currentLabel}`;
+    el.statsLabel.textContent = isMusic
+      ? `${items.length} shown / ${total} folder items • ${audioCount} tracks indexed`
+      : `${items.length} shown / ${total} total`;
+
+    el.pathBox.textContent = `${source.rootName || source.label || "ROOT"}${source.currentFolderPath ? " / " + source.currentFolderPath : ""}`;
   }
 
   function fileCardTemplate(item) {
@@ -1108,33 +1520,92 @@
     `;
   }
 
-  function renderFileView() {
-    const items = getVisibleItems();
-
-    if (!state.rootHandle && !state.fallbackMode) {
-      el.fileview.innerHTML = `
-        <div class="empty">
-          Click <strong>OPEN ROOT FOLDER</strong> and choose your SSD root.<br><br>
-          Because browsers still need your permission to touch your own drive. Sensational species.
+  function trackRowTemplate(item, durationLabel = "--:--") {
+    const selected = state.selectedItem && state.selectedItem.path === item.path ? "selected" : "";
+    const ext = getExt(item.name).toUpperCase() || "AUDIO";
+    return `
+      <div class="track-row ${selected}" data-item-path="${escapeHtml(item.path)}">
+        <button class="track-play" data-track-play="${escapeHtml(item.path)}">▶</button>
+        <div class="track-meta">
+          <div class="track-name">${escapeHtml(item.name)}</div>
+          <div class="track-path">${escapeHtml(item.path || "\\")}</div>
         </div>
-      `;
-      return;
-    }
+        <div class="track-badge">${escapeHtml(ext)}</div>
+        <div class="track-badge">${escapeHtml(durationLabel)}</div>
+        <div class="track-badge">${escapeHtml(formatBytes(item.size || 0))}</div>
+      </div>
+    `;
+  }
 
-    if (!items.length) {
-      el.fileview.innerHTML = `<div class="empty">Nothing here matching that search.</div>`;
-      return;
-    }
+  function renderMusicView() {
+    const source = getActiveSource();
+    const items = getVisibleItems(source);
+    const tracks = items.filter(isAudioItem);
+    const trackRows = tracks.map(item => trackRowTemplate(item, item.duration ? formatDuration(item.duration) : "--:--")).join("");
+    const folderItemCount = items.filter(item => item.kind === "directory").length;
+    const currentTrack = state.currentTrackPath ? findItemByPath(source, state.currentTrackPath) : null;
 
-    if (state.view === "grid") {
-      el.fileview.innerHTML = `<div class="grid">${items.map(fileCardTemplate).join("")}</div>`;
-      hydrateThumbs(items);
-    } else {
-      el.fileview.innerHTML = `<div class="list">${fileRowTemplate(null, true)}${items.map(item => fileRowTemplate(item)).join("")}</div>`;
-    }
+    el.fileview.innerHTML = `
+      <div class="music-shell">
+        <section class="music-hero">
+          <div class="music-titlebar">
+            <div>
+              <div class="music-title">Music Folder View</div>
+              <div class="music-sub">Waveform-ish analyzer, live scrub controls, track list, and less pretending your FLACs are office documents.</div>
+            </div>
+            <div class="music-pillrow">
+              <span class="pill">${escapeHtml(source.rootName || "No music folder")}</span>
+              <span class="pill">${tracks.length} visible tracks</span>
+              <span class="pill">${folderItemCount} subfolders</span>
+            </div>
+          </div>
+
+          <div class="music-wave-wrap">
+            <canvas id="musicVisualizer" width="1200" height="120"></canvas>
+          </div>
+
+          <div class="music-controls">
+            <button id="musicPrevBtn" class="small">⏮</button>
+            <button id="musicPlayPauseBtn">${state.audioElement && !state.audioElement.paused ? "PAUSE" : "PLAY"}</button>
+            <button id="musicNextBtn" class="small">⏭</button>
+            <div class="queue-note">${currentTrack ? `Now playing: ${escapeHtml(currentTrack.name)}` : "No track loaded yet"}</div>
+            <button id="musicStopBtn" class="small">■</button>
+          </div>
+
+          <div class="music-scrub">
+            <div id="musicCurrentTime">${state.audioElement ? formatDuration(state.audioElement.currentTime || 0) : "0:00"}</div>
+            <input id="musicScrubber" type="range" min="0" max="1000" step="1" value="0" />
+            <div id="musicDuration">${state.audioElement ? formatDuration(state.audioElement.duration || 0) : "--:--"}</div>
+          </div>
+
+          <div class="music-volume">
+            <div>VOLUME</div>
+            <input id="musicVolume" type="range" min="0" max="1" step="0.01" value="${state.audioElement ? state.audioElement.volume : 1}" />
+            <div id="musicVolumeLabel">${Math.round((state.audioElement ? state.audioElement.volume : 1) * 100)}%</div>
+          </div>
+        </section>
+
+        <section class="music-library">
+          <div class="track-head">
+            <div>PLAY</div>
+            <div>TRACK</div>
+            <div>TYPE</div>
+            <div>LENGTH</div>
+            <div>SIZE</div>
+          </div>
+          ${trackRows || `<div class="empty">No audio tracks in this folder view yet. Pick a music folder that actually contains music. A brave strategy.</div>`}
+        </section>
+      </div>
+    `;
+
+    state.visualizerCanvas = document.getElementById("musicVisualizer");
+    hydrateTrackDurations(tracks);
+    syncMusicUi();
+    ensureVisualizer();
   }
 
   async function hydrateThumbs(items) {
+    const source = getActiveSource();
     for (const item of items) {
       if (item.kind !== "file") continue;
       const ext = getExt(item.name);
@@ -1143,13 +1614,13 @@
       if (!thumbEl) continue;
 
       try {
-        if (["png","jpg","jpeg","gif","webp","bmp","svg","avif"].includes(ext)) {
-          const url = await getObjectUrl(item);
+        if (IMAGE_EXTS.includes(ext)) {
+          const url = await getObjectUrl(source, item);
           if (url && thumbEl.isConnected) {
             thumbEl.innerHTML = `<img src="${url}" alt="${escapeHtml(item.name)}">`;
           }
         } else if (["mp4","webm"].includes(ext)) {
-          const url = await getObjectUrl(item);
+          const url = await getObjectUrl(source, item);
           if (url && thumbEl.isConnected) {
             thumbEl.innerHTML = `<video src="${url}" muted playsinline></video>`;
           }
@@ -1160,7 +1631,48 @@
     }
   }
 
+  async function hydrateTrackDurations(items) {
+    for (const item of items) {
+      if (!isAudioItem(item) || item.duration != null) continue;
+      try {
+        const file = await getFileFromItem(item);
+        if (!file) continue;
+        item.duration = await getAudioDuration(file);
+        const row = document.querySelector(`.track-row[data-item-path="${CSS.escape(item.path)}"]`);
+        if (row) {
+          const badges = row.querySelectorAll(".track-badge");
+          if (badges[1]) badges[1].textContent = formatDuration(item.duration);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  function getAudioDuration(file) {
+    return new Promise((resolve) => {
+      const audio = document.createElement("audio");
+      const url = URL.createObjectURL(file);
+      const clean = () => {
+        try { URL.revokeObjectURL(url); } catch {}
+        audio.src = "";
+      };
+      audio.preload = "metadata";
+      audio.addEventListener("loadedmetadata", () => {
+        const duration = isFinite(audio.duration) ? audio.duration : null;
+        clean();
+        resolve(duration);
+      }, { once: true });
+      audio.addEventListener("error", () => {
+        clean();
+        resolve(null);
+      }, { once: true });
+      audio.src = url;
+    });
+  }
+
   async function previewItem(item) {
+    const source = getActiveSource();
     state.selectedItem = item;
     renderFileView();
 
@@ -1169,8 +1681,13 @@
       return;
     }
 
+    if (state.activeSource === "music") {
+      await renderMusicPreview(item);
+      return;
+    }
+
     if (item.kind === "directory") {
-      const folder = getFolder(item.path);
+      const folder = getFolder(source, item.path);
       const dirCount = folder ? folder.directories.length : 0;
       const fileCount = folder ? folder.files.length : 0;
       const errorLine = folder && folder.error
@@ -1179,7 +1696,7 @@
 
       el.preview.innerHTML = `
         <div class="preview-box" style="font-size:72px;">📁</div>
-        <div class="meta-block"><strong>${escapeHtml(item.name || state.rootName || "ROOT")}</strong></div>
+        <div class="meta-block"><strong>${escapeHtml(item.name || source.rootName || "ROOT")}</strong></div>
         <div class="meta-block">Path: ${escapeHtml(item.path || "\\")}
 Folders: ${dirCount}
 Files: ${fileCount}${escapeHtml(errorLine)}</div>
@@ -1192,18 +1709,18 @@ Files: ${fileCount}${escapeHtml(errorLine)}</div>
 
     const ext = getExt(item.name);
     const file = await getFileFromItem(item);
-    const url = await getObjectUrl(item);
+    const url = await getObjectUrl(source, item);
 
     let previewHtml = `<div class="preview-box">${escapeHtml(getKindIcon(item))}</div>`;
 
     if (file && url) {
-      if (["png","jpg","jpeg","gif","webp","bmp","svg","avif"].includes(ext)) {
+      if (IMAGE_EXTS.includes(ext)) {
         previewHtml = `<div class="preview-box"><img src="${url}" alt="${escapeHtml(item.name)}"></div>`;
       } else if (["mp4","webm","mov"].includes(ext)) {
         previewHtml = `<div class="preview-box"><video src="${url}" controls></video></div>`;
-      } else if (["mp3","wav","ogg","flac","m4a"].includes(ext)) {
+      } else if (AUDIO_EXTS.includes(ext)) {
         previewHtml = `<div class="preview-box" style="padding:18px;"><audio src="${url}" controls></audio></div>`;
-      } else if (["txt","md","json","js","html","css","py","xml","csv","log"].includes(ext)) {
+      } else if (TEXT_EXTS.includes(ext)) {
         try {
           const text = await file.text();
           previewHtml = `<div class="preview-box" style="display:block; padding:0; min-height:220px; max-height:360px; overflow:auto;"><pre style="margin:0; padding:14px; color:var(--text-dim); background:#000;">${escapeHtml(text.slice(0, 12000))}</pre></div>`;
@@ -1214,9 +1731,7 @@ Files: ${fileCount}${escapeHtml(errorLine)}</div>
     }
 
     const actionBits = [];
-    if (url) {
-      actionBits.push(`<a class="fake-link" href="${url}" download="${escapeHtml(item.name)}">DOWNLOAD / OPEN BLOB</a>`);
-    }
+    if (url) actionBits.push(`<a class="fake-link" href="${url}" download="${escapeHtml(item.name)}">DOWNLOAD / OPEN BLOB</a>`);
 
     el.preview.innerHTML = `
       ${previewHtml}
@@ -1230,40 +1745,375 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
     `;
   }
 
-  function renderAll() {
+  async function renderMusicPreview(item) {
+    const source = getActiveSource();
+
+    if (item.kind === "directory") {
+      const folder = getFolder(source, item.path);
+      const dirCount = folder ? folder.directories.length : 0;
+      const fileCount = folder ? folder.files.length : 0;
+      const trackCount = folder ? folder.files.filter(isAudioItem).length : 0;
+
+      el.preview.innerHTML = `
+        <div class="music-preview-card">
+          <div class="music-cover">📁</div>
+          <div class="meta-block"><strong>${escapeHtml(item.name || source.rootName || "MUSIC")}</strong></div>
+          <div class="meta-block">Path: ${escapeHtml(item.path || "\\")}
+Folders: ${dirCount}
+Files: ${fileCount}
+Tracks here: ${trackCount}</div>
+          <div class="preview-actions">
+            <span class="inline-btn" data-open-folder="${escapeHtml(item.path)}">OPEN FOLDER</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const file = await getFileFromItem(item);
+    const url = await getObjectUrl(source, item);
+    const isAudio = isAudioItem(item);
+    const duration = item.duration != null ? item.duration : (file && isAudio ? await getAudioDuration(file) : null);
+    if (duration != null) item.duration = duration;
+
+    const actionBits = [];
+    if (isAudio) {
+      actionBits.push(`<span class="inline-btn" data-play-track="${escapeHtml(item.path)}">PLAY TRACK</span>`);
+    }
+    if (url) {
+      actionBits.push(`<a class="fake-link" href="${url}" download="${escapeHtml(item.name)}">DOWNLOAD / OPEN BLOB</a>`);
+    }
+
+    el.preview.innerHTML = `
+      <div class="music-preview-card">
+        <div class="music-cover">${isAudio ? "🎵" : escapeHtml(getKindIcon(item))}</div>
+        <div class="meta-block"><strong>${escapeHtml(item.name)}</strong></div>
+        <canvas id="musicMiniWave" class="music-mini-wave" width="600" height="76"></canvas>
+        <div class="meta-block">Path: ${escapeHtml(item.path)}
+Type: ${escapeHtml(file?.type || item.type || "unknown")}
+Extension: ${escapeHtml(getExt(item.name) || "none")}
+Size: ${escapeHtml(formatBytes(file?.size ?? item.size ?? 0))}
+Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}
+Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
+        ${actionBits.length ? `<div class="preview-actions">${actionBits.join("")}</div>` : ""}
+      </div>
+    `;
+
+    state.musicMiniCanvas = document.getElementById("musicMiniWave");
+    drawMiniWave(isAudio);
+  }
+
+  function drawMiniWave(active) {
+    const canvas = state.musicMiniCanvas;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "rgba(0,255,0,0.85)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x < w; x += 6) {
+      const t = x / w;
+      const amp = active ? (Math.sin(t * 14) * 0.22 + Math.sin(t * 37) * 0.11 + 0.5) : 0.22;
+      const y = h / 2 + Math.sin(t * 30) * h * amp * 0.35;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+
+  function renderFileView() {
+    const source = getActiveSource();
+    const items = getVisibleItems(source);
+
+    if (!source.rootHandle && !source.fallbackMode) {
+      const label = state.activeSource === "music" ? "MUSIC FOLDER" : "ROOT FOLDER";
+      el.fileview.innerHTML = `
+        <div class="empty">
+          Use the folder dropdown and hit the <strong>+</strong> beside <strong>${label}</strong>.<br><br>
+          Because browsers still need permission to look at your own drive. Incredible little prison box.
+        </div>
+      `;
+      return;
+    }
+
+    if (state.activeSource === "music") {
+      renderMusicView();
+      return;
+    }
+
+    if (!items.length) {
+      el.fileview.innerHTML = `<div class="empty">Nothing here matching that search.</div>`;
+      return;
+    }
+
+    if (source.view === "grid") {
+      el.fileview.innerHTML = `<div class="grid">${items.map(fileCardTemplate).join("")}</div>`;
+      hydrateThumbs(items);
+    } else {
+      el.fileview.innerHTML = `<div class="list">${fileRowTemplate(null, true)}${items.map(item => fileRowTemplate(item)).join("")}</div>`;
+    }
+  }
+
+  function syncMusicUi() {
+    const audio = state.audioElement;
+    const scrubber = document.getElementById("musicScrubber");
+    const playPauseBtn = document.getElementById("musicPlayPauseBtn");
+    const currentTime = document.getElementById("musicCurrentTime");
+    const duration = document.getElementById("musicDuration");
+    const volume = document.getElementById("musicVolume");
+    const volumeLabel = document.getElementById("musicVolumeLabel");
+
+    if (playPauseBtn) {
+      playPauseBtn.textContent = audio && !audio.paused ? "PAUSE" : "PLAY";
+    }
+    if (currentTime) currentTime.textContent = audio ? formatDuration(audio.currentTime || 0) : "0:00";
+    if (duration) duration.textContent = audio ? formatDuration(audio.duration || 0) : "--:--";
+    if (scrubber && audio) {
+      const max = audio.duration && isFinite(audio.duration) ? audio.duration : 0;
+      scrubber.max = String(Math.max(max, 1));
+      scrubber.value = String(Math.min(audio.currentTime || 0, Math.max(max, 1)));
+    }
+    if (volume && audio) {
+      volume.value = String(audio.volume);
+    }
+    if (volumeLabel && audio) {
+      volumeLabel.textContent = `${Math.round(audio.volume * 100)}%`;
+    }
+  }
+
+  async function ensureAudioReady() {
+    if (!state.audioElement) {
+      const audio = new Audio();
+      audio.preload = "metadata";
+      audio.volume = 1;
+      audio.addEventListener("timeupdate", syncMusicUi);
+      audio.addEventListener("loadedmetadata", syncMusicUi);
+      audio.addEventListener("play", () => { syncMusicUi(); ensureVisualizer(); });
+      audio.addEventListener("pause", syncMusicUi);
+      audio.addEventListener("ended", () => {
+        syncMusicUi();
+        playAdjacentTrack(1);
+      });
+      state.audioElement = audio;
+    }
+
+    if (!state.audioContext) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) {
+        state.audioContext = new Ctx();
+        state.analyser = state.audioContext.createAnalyser();
+        state.analyser.fftSize = 256;
+        state.audioSourceNode = state.audioContext.createMediaElementSource(state.audioElement);
+        state.audioSourceNode.connect(state.analyser);
+        state.analyser.connect(state.audioContext.destination);
+      }
+    }
+
+    if (state.audioContext && state.audioContext.state === "suspended") {
+      try { await state.audioContext.resume(); } catch {}
+    }
+  }
+
+  function ensureVisualizer() {
+    stopVisualizer();
+    const canvas = state.visualizerCanvas;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    const w = canvas.width;
+    const h = canvas.height;
+
+    const drawIdle = () => {
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = "rgba(0,255,0,0.2)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = "rgba(0,255,0,0.75)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x < w; x += 10) {
+        const y = h / 2 + Math.sin((x / w) * 16) * 12;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    };
+
+    if (!state.analyser || !state.audioElement || state.audioElement.paused) {
+      drawIdle();
+      return;
+    }
+
+    const bufferLength = state.analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+
+    const draw = () => {
+      if (!state.visualizerCanvas) return;
+      state.visualizerFrame = requestAnimationFrame(draw);
+
+      state.analyser.getByteFrequencyData(dataArray);
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, w, h);
+
+      const barWidth = w / bufferLength;
+      for (let i = 0; i < bufferLength; i++) {
+        const val = dataArray[i] / 255;
+        const barHeight = Math.max(2, val * (h - 12));
+        const x = i * barWidth;
+        ctx.fillStyle = i % 3 === 0 ? "rgba(0,255,0,0.95)" : "rgba(120,255,120,0.82)";
+        ctx.fillRect(x, h - barHeight, Math.max(2, barWidth - 1), barHeight);
+      }
+
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.beginPath();
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2);
+      ctx.stroke();
+    };
+
+    draw();
+  }
+
+  async function playTrack(item) {
+    const source = getActiveSource();
+    if (!isAudioItem(item)) {
+      await previewItem(item);
+      return;
+    }
+
+    await ensureAudioReady();
+
+    const url = await getObjectUrl(source, item);
+    if (!url || !state.audioElement) return;
+
+    state.audioElement.src = url;
+    state.currentTrackPath = item.path;
+    state.selectedItem = item;
+    await previewItem(item);
+
+    try {
+      await state.audioElement.play();
+    } catch (err) {
+      console.error(err);
+    }
+
+    syncMusicUi();
+    ensureVisualizer();
+    highlightCurrentTrack();
+  }
+
+  function highlightCurrentTrack() {
+    document.querySelectorAll(".track-row").forEach(row => {
+      row.classList.toggle("selected", row.dataset.itemPath === state.currentTrackPath);
+    });
+  }
+
+  function getVisibleTracks() {
+    return getVisibleItems(getActiveSource()).filter(isAudioItem);
+  }
+
+  async function playAdjacentTrack(step) {
+    const tracks = getVisibleTracks();
+    if (!tracks.length) return;
+
+    let idx = tracks.findIndex(t => t.path === state.currentTrackPath);
+    if (idx === -1) idx = 0;
+    else idx = (idx + step + tracks.length) % tracks.length;
+
+    await playTrack(tracks[idx]);
+  }
+
+  async function renderAll() {
+    renderSourceMenu();
     renderTree();
     renderBreadcrumbs();
     renderStatus();
     renderFileView();
 
     if (state.selectedItem) {
-      previewItem(state.selectedItem);
+      await previewItem(state.selectedItem);
     } else {
       el.preview.innerHTML = `<div class="empty">Select a file or folder to preview it.</div>`;
     }
   }
 
-  el.openFolderBtn.addEventListener("click", openRootFolder);
+  async function switchSource(id) {
+    if (!state.sources[id]) return;
+    state.activeSource = id;
+    const source = getActiveSource();
+    el.searchInput.value = source.search || "";
+    if (state.selectedItem && !findItemByPath(source, state.selectedItem.path)) {
+      state.selectedItem = getFolderEntry(source, source.currentFolderPath) || null;
+    }
+    state.sourceDropdownOpen = false;
+    await renderAll();
+  }
+
+  el.sourceMenuBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    state.sourceDropdownOpen = !state.sourceDropdownOpen;
+    renderSourceMenu();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!el.sourceMenu.contains(e.target)) {
+      state.sourceDropdownOpen = false;
+      renderSourceMenu();
+    }
+  });
+
+  el.sourceDropdown.addEventListener("click", async (e) => {
+    const pickBtn = e.target.closest("[data-source-pick]");
+    if (pickBtn) {
+      state.sourceDropdownOpen = false;
+      renderSourceMenu();
+      state.pickerTarget = pickBtn.dataset.sourcePick;
+      await openRootFolder(pickBtn.dataset.sourcePick);
+      return;
+    }
+
+    const selectTarget = e.target.closest("[data-source-select]");
+    if (selectTarget) {
+      await switchSource(selectTarget.dataset.sourceSelect);
+    }
+  });
 
   el.fallbackPicker.addEventListener("change", (e) => {
     const files = e.target.files;
     if (!files || !files.length) return;
-    state.rootHandle = null;
-    state.rootName = files[0].webkitRelativePath.split("/")[0] || "ROOT";
-    buildFallbackStructure(files);
+    const targetId = state.pickerTarget || state.activeSource;
+    const source = getSourceById(targetId);
+    source.rootHandle = null;
+    source.rootName = files[0].webkitRelativePath.split("/")[0] || source.label;
+    buildFallbackStructure(source, files);
+    e.target.value = "";
   });
 
   el.upBtn.addEventListener("click", async () => {
-    if (!state.currentFolderPath) return;
-    await openFolder(getParentPath(state.currentFolderPath));
+    const source = getActiveSource();
+    if (!source.currentFolderPath) return;
+    await openFolder(getParentPath(source.currentFolderPath), source);
   });
 
   el.refreshBtn.addEventListener("click", async () => {
-    const folder = getCurrentFolder();
+    const source = getActiveSource();
+    const folder = getCurrentFolder(source);
     if (!folder) return;
 
-    if (state.fallbackMode) {
-      renderAll();
+    if (source.fallbackMode) {
+      await renderAll();
       setFooter("Refreshed fallback view.");
       return;
     }
@@ -1271,62 +2121,69 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
     folder.loaded = false;
     folder.loading = false;
     folder.error = null;
-    await loadFolder(folder.path);
-    renderAll();
-    setFooter(`Refreshed ${folder.path || state.rootName}.`);
+    await loadFolder(source, folder.path);
+    await renderAll();
+    setFooter(`Refreshed ${folder.path || source.rootName || source.label}.`);
   });
 
   el.rescanBtn.addEventListener("click", async () => {
-    if (state.fallbackMode) {
-      buildFallbackStructure(state.fallbackFiles);
+    const source = getActiveSource();
+
+    if (source.fallbackMode) {
+      buildFallbackStructure(source, source.fallbackFiles);
       return;
     }
 
-    if (!state.rootHandle) return;
+    if (!source.rootHandle) return;
 
-    clearObjectUrls();
-    state.folderMap.clear();
-    state.expandedPaths = new Set([""]);
+    clearObjectUrls(source);
+    source.folderMap.clear();
+    source.expandedPaths = new Set([""]);
     state.selectedItem = null;
-    state.currentFolderPath = "";
-    ensureFolderRecord("", state.rootHandle, "");
-    await loadFolder("");
-    renderAll();
-    setFooter("Rescanned root.");
+    source.currentFolderPath = "";
+    ensureFolderRecord(source, "", source.rootHandle, "");
+    await loadFolder(source, "");
+    await renderAll();
+    setFooter(`Rescanned ${state.activeSource === "music" ? "music" : "root"} folder.`);
   });
 
-  el.gridBtn.addEventListener("click", () => {
-    state.view = "grid";
+  el.gridBtn.addEventListener("click", async () => {
+    const source = getActiveSource();
+    source.view = "grid";
     el.gridBtn.classList.add("active");
     el.listBtn.classList.remove("active");
     renderFileView();
-    if (state.selectedItem) previewItem(state.selectedItem);
+    if (state.selectedItem) await previewItem(state.selectedItem);
   });
 
-  el.listBtn.addEventListener("click", () => {
-    state.view = "list";
+  el.listBtn.addEventListener("click", async () => {
+    const source = getActiveSource();
+    source.view = "list";
     el.listBtn.classList.add("active");
     el.gridBtn.classList.remove("active");
     renderFileView();
-    if (state.selectedItem) previewItem(state.selectedItem);
+    if (state.selectedItem) await previewItem(state.selectedItem);
   });
 
-  el.searchInput.addEventListener("input", () => {
-    state.search = el.searchInput.value || "";
+  el.searchInput.addEventListener("input", async () => {
+    const source = getActiveSource();
+    source.search = el.searchInput.value || "";
     renderStatus();
     renderFileView();
+    if (state.selectedItem) await previewItem(state.selectedItem);
   });
 
   el.tree.addEventListener("click", async (e) => {
+    const source = getActiveSource();
     const toggle = e.target.closest("[data-toggle-path]");
     if (toggle) {
       const path = normalizePath(toggle.dataset.togglePath);
-      if (state.expandedPaths.has(path)) {
-        state.expandedPaths.delete(path);
+      if (source.expandedPaths.has(path)) {
+        source.expandedPaths.delete(path);
         renderTree();
       } else {
-        state.expandedPaths.add(path);
-        await loadFolder(path);
+        source.expandedPaths.add(path);
+        await loadFolder(source, path);
         renderTree();
       }
       return;
@@ -1335,37 +2192,120 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
     const row = e.target.closest(".tree-item[data-folder-path]");
     if (!row) return;
     const path = normalizePath(row.dataset.folderPath);
-    state.expandedPaths.add(path);
-    await openFolder(path);
+    source.expandedPaths.add(path);
+    await openFolder(path, source);
   });
 
   el.breadcrumbs.addEventListener("click", async (e) => {
+    const source = getActiveSource();
     const crumb = e.target.closest("[data-crumb-path]");
     if (!crumb) return;
     const path = normalizePath(crumb.dataset.crumbPath);
-    state.expandedPaths.add(path);
-    await openFolder(path);
+    source.expandedPaths.add(path);
+    await openFolder(path, source);
   });
 
   el.fileview.addEventListener("click", async (e) => {
+    const playBtn = e.target.closest("[data-track-play]");
+    if (playBtn) {
+      const item = findItemByPath(getActiveSource(), playBtn.dataset.trackPlay);
+      if (item) await playTrack(item);
+      return;
+    }
+
     const itemEl = e.target.closest("[data-item-path]");
     if (!itemEl) return;
+    const item = findItemByPath(getActiveSource(), itemEl.dataset.itemPath);
+    if (!item) return;
+
+    if (state.activeSource === "music" && isAudioItem(item)) {
+      state.selectedItem = item;
+      await previewItem(item);
+      highlightCurrentTrack();
+      return;
+    }
+
     await activateItem(itemEl.dataset.itemPath);
   });
 
   el.fileview.addEventListener("dblclick", async (e) => {
     const itemEl = e.target.closest("[data-item-path]");
     if (!itemEl) return;
-    const item = findItemByPath(itemEl.dataset.itemPath);
+    const source = getActiveSource();
+    const item = findItemByPath(source, itemEl.dataset.itemPath);
     if (!item || item.kind !== "file") return;
-    const url = await getObjectUrl(item);
+
+    if (state.activeSource === "music" && isAudioItem(item)) {
+      await playTrack(item);
+      return;
+    }
+
+    const url = await getObjectUrl(source, item);
     if (url) window.open(url, "_blank");
   });
 
   el.preview.addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-open-folder]");
-    if (!btn) return;
-    await openFolder(btn.dataset.openFolder);
+    const openBtn = e.target.closest("[data-open-folder]");
+    if (openBtn) {
+      await openFolder(openBtn.dataset.openFolder);
+      return;
+    }
+
+    const playBtn = e.target.closest("[data-play-track]");
+    if (playBtn) {
+      const item = findItemByPath(getActiveSource(), playBtn.dataset.playTrack);
+      if (item) await playTrack(item);
+    }
+  });
+
+  document.addEventListener("input", async (e) => {
+    if (e.target.id === "musicScrubber" && state.audioElement) {
+      state.audioElement.currentTime = Number(e.target.value || 0);
+      syncMusicUi();
+      return;
+    }
+
+    if (e.target.id === "musicVolume" && state.audioElement) {
+      state.audioElement.volume = Number(e.target.value || 1);
+      syncMusicUi();
+    }
+  });
+
+  document.addEventListener("click", async (e) => {
+    if (e.target.id === "musicPlayPauseBtn") {
+      if (!state.audioElement || !state.audioElement.src) {
+        const firstTrack = getVisibleTracks()[0];
+        if (firstTrack) await playTrack(firstTrack);
+        return;
+      }
+
+      if (state.audioElement.paused) {
+        await ensureAudioReady();
+        try { await state.audioElement.play(); } catch {}
+      } else {
+        state.audioElement.pause();
+      }
+      syncMusicUi();
+      ensureVisualizer();
+      return;
+    }
+
+    if (e.target.id === "musicPrevBtn") {
+      await playAdjacentTrack(-1);
+      return;
+    }
+
+    if (e.target.id === "musicNextBtn") {
+      await playAdjacentTrack(1);
+      return;
+    }
+
+    if (e.target.id === "musicStopBtn" && state.audioElement) {
+      state.audioElement.pause();
+      state.audioElement.currentTime = 0;
+      syncMusicUi();
+      ensureVisualizer();
+    }
   });
 
   document.addEventListener("keydown", async (e) => {
@@ -1380,26 +2320,29 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
 
     if (e.key === "Backspace") {
       e.preventDefault();
-      if (state.currentFolderPath) await openFolder(getParentPath(state.currentFolderPath));
+      const source = getActiveSource();
+      if (source.currentFolderPath) await openFolder(getParentPath(source.currentFolderPath), source);
       return;
     }
 
     if (e.key.toLowerCase() === "r") {
       e.preventDefault();
-      const folder = getCurrentFolder();
+      const source = getActiveSource();
+      const folder = getCurrentFolder(source);
       if (!folder) return;
-      if (!state.fallbackMode) {
+      if (!source.fallbackMode) {
         folder.loaded = false;
         folder.loading = false;
         folder.error = null;
-        await loadFolder(folder.path);
+        await loadFolder(source, folder.path);
       }
-      renderAll();
+      await renderAll();
       return;
     }
 
     if (e.key.toLowerCase() === "g") {
-      state.view = "grid";
+      const source = getActiveSource();
+      source.view = "grid";
       el.gridBtn.classList.add("active");
       el.listBtn.classList.remove("active");
       renderFileView();
@@ -1407,15 +2350,50 @@ Modified: ${escapeHtml(formatDate(file?.lastModified ?? item.lastModified))}</di
     }
 
     if (e.key.toLowerCase() === "l") {
-      state.view = "list";
+      const source = getActiveSource();
+      source.view = "list";
       el.listBtn.classList.add("active");
       el.gridBtn.classList.remove("active");
       renderFileView();
+      return;
+    }
+
+    if (state.activeSource === "music" && e.code === "Space") {
+      e.preventDefault();
+      const btn = document.getElementById("musicPlayPauseBtn");
+      if (btn) btn.click();
+      return;
+    }
+
+    if (state.activeSource === "music" && e.key === "ArrowRight") {
+      e.preventDefault();
+      await playAdjacentTrack(1);
+      return;
+    }
+
+    if (state.activeSource === "music" && e.key === "ArrowLeft") {
+      e.preventDefault();
+      await playAdjacentTrack(-1);
     }
   });
 
+  function updateViewButtons() {
+    const source = getActiveSource();
+    const isGrid = source.view === "grid";
+    el.gridBtn.classList.toggle("active", isGrid);
+    el.listBtn.classList.toggle("active", !isGrid);
+    el.gridBtn.disabled = state.activeSource === "music" ? false : false;
+  }
+
+  const originalRenderAll = renderAll;
+  renderAll = async function() {
+    updateViewButtons();
+    await originalRenderAll();
+    updateViewButtons();
+  };
+
   renderAll();
-  setFooter("Load this through localhost, then pick I:\\ as the root folder.");
-</script>
+  setFooter("Use the dropdown + button to pick a Root Folder or a Music Folder. Civilization staggers onward.");
+  </script>
 </body>
 </html>
