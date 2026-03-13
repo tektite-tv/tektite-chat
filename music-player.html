@@ -749,7 +749,7 @@
     </div>
 
     <div class="fullscreen-center">
-      <div class="fullscreen-canvas-wrap">
+      <div class="fullscreen-canvas-wrap" id="fullscreenCanvasWrap">
         <canvas id="fullscreenCanvas"></canvas>
       </div>
     </div>
@@ -810,6 +810,7 @@
       statusText: document.getElementById("statusText"),
       visualizerCanvas: document.getElementById("visualizerCanvas"),
       fullscreenCanvas: document.getElementById("fullscreenCanvas"),
+      fullscreenCanvasWrap: document.getElementById("fullscreenCanvasWrap"),
       visualStatus: document.getElementById("visualStatus"),
       sampleText: document.getElementById("sampleText"),
       modeText: document.getElementById("modeText"),
@@ -1464,10 +1465,64 @@
       el.fullscreenMuteBtn.textContent = label;
     }
 
-    function toggleFullscreenOverlay() {
+    function isAnyFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+    }
+
+    async function enterScopedFullscreen() {
+      const target = el.fullscreenCanvasWrap;
+      if (!target) return false;
+      try {
+        if (target.requestFullscreen) {
+          await target.requestFullscreen();
+          return true;
+        }
+        if (target.webkitRequestFullscreen) {
+          target.webkitRequestFullscreen();
+          return true;
+        }
+        if (target.msRequestFullscreen) {
+          target.msRequestFullscreen();
+          return true;
+        }
+      } catch (err) {
+        console.error(err);
+      }
+      return false;
+    }
+
+    async function exitScopedFullscreen() {
+      try {
+        if (document.fullscreenElement && document.exitFullscreen) {
+          await document.exitFullscreen();
+          return;
+        }
+        if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+          return;
+        }
+        if (document.msFullscreenElement && document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    async function toggleFullscreenOverlay() {
       if (!state.tracks.length) return;
-      el.fullscreenOverlay.classList.toggle("open");
-      renderVisualizerToCanvas(el.fullscreenCanvas);
+      const opening = !el.fullscreenOverlay.classList.contains("open");
+
+      if (opening) {
+        el.fullscreenOverlay.classList.add("open");
+        renderVisualizerToCanvas(el.fullscreenCanvas);
+        await enterScopedFullscreen();
+      } else {
+        el.fullscreenOverlay.classList.remove("open");
+        if (isAnyFullscreen()) {
+          await exitScopedFullscreen();
+        }
+      }
     }
 
     async function primeDurations() {
@@ -1684,6 +1739,18 @@
       if (e.key === "Escape" && el.fullscreenOverlay.classList.contains("open")) {
         e.preventDefault();
         toggleFullscreenOverlay();
+      }
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement && el.fullscreenOverlay.classList.contains("open")) {
+        el.fullscreenOverlay.classList.remove("open");
+      }
+    });
+
+    document.addEventListener("webkitfullscreenchange", () => {
+      if (!document.webkitFullscreenElement && el.fullscreenOverlay.classList.contains("open")) {
+        el.fullscreenOverlay.classList.remove("open");
       }
     });
 
