@@ -32,8 +32,8 @@ align-items:center;
 text-decoration:none;
 color:inherit;
 }
-.channelLogo{height:180px;}
-.channelTitle{font-size:42px;font-weight:bold;}
+.channelLogo{height:90px;}
+.channelTitle{font-size:21px;font-weight:bold;}
 
 .controls{display:flex;align-items:center;gap:12px;position:relative;}
 
@@ -243,12 +243,12 @@ min-width:0;
 }
 
 .channelLogo{
-height:50px;
+height:75px;
 flex:0 0 auto;
 }
 
 .channelTitle{
-font-size:24px;
+font-size:30px;
 line-height:1.05;
 white-space:nowrap;
 overflow:hidden;
@@ -370,6 +370,10 @@ let view="grid";
 let gridSize=3;
 let visible=9;
 
+function isMobile(){
+return window.matchMedia("(max-width: 768px)").matches;
+}
+
 const postsEl=document.getElementById("posts");
 const statusEl=document.getElementById("status");
 const searchInput=document.getElementById("videoSearch");
@@ -409,7 +413,9 @@ function updateSize(v){
 gridSize=parseInt(v);
 slider.value=v;
 
-visible=gridSize*gridSize;
+visible=isMobile() ? 3 : gridSize*gridSize;
+
+visible = isMobile() ? 3 : gridSize*gridSize;
 
 updatePreview();
 render();
@@ -488,7 +494,7 @@ frame.src="";
 
 function render(){
 postsEl.className=view;
-postsEl.style.gridTemplateColumns="repeat("+gridSize+",1fr)";
+postsEl.style.gridTemplateColumns=isMobile() ? "1fr" : "repeat("+gridSize+",1fr)";
 
 postsEl.innerHTML="";
 
@@ -542,7 +548,7 @@ if(view!=="grid"){
 view="grid";
 gridSize=3;
 slider.value=3;
-visible=gridSize*gridSize;
+visible=isMobile() ? 3 : gridSize*gridSize;
 updatePreview();
 render();
 }else{
@@ -552,7 +558,9 @@ gridMenu.style.display==="block" ? "none" : "block";
 }
 
 loadBtn.onclick=()=>{
-if(view==="list"){
+if(isMobile()){
+visible+=3;
+}else if(view==="list"){
 visible+=3;
 }else{
 if(gridSize<10){
@@ -568,7 +576,7 @@ render();
 searchInput.addEventListener("input",()=>{
 const q=searchInput.value.toLowerCase();
 filtered=posts.filter(p=>p.title.toLowerCase().includes(q));
-visible=view==="list"?3:gridSize*gridSize;
+visible=isMobile() ? 3 : (view==="list"?3:gridSize*gridSize);
 render();
 });
 
@@ -751,6 +759,10 @@ animate();
 
 }
 
+
+window.addEventListener("resize",()=>{
+render();
+});
 
 document.addEventListener("DOMContentLoaded",loadPosts);
 
