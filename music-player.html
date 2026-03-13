@@ -353,19 +353,30 @@
       background: linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.42));
     }
 
+    .folder-row,
     .track-row {
       display: grid;
       grid-template-columns: 42px minmax(0, 1fr) auto;
       gap: 12px;
       align-items: center;
       padding: 12px 14px;
+      padding-left: calc(14px + (var(--depth, 0) * 18px));
       border-bottom: 1px solid rgba(0,255,0,0.09);
       cursor: pointer;
       transition: background 0.15s ease, border-color 0.15s ease;
     }
 
+    .folder-row {
+      background: linear-gradient(90deg, rgba(102,0,204,0.10), rgba(0,255,0,0.03));
+    }
+
+    .folder-row:hover,
     .track-row:hover {
       background: rgba(0,255,0,0.05);
+    }
+
+    .folder-row.open {
+      box-shadow: inset 3px 0 0 rgba(102,0,204,0.7);
     }
 
     .track-row.active {
@@ -373,14 +384,34 @@
       box-shadow: inset 3px 0 0 var(--line);
     }
 
+    .folder-toggle,
     .track-index {
       color: var(--text-soft);
       font-size: 12px;
       text-align: center;
     }
 
+    .folder-copy,
     .track-copy {
       min-width: 0;
+    }
+
+    .folder-name {
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .folder-meta {
+      color: var(--text-soft);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .track-name {
@@ -742,7 +773,8 @@
       sourceNode: null,
       visualMode: "oscilloscope",
       animationFrame: 0,
-      durationCache: new Map()
+      durationCache: new Map(),
+      expandedFolders: new Set([""])
     };
 
     const el = {
@@ -822,6 +854,103 @@
       return a.path.localeCompare(b.path, undefined, { numeric: true, sensitivity: "base" });
     }
 
+    function folderDisplayName(path) {
+      const normalized = normalizePath(path);
+      if (!normalized) return state.rootName || "MUSIC";
+      const parts = normalized.split("/");
+      return parts[parts.length - 1] || normalized;
+    }
+
+    function getParentPath(path) {
+      const normalized = normalizePath(path);
+      if (!normalized) return "";
+      const parts = normalized.split("/");
+      parts.pop();
+      return parts.join("/");
+    }
+
+    function createPlaylistTree(indexes) {
+      const root = { path: "", name: state.rootName || "MUSIC", depth: 0, folders: new Map(), tracks: [] };
+
+      for (const index of indexes) {
+        const track = state.tracks[index];
+        const folderPath = normalizePath(track.folder === state.rootName ? "" : track.folder);
+        let node = root;
+        let acc = "";
+
+        if (folderPath) {
+          for (const part of folderPath.split("/")) {
+            acc = normalizePath(acc ? `${acc}/${part}` : part);
+            if (!node.folders.has(part)) {
+              node.folders.set(part, {
+                path: acc,
+                name: part,
+                depth: acc.split("/").length,
+                folders: new Map(),
+                tracks: []
+              });
+            }
+            node = node.folders.get(part);
+          }
+        }
+
+        node.tracks.push(index);
+      }
+
+      return root;
+    }
+
+    function renderPlaylistNode(node, counters) {
+      const indent = node.path ? node.depth : 0;
+      const folderOpen = state.expandedFolders.has(node.path);
+      const folderRows = [];
+
+      if (node.path || state.rootName) {
+        const trackTotal = countTracksInTree(node);
+        folderRows.push(`
+          <div class="folder-row${folderOpen ? ' open' : ''}" data-folder-path="${escapeHtml(node.path)}" style="--depth:${indent}">
+            <div class="folder-toggle">${folderOpen ? '▾' : '▸'}</div>
+            <div class="folder-copy">
+              <div class="folder-name">${escapeHtml(node.path ? node.name : (state.rootName || 'MUSIC'))}</div>
+              <div class="folder-meta">${trackTotal} track${trackTotal === 1 ? '' : 's'}</div>
+            </div>
+          </div>
+        `);
+      }
+
+      const childHtml = [];
+      if (!node.path || folderOpen) {
+        const childFolders = Array.from(node.folders.values()).sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+        for (const folder of childFolders) {
+          childHtml.push(renderPlaylistNode(folder, counters));
+        }
+        for (const index of node.tracks) {
+          const track = state.tracks[index];
+          const active = index === state.currentIndex ? ' active' : '';
+          const duration = state.durationCache.get(track.path);
+          counters.value += 1;
+          childHtml.push(`
+            <div class="track-row${active}" data-track-index="${index}" style="--depth:${node.depth + 1}">
+              <div class="track-index">${counters.value}</div>
+              <div class="track-copy">
+                <div class="track-name">${escapeHtml(getDisplayTitle(track))}</div>
+                <div class="track-path">${escapeHtml(track.path)}</div>
+              </div>
+              <div class="track-duration">${duration ? escapeHtml(formatTime(duration)) : '--:--'}</div>
+            </div>
+          `);
+        }
+      }
+
+      return folderRows.join('') + childHtml.join('');
+    }
+
+    function countTracksInTree(node) {
+      let total = node.tracks.length;
+      for (const child of node.folders.values()) total += countTracksInTree(child);
+      return total;
+    }
+
     function formatTime(seconds = 0) {
       if (!isFinite(seconds) || seconds < 0) return "0:00";
       const total = Math.floor(seconds);
@@ -836,6 +965,7 @@
 
     function updatePathBar() {
       el.pathBox.textContent = state.rootName ? `Music Folder / ${state.rootName}` : "Ready for a folder full of audio.";
+      el.openBtn.textContent = state.rootName || "OPEN MUSIC FOLDER";
     }
 
     function clearObjectUrls() {
@@ -946,6 +1076,15 @@
     function applyTrackList(tracks) {
       state.tracks = tracks.sort(sortTracks);
       state.currentIndex = -1;
+      state.expandedFolders = new Set([""]);
+      for (const track of state.tracks) {
+        const parts = normalizePath(track.folder === state.rootName ? "" : track.folder).split("/").filter(Boolean);
+        let acc = "";
+        for (const part of parts) {
+          acc = normalizePath(acc ? `${acc}/${part}` : part);
+          state.expandedFolders.add(acc);
+        }
+      }
       stopPlayback(true);
       updatePathBar();
       updateFilter();
@@ -1030,21 +1169,9 @@
         return;
       }
 
-      el.playlistView.innerHTML = state.filteredTrackIndexes.map((index, visibleIndex) => {
-        const track = state.tracks[index];
-        const active = index === state.currentIndex ? " active" : "";
-        const duration = state.durationCache.get(track.path);
-        return `
-          <div class="track-row${active}" data-track-index="${index}">
-            <div class="track-index">${visibleIndex + 1}</div>
-            <div class="track-copy">
-              <div class="track-name">${escapeHtml(getDisplayTitle(track))}</div>
-              <div class="track-path">${escapeHtml(track.path)}</div>
-            </div>
-            <div class="track-duration">${duration ? escapeHtml(formatTime(duration)) : "--:--"}</div>
-          </div>
-        `;
-      }).join("");
+      const tree = createPlaylistTree(state.filteredTrackIndexes);
+      const counters = { value: 0 };
+      el.playlistView.innerHTML = renderPlaylistNode(tree, counters);
     }
 
     function updatePlayButtons() {
@@ -1435,6 +1562,15 @@
     });
 
     el.playlistView.addEventListener("click", async (e) => {
+      const folderRow = e.target.closest("[data-folder-path]");
+      if (folderRow) {
+        const path = normalizePath(folderRow.dataset.folderPath);
+        if (state.expandedFolders.has(path)) state.expandedFolders.delete(path);
+        else state.expandedFolders.add(path);
+        renderPlaylist();
+        return;
+      }
+
       const row = e.target.closest("[data-track-index]");
       if (!row) return;
       const index = Number(row.dataset.trackIndex);
