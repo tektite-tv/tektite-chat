@@ -1258,7 +1258,7 @@
     document.body.classList.toggle("hide-preview", !state.ui.preview);
     document.body.classList.toggle("hide-breadcrumbs", !state.ui.breadcrumbs);
     document.body.classList.toggle("hide-statusline", !state.ui.statusline);
-    document.body.classList.toggle("hide-toolbar", !state.ui.toolbar);
+    document.body.classList.toggle("hide-toolbar", Object.values(state.ui || {}).some(v => !v));
   }
 
   function toggleUiSection(section, forceValue = null) {
@@ -1294,7 +1294,7 @@
     }
 
     if (el.uiLauncherFab) {
-      const needsFab = !state.ui.toolbar;
+      const needsFab = Object.values(state.ui || {}).some(v => !v);
       el.uiLauncherFab.classList.toggle("visible", needsFab);
       el.uiLauncherFab.classList.toggle("active", state.uiPanelOpen);
       el.uiLauncherFab.title = state.uiPanelOpen ? "Hide layout controls" : "Show layout controls";
