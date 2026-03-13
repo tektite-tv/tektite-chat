@@ -1308,8 +1308,8 @@
     if (el.uiPanelGrid) {
       const entries = [
         ["toolbar", "Top bar", "Navigation and global controls"],
-        ["sidebar", "Tree", "Folder tree and directory navigation"],
-        ["preview", "Preview", "Details, media preview, and metadata"],
+        ["sidebar", "Folder tree", "Folder tree and directory navigation"],
+        ["preview", "Preview panel", "Details, media preview, and metadata"],
         ["breadcrumbs", "Breadcrumbs", "Current path trail"],
         ["statusline", "Info strip", "Folder name and item counts"]
       ];
@@ -1317,13 +1317,13 @@
       el.uiPanelGrid.innerHTML = entries.map(([key, label, sub]) => {
         const shown = !!state.ui[key];
         return `
-          <div class="ui-panel-item">
+          <label class="ui-panel-item">
             <div>
               <strong>${escapeHtml(label)}</strong>
               <span>${escapeHtml(sub)}</span>
             </div>
-            <button class="small ghost ui-toggle ${shown ? "active" : ""}" data-panel-toggle-ui="${escapeHtml(key)}">${shown ? "Hide" : "Show"}</button>
-          </div>
+            <input type="checkbox" data-panel-check-ui="${escapeHtml(key)}" ${shown ? "checked" : ""} />
+          </label>
         `;
       }).join("");
     }
@@ -2467,9 +2467,9 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
   }
 
   document.addEventListener("click", (e) => {
-    const panelToggleBtn = e.target.closest("[data-panel-toggle-ui]");
-    if (panelToggleBtn) {
-      toggleUiSection(panelToggleBtn.dataset.panelToggleUi);
+    const panelCheckbox = e.target.closest("[data-panel-check-ui]");
+    if (panelCheckbox) {
+      toggleUiSection(panelCheckbox.dataset.panelCheckUi, panelCheckbox.checked);
       return;
     }
 
