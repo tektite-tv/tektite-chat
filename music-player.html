@@ -35,6 +35,14 @@
     }
 
     body {
+      overflow: hidden;
+    }
+
+    .app-scale {
+      width: 125%;
+      height: 125%;
+      transform: scale(0.8);
+      transform-origin: top left;
       display: grid;
       grid-template-rows: auto auto 1fr;
     }
@@ -637,6 +645,7 @@
   </style>
 </head>
 <body>
+  <div class="app-scale">
   <section class="toolbar">
     <button id="openBtn">OPEN MUSIC FOLDER</button>
     <button id="playTopBtn" class="small">▶</button>
@@ -730,6 +739,8 @@
       </div>
     </section>
   </main>
+
+  </div>
 
   <div class="fullscreen-overlay" id="fullscreenOverlay">
     <div class="fullscreen-top">
