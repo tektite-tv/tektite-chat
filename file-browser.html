@@ -81,12 +81,90 @@
 
     .toolbar {
       display: grid;
-      grid-template-columns: auto auto auto auto 1fr auto auto auto;
+      grid-template-columns: auto auto auto auto 1fr auto auto auto auto;
       gap: 14px;
       align-items: center;
       padding: 14px 24px;
       background: rgba(30, 0, 42, 0.95);
       border-bottom: 1px solid rgba(0,255,0,0.2);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(0,255,0,0.18);
+      color: var(--text-dim);
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    .panel-title-text {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .panel-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ui-toggle {
+      min-width: 0;
+      padding: 7px 10px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      background: rgba(0,0,0,0.82);
+      border-color: rgba(0,255,0,0.28);
+    }
+
+    .ui-toggle.active {
+      background: rgba(0,255,0,0.12);
+      border-color: var(--line);
+      color: var(--text);
+      font-weight: bold;
+    }
+
+    .ui-toggle.ghost {
+      color: var(--text-soft);
+    }
+
+    .restore-dock {
+      position: fixed;
+      left: 16px;
+      bottom: 52px;
+      z-index: 40;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-width: calc(100vw - 32px);
+      pointer-events: none;
+    }
+
+    .restore-dock:empty { display: none; }
+
+    .restore-chip {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.9);
+      border: 1px solid var(--line);
+      color: var(--text);
+      box-shadow: 0 0 18px rgba(0,255,0,0.12);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .restore-chip:hover {
+      background: rgba(0,255,0,0.08);
     }
 
     .source-menu {
@@ -226,14 +304,6 @@
 
     body.music-mode .sidebar {
       background: rgba(12, 0, 18, 0.97);
-    }
-
-    .panel-title {
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(0,255,0,0.18);
-      color: var(--text-dim);
-      font-size: 14px;
-      letter-spacing: 1px;
     }
 
     .tree {
@@ -724,6 +794,38 @@
       background: #2b7a2b;
     }
 
+    body.hide-sidebar .sidebar { display: none; }
+    body.hide-preview .preview { display: none; }
+    body.hide-breadcrumbs .breadcrumbs { display: none; }
+    body.hide-statusline .statusline { display: none; }
+    body.hide-toolbar .toolbar { display: none; }
+
+    body.hide-sidebar .workspace { grid-template-columns: 1fr 360px; }
+    body.hide-preview .workspace { grid-template-columns: 300px 1fr; }
+    body.hide-sidebar.hide-preview .workspace { grid-template-columns: 1fr; }
+
+    body.hide-sidebar.hide-preview.hide-statusline.hide-breadcrumbs .main {
+      grid-template-rows: 1fr;
+    }
+
+    body.hide-sidebar.hide-preview:not(.hide-statusline):not(.hide-breadcrumbs) .main,
+    body.hide-sidebar.hide-preview.hide-statusline:not(.hide-breadcrumbs) .main,
+    body.hide-sidebar.hide-preview:not(.hide-statusline).hide-breadcrumbs .main {
+      grid-template-rows: auto auto 1fr;
+    }
+
+    body.hide-statusline .main {
+      grid-template-rows: auto 1fr;
+    }
+
+    body.hide-breadcrumbs .main {
+      grid-template-rows: auto 1fr;
+    }
+
+    body.hide-statusline.hide-breadcrumbs .main {
+      grid-template-rows: 1fr;
+    }
+
     @media (max-width: 1400px) {
       .workspace { grid-template-columns: 260px 1fr 320px; }
     }
@@ -761,6 +863,11 @@
       .hide-mobile { display: none; }
       .source-dropdown {
         width: min(92vw, 320px);
+      }
+      .restore-dock {
+        left: 10px;
+        right: 10px;
+        bottom: 58px;
       }
     }
   </style>
@@ -802,30 +909,47 @@
     <button id="gridBtn" class="active">GRID</button>
     <button id="listBtn">LIST</button>
     <input id="searchInput" type="text" placeholder="Search files..." />
+    <button id="hideToolbarBtn" class="small ghost ui-toggle" title="Hide toolbar">TOP</button>
   </section>
 
-  <main class="workspace">
+  <main class="workspace" id="workspace">
     <aside class="sidebar">
-      <div class="panel-title" id="sidebarTitle">FOLDER TREE</div>
+      <div class="panel-title">
+        <span class="panel-title-text" id="sidebarTitle">FOLDER TREE</span>
+        <div class="panel-actions">
+          <button class="ui-toggle ghost" data-toggle-ui="sidebar" title="Hide folder tree">HIDE</button>
+        </div>
+      </div>
       <div class="tree" id="tree"></div>
     </aside>
 
     <section class="main">
-      <div class="statusline">
+      <div class="statusline" id="statusline">
         <div id="folderLabel">No folder loaded</div>
-        <div id="statsLabel">0 items</div>
+        <div class="panel-actions">
+          <div id="statsLabel">0 items</div>
+          <button class="ui-toggle ghost" data-toggle-ui="breadcrumbs" title="Toggle breadcrumbs">CRUMBS</button>
+          <button class="ui-toggle ghost" data-toggle-ui="statusline" title="Toggle info strip">INFO</button>
+        </div>
       </div>
       <div class="breadcrumbs" id="breadcrumbs"></div>
       <div class="fileview" id="fileview"></div>
     </section>
 
     <aside class="preview">
-      <div class="panel-title" id="previewTitle">PREVIEW / DETAILS</div>
+      <div class="panel-title">
+        <span class="panel-title-text" id="previewTitle">PREVIEW / DETAILS</span>
+        <div class="panel-actions">
+          <button class="ui-toggle ghost" data-toggle-ui="preview" title="Hide preview panel">HIDE</button>
+        </div>
+      </div>
       <div class="preview-scroll" id="preview">
         <div class="empty">Select a file or folder to preview it.</div>
       </div>
     </aside>
   </main>
+
+  <div class="restore-dock" id="restoreDock"></div>
 
   <footer class="footer">
     <div id="footerLeft">Ready.</div>
@@ -862,6 +986,13 @@
     visualizerCanvas: null,
     musicMiniCanvas: null,
     musicTracksCache: [],
+    ui: {
+      sidebar: true,
+      preview: true,
+      breadcrumbs: true,
+      statusline: true,
+      toolbar: true
+    },
     currentTrackPath: "",
     sources: {
       root: makeSourceState("root", "ROOT"),
@@ -901,6 +1032,7 @@
     gridBtn: document.getElementById("gridBtn"),
     listBtn: document.getElementById("listBtn"),
     searchInput: document.getElementById("searchInput"),
+    hideToolbarBtn: document.getElementById("hideToolbarBtn"),
     pathBox: document.getElementById("pathBox"),
     tree: document.getElementById("tree"),
     fileview: document.getElementById("fileview"),
@@ -911,7 +1043,10 @@
     footerLeft: document.getElementById("footerLeft"),
     fallbackPicker: document.getElementById("fallbackPicker"),
     sidebarTitle: document.getElementById("sidebarTitle"),
-    previewTitle: document.getElementById("previewTitle")
+    previewTitle: document.getElementById("previewTitle"),
+    restoreDock: document.getElementById("restoreDock"),
+    workspace: document.getElementById("workspace"),
+    statusline: document.getElementById("statusline")
   };
 
   function getActiveSource() {
@@ -1030,6 +1165,54 @@
 
   function setFooter(text) {
     el.footerLeft.textContent = text;
+  }
+
+  function applyUiLayout() {
+    document.body.classList.toggle("hide-sidebar", !state.ui.sidebar);
+    document.body.classList.toggle("hide-preview", !state.ui.preview);
+    document.body.classList.toggle("hide-breadcrumbs", !state.ui.breadcrumbs);
+    document.body.classList.toggle("hide-statusline", !state.ui.statusline);
+    document.body.classList.toggle("hide-toolbar", !state.ui.toolbar);
+  }
+
+  function toggleUiSection(section, forceValue = null) {
+    if (!(section in state.ui)) return;
+    state.ui[section] = forceValue == null ? !state.ui[section] : !!forceValue;
+    applyUiLayout();
+    renderUiToggles();
+  }
+
+  function renderUiToggles() {
+    document.querySelectorAll("[data-toggle-ui]").forEach(btn => {
+      const section = btn.dataset.toggleUi;
+      const shown = !!state.ui[section];
+      btn.classList.toggle("active", shown);
+      if (section === "sidebar" || section === "preview") {
+        btn.textContent = shown ? "HIDE" : "SHOW";
+      } else if (section === "breadcrumbs") {
+        btn.textContent = shown ? "CRUMBS" : "SHOW CRUMBS";
+      } else if (section === "statusline") {
+        btn.textContent = shown ? "INFO" : "SHOW INFO";
+      }
+    });
+
+    if (el.hideToolbarBtn) {
+      el.hideToolbarBtn.classList.toggle("active", state.ui.toolbar);
+      el.hideToolbarBtn.textContent = state.ui.toolbar ? "TOP" : "SHOW TOP";
+      el.hideToolbarBtn.title = state.ui.toolbar ? "Hide toolbar" : "Show toolbar";
+    }
+
+    const hidden = [
+      ["sidebar", "Tree"],
+      ["preview", "Preview"],
+      ["breadcrumbs", "Breadcrumbs"],
+      ["statusline", "Info strip"],
+      ["toolbar", "Top bar"]
+    ].filter(([key]) => !state.ui[key]);
+
+    el.restoreDock.innerHTML = hidden.map(([key, label]) =>
+      `<button class="restore-chip" data-restore-ui="${escapeHtml(key)}">Show ${escapeHtml(label)}</button>`
+    ).join("");
   }
 
   function normalizePath(path) {
@@ -1381,6 +1564,8 @@
     document.body.classList.toggle("music-mode", state.activeSource === "music");
     el.sidebarTitle.textContent = state.activeSource === "music" ? "MUSIC TREE" : "FOLDER TREE";
     el.previewTitle.textContent = state.activeSource === "music" ? "NOW PLAYING / DETAILS" : "PREVIEW / DETAILS";
+    applyUiLayout();
+    renderUiToggles();
   }
 
   function renderTree() {
@@ -2147,6 +2332,25 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     setFooter(`Rescanned ${state.activeSource === "music" ? "music" : "root"} folder.`);
   });
 
+  if (el.hideToolbarBtn) {
+    el.hideToolbarBtn.addEventListener("click", () => {
+      toggleUiSection("toolbar");
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const toggleBtn = e.target.closest("[data-toggle-ui]");
+    if (toggleBtn) {
+      toggleUiSection(toggleBtn.dataset.toggleUi);
+      return;
+    }
+
+    const restoreBtn = e.target.closest("[data-restore-ui]");
+    if (restoreBtn) {
+      toggleUiSection(restoreBtn.dataset.restoreUi, true);
+    }
+  });
+
   el.gridBtn.addEventListener("click", async () => {
     const source = getActiveSource();
     source.view = "grid";
@@ -2340,6 +2544,36 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
       return;
     }
 
+    if (e.key.toLowerCase() === "t") {
+      e.preventDefault();
+      toggleUiSection("sidebar");
+      return;
+    }
+
+    if (e.key.toLowerCase() === "p") {
+      e.preventDefault();
+      toggleUiSection("preview");
+      return;
+    }
+
+    if (e.key.toLowerCase() === "b") {
+      e.preventDefault();
+      toggleUiSection("breadcrumbs");
+      return;
+    }
+
+    if (e.key.toLowerCase() === "i") {
+      e.preventDefault();
+      toggleUiSection("statusline");
+      return;
+    }
+
+    if (e.key.toLowerCase() === "h") {
+      e.preventDefault();
+      toggleUiSection("toolbar");
+      return;
+    }
+
     if (e.key.toLowerCase() === "g") {
       const source = getActiveSource();
       source.view = "grid";
@@ -2392,8 +2626,10 @@ Duration: ${escapeHtml(formatDuration(duration || 0))}</div>
     updateViewButtons();
   };
 
+  applyUiLayout();
+  renderUiToggles();
   renderAll();
-  setFooter("Use the dropdown + button to pick a Root Folder or a Music Folder. Civilization staggers onward.");
+  setFooter("Use the hide buttons to collapse panels. Shortcuts: T tree, P preview, B breadcrumbs, I info, H top bar.");
   </script>
 </body>
 </html>
