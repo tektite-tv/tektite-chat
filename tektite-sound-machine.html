@@ -5,38 +5,40 @@
 <title>Tektite's Sound Machine</title>
 
 <style>
-
-html,body{
-    margin:0;
-    padding:0;
-    height:100%;
-    overflow:hidden;
-    background:#111;
-    font-family:"Courier New", monospace;
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: #111;
+    font-family: "Courier New", monospace;
 }
 
-#overlay-container{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:60px;
-    border:none;
-    overflow:hidden;
-    z-index:1000;
+:root {
+    --overlay-height: 60px;
+}
+
+#overlay-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 60px;
+    border: none;
+    overflow: visible;
+    z-index: 1000;
 }
 
 /* main content iframe fills remaining space under overlay */
-#main-frame{
-    position:absolute;
-    top:60px;
-    left:0;
-    width:100vw;
-    height:calc(100vh - 60px);
-    border:none;
-    display:block;
+#main-frame {
+    position: absolute;
+    top: var(--overlay-height);
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - var(--overlay-height));
+    border: none;
+    display: block;
 }
-
 </style>
 
 </head>
@@ -48,18 +50,38 @@ html,body{
 <iframe id="main-frame" src="/sound-machine.html"></iframe>
 
 <script>
+function updateLayoutOffset() {
+    const overlay = document.getElementById("overlay-container");
+    const h = Math.ceil(overlay.getBoundingClientRect().height || 60);
+    document.documentElement.style.setProperty("--overlay-height", h + "px");
+}
 
 fetch("overlay.html")
 .then(res => res.text())
-.then(html=>{
-    document.getElementById("overlay-container").innerHTML = html;
+.then(html => {
+    const overlay = document.getElementById("overlay-container");
+    overlay.innerHTML = html;
+
+    // Let layout settle, then measure actual height
+    requestAnimationFrame(() => {
+        updateLayoutOffset();
+        requestAnimationFrame(updateLayoutOffset);
+    });
+
+    // Recalculate on resize in case overlay wraps differently on mobile/desktop
+    window.addEventListener("resize", updateLayoutOffset);
+
+    // Watch overlay for height changes after load
+    if (window.ResizeObserver) {
+        const ro = new ResizeObserver(updateLayoutOffset);
+        ro.observe(overlay);
+    }
 });
 
-function toggleSidebar(){
-    const sidebar=document.getElementById("sidebar");
-    sidebar.classList.toggle("open");
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.toggle("open");
 }
-
 </script>
 
 </body>
