@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Music Player</title>
+  <title>Tektite Sound Machine</title>
   <style>
     :root {
       --bg: #120018;
@@ -157,9 +157,47 @@
       color: var(--text-dim);
     }
 
+    .player-topbar,
+    .fullscreen-top {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .player-topbar {
+      padding: 10px 12px 0;
+    }
+
+    .player-top-info,
+    .fullscreen-top-info {
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(0,255,0,0.18);
+      background: linear-gradient(180deg, rgba(102,0,204,0.16), rgba(0,0,0,0.35));
+      box-shadow: 0 0 24px rgba(102,0,204,0.12);
+    }
+
+    .player-top-actions,
+    .fullscreen-top-actions {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid rgba(0,255,0,0.18);
+      background: linear-gradient(180deg, rgba(102,0,204,0.16), rgba(0,0,0,0.35));
+      box-shadow: 0 0 24px rgba(102,0,204,0.12);
+    }
+
+    .player-top-actions button,
+    .fullscreen-top-actions button {
+      height: 100%;
+      white-space: nowrap;
+    }
+
     .player-shell {
       display: grid;
-      grid-template-rows: minmax(160px, 1fr) auto auto auto;
+      grid-template-rows: auto minmax(160px, 1fr) auto auto;
       min-height: 0;
       height: 100%;
     }
@@ -211,7 +249,7 @@
     .track-card {
       padding: 12px;
       border-top: 1px solid rgba(0,255,0,0.12);
-      background: linear-gradient(180deg, rgba(102,0,204,0.08), rgba(0,0,0,0));
+      background: linear-gradient(180deg, rgba(102,0,204,0.12), rgba(0,0,0,0));
     }
 
     .now-playing-label {
@@ -364,7 +402,7 @@
     .folder-row,
     .track-row {
       display: grid;
-      grid-template-columns: 42px minmax(0, 1fr) auto;
+      grid-template-columns: 64px minmax(0, 1fr) auto;
       gap: 8px;
       align-items: center;
       padding: 10px 12px;
@@ -397,6 +435,11 @@
       color: var(--text-soft);
       font-size: 12px;
       text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
     }
 
     .folder-copy,
@@ -457,13 +500,14 @@
       display: none;
     }
 
-    .fullscreen-overlay {
+    
+.fullscreen-overlay {
       position: fixed;
       inset: 0;
       z-index: 60;
       display: none;
-      flex-direction: column;
-      justify-content: space-between;
+      align-items: stretch;
+      justify-content: center;
       background:
         radial-gradient(circle at center, rgba(102,0,204,0.15), transparent 40%),
         linear-gradient(180deg, rgba(2,0,4,0.96), rgba(0,0,0,0.98));
@@ -474,134 +518,82 @@
       display: flex;
     }
 
-    .fullscreen-top {
+    .fullscreen-player-shell {
+      width: min(96vw, 1800px);
+      height: calc(100vh - 32px);
+      max-height: calc(100vh - 32px);
+      margin: 0 auto;
+    }
+
+    .fullscreen-player-shell .visual-wrap {
+      min-height: 0;
+    }
+
+    .fullscreen-player-shell .player-topbar {
+      padding: 0;
+    }
+
+    .fullscreen-player-shell .player-shell {
+      height: 100%;
+    }
+
+    .fullscreen-player-shell .time-row,
+    .fullscreen-player-shell .track-meta,
+    .fullscreen-player-shell .controls,
+    .fullscreen-player-shell .player-top-info,
+    .fullscreen-player-shell .player-top-actions {
+      min-width: 0;
+    }
+
+    .fullscreen-player-shell .controls {
+      grid-template-columns: repeat(5, auto) minmax(0, 1fr);
+    }
+
+    .fs-playlist-toggle {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      z-index: 5;
+    }
+
+    .fullscreen-player-shell .vol-wrap {
+      width: 100%;
+      justify-self: stretch;
       display: flex;
-      justify-content: flex-end;
       align-items: center;
       gap: 10px;
     }
 
-    .fullscreen-center {
-      flex: 1;
-      min-height: 0;
-      display: grid;
-      place-items: center;
-      padding: 10px 0;
+    .fullscreen-player-shell .vol-wrap .fs-playlist-toggle {
+      position: static;
+      right: auto;
+      bottom: auto;
+      z-index: auto;
+      margin-left: 0;
+      flex: 0 0 auto;
+      align-self: center;
     }
 
-    .fullscreen-canvas-wrap {
-      width: min(96vw, 1800px);
-      height: min(58vh, 700px);
-      border: 2px solid rgba(0,255,0,0.22);
-      box-shadow: 0 0 0 1px rgba(0,255,0,0.14), 0 0 30px rgba(0,255,0,0.08);
-      background:
-        radial-gradient(circle at center, rgba(0,255,0,0.03), transparent 42%),
-        linear-gradient(180deg, rgba(0,0,0,0.7), rgba(7,0,12,0.88));
-      position: relative;
-      overflow: hidden;
-    }
-
-    .fullscreen-canvas-wrap::after {
-      content: "";
+    .fs-playlist-popup {
       position: absolute;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.012) 0px,
-        rgba(255,255,255,0.012) 1px,
-        transparent 2px,
-        transparent 4px
-      );
-      pointer-events: none;
-      opacity: 0.22;
-    }
-
-    .fullscreen-bottom {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 16px;
-      align-items: end;
-      margin-top: 12px;
-    }
-
-    .fullscreen-info-slot {
-      min-width: 0;
-      align-self: end;
-    }
-
-    .fullscreen-info-slot #playerInfoPanel {
-      border: 1px solid rgba(0,255,0,0.18);
-      background: linear-gradient(180deg, rgba(102,0,204,0.16), rgba(0,0,0,0.35));
-      box-shadow: 0 0 24px rgba(102,0,204,0.12);
-      margin-top: 0;
-    }
-
-    .fs-playlist-btn {
-      width: 50px;
-      min-width: 50px;
-      padding: 0;
+      left: 50%;
+      bottom: 170px;
+      transform: translateX(-50%);
+      width: min(460px, calc(100vw - 52px));
+      max-height: min(76vh, 860px);
       display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      line-height: 1;
-      aspect-ratio: 1 / 1;
-    }
-
-    .fullscreen-info-slot .fs-playlist-btn {
-      display: inline-flex;
-    }
-
-    .fullscreen-playlist-pop {
-      position: absolute;
-      right: 16px;
-      bottom: 16px;
-      width: min(420px, calc(100vw - 32px));
-      max-height: min(52vh, 520px);
-      display: none;
-      flex-direction: column;
-      border: 1px solid rgba(0,255,0,0.24);
-      background: linear-gradient(180deg, rgba(12,0,22,0.96), rgba(0,0,0,0.97));
-      box-shadow: 0 0 32px rgba(0,0,0,0.45), 0 0 26px rgba(102,0,204,0.16);
       z-index: 5;
       overflow: hidden;
     }
 
-    .fullscreen-playlist-pop.open {
-      display: flex;
+    .fs-playlist-popup.open {
+      display: grid;
+      grid-template-rows: auto auto auto minmax(0, 1fr);
     }
 
-    .fullscreen-playlist-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(0,255,0,0.16);
-      background: rgba(0,0,0,0.32);
-    }
-
-    .fullscreen-playlist-head button {
-      min-width: auto;
-      padding: 6px 10px;
-    }
-
-    .fullscreen-playlist-body {
-      min-height: 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .fullscreen-playlist-body .playlist-tools,
-    .fullscreen-playlist-body .playlist-stats {
-      padding-left: 12px;
-      padding-right: 12px;
-    }
-
-    .fullscreen-playlist-view {
-      overflow: auto;
+    .fs-playlist-popup .playlist {
       min-height: 180px;
-      padding-bottom: 8px;
+      max-height: none;
     }
 
     ::-webkit-scrollbar {
@@ -626,7 +618,7 @@
       grid-template-columns: repeat(5, auto) minmax(0, 1fr);
     }
 
-    @media (max-width: 1050px) {
+@media (max-width: 1050px) {
       .main {
         grid-template-columns: 1fr;
         overflow: auto;
@@ -659,6 +651,11 @@
         grid-column: 1 / -1;
       }
 
+      .player-topbar,
+      .fullscreen-top {
+        grid-template-columns: 1fr;
+      }
+
       .pathbar {
         flex-direction: column;
         align-items: flex-start;
@@ -678,8 +675,9 @@
         width: 100%;
       }
 
-      .fullscreen-bottom {
-        grid-template-columns: 1fr;
+      .fullscreen-player-shell {
+        width: 100%;
+        height: calc(100vh - 32px);
       }
     }
   </style>
@@ -702,65 +700,61 @@
 
   <main class="main">
     <section class="panel player-shell">
-      <div class="panel-head">
-        <span>OSCILLOSCOPE / LINE SPECTRUM</span>
-        <span id="visualStatus">No signal.</span>
+      <div class="player-topbar">
+        <div class="player-top-info">
+          <div class="now-playing-label">NOW PLAYING</div>
+          <div class="track-title" id="trackTitle">No track selected</div>
+        </div>
+        <div class="player-top-actions">
+          <button id="visualModeBtn" class="small">MODE</button>
+        </div>
       </div>
 
       <div class="visual-wrap">
         <canvas id="visualizerCanvas"></canvas>
         <div class="visual-overlay">
-          <span id="sampleText">TIME DOMAIN</span>
-          <span id="modeText">WAVE LINE</span>
+          <span id="sampleText">TIME DOMAIN / <span id="modeText">WAVE LINE</span></span>
+          <span id="visualStatus">No signal.</span>
         </div>
       </div>
 
-      <div id="playerInfoHome"></div>
-      <div id="playerInfoPanel">
-        <div class="track-card">
-          <div class="now-playing-label">NOW PLAYING</div>
-          <div class="track-title" id="trackTitle">No track selected</div>
-          <div class="track-meta">
-            <span id="trackFolder">Folder: none</span>
-            <span id="trackCount">0 tracks</span>
-            <span id="trackDurationMeta">Duration: --:--</span>
-          </div>
+      <div class="track-card">
+        <div class="track-meta">
+          <span id="trackFolder">Folder: none</span>
+          <span id="trackCount">0 tracks</span>
+          <span id="trackDurationMeta">Duration: --:--</span>
         </div>
+      </div>
 
-        <div class="seek-wrap">
-          <div class="time-row">
-            <span id="currentTime">0:00</span>
-            <span id="timeHint">SPACE play/pause • ←/→ seek • F fullscreen</span>
-            <span id="totalTime">0:00</span>
-          </div>
-          <input id="seekBar" type="range" min="0" max="1000" value="0" step="1" />
+      <div class="seek-wrap">
+        <div class="time-row">
+          <span id="currentTime">0:00</span>
+          <span id="timeHint">SPACE play/pause • ←/→ seek • F fullscreen</span>
+          <span id="totalTime">0:00</span>
         </div>
+        <input id="seekBar" type="range" min="0" max="1000" value="0" step="1" />
+      </div>
 
-        <div class="controls">
-          <div class="control-group">
-            <button id="prevBtn" class="small">⏮</button>
-            <button id="playBtn">▶ PLAY</button>
-            <button id="nextBtn" class="small">⏭</button>
-          </div>
-          <div class="control-group">
-            <button id="stopBtn" class="small">■</button>
-            <button id="muteBtn" class="small">🔊</button>
-          </div>
-          <div class="control-group">
-            <button id="backBtn" class="small">-10s</button>
-            <button id="forwardBtn" class="small">+10s</button>
-          </div>
-          <div class="control-group">
-            <button id="visualModeBtn" class="small">MODE</button>
-          </div>
-          <div class="control-group">
-            <button id="focusCurrentBtn" class="small">FIND</button>
-          </div>
-          <div class="vol-wrap">
-            <span>VOL</span>
-            <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
-            <button id="fsPlaylistBtn" class="small fs-playlist-btn" title="Playlist">▣</button>
-          </div>
+      <div class="controls">
+        <div class="control-group">
+          <button id="prevBtn" class="small">⏮</button>
+          <button id="playBtn">▶ PLAY</button>
+          <button id="nextBtn" class="small">⏭</button>
+        </div>
+        <div class="control-group">
+          <button id="stopBtn" class="small">■</button>
+          <button id="muteBtn" class="small">🔊</button>
+        </div>
+        <div class="control-group">
+          <button id="backBtn" class="small">-10s</button>
+          <button id="forwardBtn" class="small">+10s</button>
+        </div>
+        <div class="control-group">
+          <button id="focusCurrentBtn" class="small">FIND</button>
+        </div>
+        <div class="vol-wrap">
+          <span>VOL</span>
+          <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
         </div>
       </div>
     </section>
@@ -786,41 +780,90 @@
 
   </div>
 
-  <div class="fullscreen-overlay" id="fullscreenOverlay">
-    <div class="fullscreen-top">
-      <button id="fullscreenModeBtn">MODE</button>
-      <button id="fullscreenCloseBtn">EXIT FULLSCREEN</button>
-    </div>
-
-    <div class="fullscreen-center">
-      <div class="fullscreen-canvas-wrap" id="fullscreenCanvasWrap">
-        <canvas id="fullscreenCanvas"></canvas>
-      </div>
-    </div>
-
-    <div class="fullscreen-bottom">
-      <div class="fullscreen-info-slot" id="fullscreenInfoSlot"></div>
-    </div>
-
-    <div class="fullscreen-playlist-pop" id="fullscreenPlaylistPop" aria-hidden="true">
-      <div class="fullscreen-playlist-head">
-        <span>PLAYLIST</span>
-        <button id="fullscreenPlaylistCloseBtn" class="small">✕</button>
-      </div>
-      <div class="fullscreen-playlist-body">
-        <div class="playlist-tools">
-          <input id="fullscreenSearchInput" type="text" placeholder="Search tracks..." />
-          <button id="fullscreenClearSearchBtn">CLEAR</button>
+  
+<div class="fullscreen-overlay" id="fullscreenOverlay">
+    <section class="panel player-shell fullscreen-player-shell">
+      <div class="player-topbar">
+        <div class="player-top-info">
+          <div class="now-playing-label">NOW PLAYING</div>
+          <div class="track-title" id="fsTrackTitle">No track selected</div>
         </div>
-        <div class="playlist-stats" id="fullscreenPlaylistStats">0 tracks loaded.</div>
-        <div class="playlist fullscreen-playlist-view" id="fullscreenPlaylistView">
+        <div class="player-top-actions">
+          <button id="fsVisualModeBtn" class="small">MODE</button>
+          <button id="fullscreenCloseBtn" class="small">EXIT FULLSCREEN</button>
+        </div>
+      </div>
+
+      <div class="visual-wrap">
+        <canvas id="fullscreenCanvas"></canvas>
+        <div class="visual-overlay">
+          <span id="fsSampleText">TIME DOMAIN / <span id="fsModeText">WAVE LINE</span></span>
+          <span id="fsVisualStatus">No signal.</span>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <div class="track-meta">
+          <span id="fsTrackFolder">Folder: none</span>
+          <span id="fsTrackCount">0 tracks</span>
+          <span id="fsTrackDurationMeta">Duration: --:--</span>
+        </div>
+      </div>
+
+      <div class="seek-wrap">
+        <div class="time-row">
+          <span id="fsCurrentTime">0:00</span>
+          <span id="fsTimeHint">SPACE play/pause • ←/→ seek • ESC exit fullscreen</span>
+          <span id="fsTotalTime">0:00</span>
+        </div>
+        <input id="fsSeekBar" type="range" min="0" max="1000" value="0" step="1" />
+      </div>
+
+      <div class="controls">
+        <div class="control-group">
+          <button id="fsPrevBtn" class="small">⏮</button>
+          <button id="fsPlayBtn">▶ PLAY</button>
+          <button id="fsNextBtn" class="small">⏭</button>
+        </div>
+        <div class="control-group">
+          <button id="fsStopBtn" class="small">■</button>
+          <button id="fsMuteBtn" class="small">🔊</button>
+        </div>
+        <div class="control-group">
+          <button id="fsBackBtn" class="small">-10s</button>
+          <button id="fsForwardBtn" class="small">+10s</button>
+        </div>
+        <div class="control-group">
+          <button id="fsFocusCurrentBtn" class="small">FIND</button>
+        </div>
+        <div class="vol-wrap">
+          <button id="fsPlaylistToggleBtn" class="small fs-playlist-toggle">PLAYLIST</button>
+          <span>VOL</span>
+          <input id="fsVolumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
+        </div>
+      </div>
+
+      <section class="panel playlist-shell fs-playlist-popup" id="fsPlaylistPopup">
+        <div class="panel-head">
+          <span>PLAYLIST</span>
+          <span id="fsPlaylistModeText">Order: normal</span>
+        </div>
+
+        <div class="playlist-tools">
+          <input id="fsSearchInput" type="text" placeholder="Search tracks..." />
+          <button id="fsClearSearchBtn">CLEAR</button>
+        </div>
+
+        <div class="playlist-stats" id="fsPlaylistStats">0 tracks loaded.</div>
+
+        <div class="playlist" id="fsPlaylistView">
           <div class="empty">Open a folder containing audio files to build a playlist.</div>
         </div>
-      </div>
-    </div>
+      </section>
+    </section>
   </div>
 
-  <input class="hidden-input" id="fallbackPicker" type="file" webkitdirectory multiple accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a,.aac,.opus" />
+<input class="hidden-input" id="fallbackPicker" type="file" webkitdirectory multiple accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a,.aac,.opus" />
   <audio id="audioPlayer" preload="metadata" crossorigin="anonymous"></audio>
 
   <script>
@@ -845,7 +888,8 @@
       visualMode: "oscilloscope",
       animationFrame: 0,
       durationCache: new Map(),
-      expandedFolders: new Set([""])
+      expandedFolders: new Set([""]),
+      titleClearedOnStop: false
     };
 
     const el = {
@@ -859,7 +903,6 @@
       statusText: document.getElementById("statusText"),
       visualizerCanvas: document.getElementById("visualizerCanvas"),
       fullscreenCanvas: document.getElementById("fullscreenCanvas"),
-      fullscreenCanvasWrap: document.getElementById("fullscreenCanvasWrap"),
       visualStatus: document.getElementById("visualStatus"),
       sampleText: document.getElementById("sampleText"),
       modeText: document.getElementById("modeText"),
@@ -870,8 +913,6 @@
       currentTime: document.getElementById("currentTime"),
       totalTime: document.getElementById("totalTime"),
       seekBar: document.getElementById("seekBar"),
-      playerInfoHome: document.getElementById("playerInfoHome"),
-      playerInfoPanel: document.getElementById("playerInfoPanel"),
       playBtn: document.getElementById("playBtn"),
       prevBtn: document.getElementById("prevBtn"),
       nextBtn: document.getElementById("nextBtn"),
@@ -890,16 +931,34 @@
       fallbackPicker: document.getElementById("fallbackPicker"),
       audioPlayer: document.getElementById("audioPlayer"),
       fullscreenOverlay: document.getElementById("fullscreenOverlay"),
-      fullscreenInfoSlot: document.getElementById("fullscreenInfoSlot"),
-      fullscreenModeBtn: document.getElementById("fullscreenModeBtn"),
+      fsVisualModeBtn: document.getElementById("fsVisualModeBtn"),
       fullscreenCloseBtn: document.getElementById("fullscreenCloseBtn"),
-      fsPlaylistBtn: document.getElementById("fsPlaylistBtn"),
-      fullscreenPlaylistPop: document.getElementById("fullscreenPlaylistPop"),
-      fullscreenPlaylistView: document.getElementById("fullscreenPlaylistView"),
-      fullscreenPlaylistStats: document.getElementById("fullscreenPlaylistStats"),
-      fullscreenSearchInput: document.getElementById("fullscreenSearchInput"),
-      fullscreenClearSearchBtn: document.getElementById("fullscreenClearSearchBtn"),
-      fullscreenPlaylistCloseBtn: document.getElementById("fullscreenPlaylistCloseBtn")
+      fsPlaylistToggleBtn: document.getElementById("fsPlaylistToggleBtn"),
+      fsPlaylistPopup: document.getElementById("fsPlaylistPopup"),
+      fsPlaylistModeText: document.getElementById("fsPlaylistModeText"),
+      fsSearchInput: document.getElementById("fsSearchInput"),
+      fsClearSearchBtn: document.getElementById("fsClearSearchBtn"),
+      fsPlaylistStats: document.getElementById("fsPlaylistStats"),
+      fsPlaylistView: document.getElementById("fsPlaylistView"),
+      fsTrackTitle: document.getElementById("fsTrackTitle"),
+      fsTrackFolder: document.getElementById("fsTrackFolder"),
+      fsTrackCount: document.getElementById("fsTrackCount"),
+      fsTrackDurationMeta: document.getElementById("fsTrackDurationMeta"),
+      fsCurrentTime: document.getElementById("fsCurrentTime"),
+      fsTotalTime: document.getElementById("fsTotalTime"),
+      fsSeekBar: document.getElementById("fsSeekBar"),
+      fsPlayBtn: document.getElementById("fsPlayBtn"),
+      fsPrevBtn: document.getElementById("fsPrevBtn"),
+      fsNextBtn: document.getElementById("fsNextBtn"),
+      fsStopBtn: document.getElementById("fsStopBtn"),
+      fsMuteBtn: document.getElementById("fsMuteBtn"),
+      fsBackBtn: document.getElementById("fsBackBtn"),
+      fsForwardBtn: document.getElementById("fsForwardBtn"),
+      fsFocusCurrentBtn: document.getElementById("fsFocusCurrentBtn"),
+      fsVolumeSlider: document.getElementById("fsVolumeSlider"),
+      fsSampleText: document.getElementById("fsSampleText"),
+      fsModeText: document.getElementById("fsModeText"),
+      fsVisualStatus: document.getElementById("fsVisualStatus")
     };
 
     function escapeHtml(str = "") {
@@ -985,7 +1044,7 @@
         const trackTotal = countTracksInTree(node);
         folderRows.push(`
           <div class="folder-row${folderOpen ? ' open' : ''}" data-folder-path="${escapeHtml(node.path)}" style="--depth:${indent}">
-            <div class="folder-toggle">${folderOpen ? '▾' : '▸'}</div>
+            <div class="folder-toggle"><span class="folder-icon">📁</span><span class="folder-arrow">${folderOpen ? '▾' : '▸'}</span></div>
             <div class="folder-copy">
               <div class="folder-name">${escapeHtml(node.path ? node.name : (state.rootName || 'MUSIC'))}</div>
               <div class="folder-meta">${trackTotal} track${trackTotal === 1 ? '' : 's'}</div>
@@ -1007,7 +1066,7 @@
           counters.value += 1;
           childHtml.push(`
             <div class="track-row${active}" data-track-index="${index}" style="--depth:${node.depth + 1}">
-              <div class="track-index">${counters.value}</div>
+              <div class="track-index"><span class="track-icon">🎵</span><span class="track-arrow">${counters.value}</span></div>
               <div class="track-copy">
                 <div class="track-name">${escapeHtml(getDisplayTitle(track))}</div>
                 <div class="track-path">${escapeHtml(track.path)}</div>
@@ -1212,14 +1271,48 @@
       updatePlaylistStats();
     }
 
+    function syncPlaylistMirror() {
+      el.fsPlaylistStats.textContent = el.playlistStats.textContent;
+      el.fsPlaylistModeText.textContent = el.playlistModeText.textContent;
+      el.fsPlaylistView.innerHTML = el.playlistView.innerHTML;
+      el.fsSearchInput.value = el.searchInput.value;
+    }
+
+    function positionFsPlaylistPopup() {
+      const popup = el.fsPlaylistPopup;
+      const button = el.fsPlaylistToggleBtn;
+      const shell = document.querySelector(".fullscreen-player-shell");
+      if (!popup || !button || !shell) return;
+
+      const shellRect = shell.getBoundingClientRect();
+      const buttonRect = button.getBoundingClientRect();
+      const popupWidth = Math.min(460, Math.max(320, window.innerWidth - 52));
+      const centerX = buttonRect.left - shellRect.left + (buttonRect.width / 2);
+      const minLeft = 18;
+      const maxLeft = Math.max(minLeft, shellRect.width - popupWidth - 18);
+      const left = Math.min(maxLeft, Math.max(minLeft, centerX - (popupWidth / 2)));
+      popup.style.left = `${left}px`;
+      popup.style.right = "auto";
+      popup.style.bottom = "76px";
+      popup.style.transform = "none";
+    }
+
+    function setFsPlaylistOpen(open) {
+      state.fsPlaylistOpen = !!open;
+      if (state.fsPlaylistOpen) positionFsPlaylistPopup();
+      el.fsPlaylistPopup.classList.toggle("open", state.fsPlaylistOpen);
+      el.fsPlaylistToggleBtn.classList.toggle("active", state.fsPlaylistOpen);
+    }
+
     function updatePlaylistStats() {
       const total = state.tracks.length;
       const visible = state.filteredTrackIndexes.length;
-      const statsText = qText(total, visible);
-      el.playlistStats.textContent = statsText;
-      if (el.fullscreenPlaylistStats) el.fullscreenPlaylistStats.textContent = statsText;
-      el.trackCount.textContent = `${total} track${total === 1 ? "" : "s"}`;
+      el.playlistStats.textContent = qText(total, visible);
+      const trackCountText = `${total} track${total === 1 ? "" : "s"}`;
+      el.trackCount.textContent = trackCountText;
+      el.fsTrackCount.textContent = trackCountText;
       el.playlistModeText.textContent = `Order: ${state.shuffle ? "shuffle" : "normal"}${state.repeat ? " • repeat on" : ""}`;
+      syncPlaylistMirror();
     }
 
     function qText(total, visible) {
@@ -1229,26 +1322,22 @@
     }
 
     function renderPlaylist() {
-      const emptyLoaded = `<div class="empty">Open a folder containing audio files to build a playlist.</div>`;
-      const emptyFiltered = `<div class="empty">No tracks match that search.</div>`;
-
       if (!state.tracks.length) {
-        el.playlistView.innerHTML = emptyLoaded;
-        if (el.fullscreenPlaylistView) el.fullscreenPlaylistView.innerHTML = emptyLoaded;
+        el.playlistView.innerHTML = `<div class="empty">Open a folder containing audio files to build a playlist.</div>`;
+        syncPlaylistMirror();
         return;
       }
 
       if (!state.filteredTrackIndexes.length) {
-        el.playlistView.innerHTML = emptyFiltered;
-        if (el.fullscreenPlaylistView) el.fullscreenPlaylistView.innerHTML = emptyFiltered;
+        el.playlistView.innerHTML = `<div class="empty">No tracks match that search.</div>`;
+        syncPlaylistMirror();
         return;
       }
 
       const tree = createPlaylistTree(state.filteredTrackIndexes);
       const counters = { value: 0 };
-      const html = renderPlaylistNode(tree, counters);
-      el.playlistView.innerHTML = html;
-      if (el.fullscreenPlaylistView) el.fullscreenPlaylistView.innerHTML = html;
+      el.playlistView.innerHTML = renderPlaylistNode(tree, counters);
+      syncPlaylistMirror();
     }
 
     function updatePlayButtons() {
@@ -1256,26 +1345,38 @@
       const label = playing ? "⏸ PAUSE" : "▶ PLAY";
       el.playBtn.textContent = label;
       el.playTopBtn.textContent = playing ? "⏸" : "▶";
-      el.visualStatus.textContent = playing ? "Signal live." : (state.tracks.length ? "Standing by." : "No signal.");
+      el.fsPlayBtn.textContent = label;
+      const visualLabel = playing ? "Signal live." : (state.tracks.length ? "Standing by." : "No signal.");
+      el.visualStatus.textContent = visualLabel;
+      el.fsVisualStatus.textContent = visualLabel;
     }
 
     function updateTransportButtons() {
       const hasTracks = state.tracks.length > 0;
       [el.playBtn, el.playTopBtn, el.prevBtn, el.nextBtn, el.stopBtn, el.backBtn, el.forwardBtn,
-       el.focusCurrentBtn, el.fullscreenBtn].forEach(btn => btn.disabled = !hasTracks && btn !== el.fullscreenBtn);
+       el.focusCurrentBtn, el.fullscreenBtn, el.fsPrevBtn, el.fsPlayBtn,
+       el.fsNextBtn, el.fsStopBtn, el.fsBackBtn, el.fsForwardBtn, el.fsFocusCurrentBtn].forEach(btn => btn.disabled = !hasTracks && btn !== el.fullscreenBtn);
       el.fullscreenBtn.disabled = !hasTracks;
     }
 
     function updateNowPlaying() {
       const track = getTrack();
-      const title = track ? getDisplayTitle(track) : "No track selected";
+      const title = state.titleClearedOnStop ? "" : (track ? getDisplayTitle(track) : "No track selected");
       el.trackTitle.textContent = title;
-      el.trackFolder.textContent = `Folder: ${track ? track.folder : "none"}`;
+      el.fsTrackTitle.textContent = title;
+      const folderText = `Folder: ${track ? track.folder : "none"}`;
+      el.trackFolder.textContent = folderText;
+      el.fsTrackFolder.textContent = folderText;
 
       const total = isFinite(el.audioPlayer.duration) ? el.audioPlayer.duration : (track ? state.durationCache.get(track.path) || 0 : 0);
-      el.trackDurationMeta.textContent = `Duration: ${formatTime(total)}`;
+      const durationText = `Duration: ${formatTime(total)}`;
+      el.trackDurationMeta.textContent = durationText;
+      el.fsTrackDurationMeta.textContent = durationText;
       el.totalTime.textContent = formatTime(total);
+      el.fsTotalTime.textContent = formatTime(total);
       el.currentTime.textContent = formatTime(el.audioPlayer.currentTime || 0);
+      el.fsCurrentTime.textContent = formatTime(el.audioPlayer.currentTime || 0);
+      el.fsTrackCount.textContent = el.trackCount.textContent;
 
       if (track) {
         el.toolbarTitle.textContent = `${title} • ${track.folder}`;
@@ -1307,6 +1408,8 @@
       if (state.currentIndex < 0) {
         await loadTrack(getNextPlayableIndex(1, true), false);
       }
+      state.titleClearedOnStop = false;
+      updateNowPlaying();
       await ensureAudioGraph();
       try {
         await el.audioPlayer.play();
@@ -1318,6 +1421,7 @@
 
     function stopPlayback(resetPosition = false) {
       el.audioPlayer.pause();
+      state.titleClearedOnStop = true;
       if (resetPosition) {
         el.audioPlayer.removeAttribute("src");
         el.audioPlayer.load();
@@ -1378,20 +1482,25 @@
       const duration = el.audioPlayer.duration;
       const current = el.audioPlayer.currentTime;
       if (!state.isSeeking && isFinite(duration) && duration > 0) {
-        el.seekBar.value = String(Math.round((current / duration) * 1000));
+        const seekValue = String(Math.round((current / duration) * 1000));
+        el.seekBar.value = seekValue;
+        el.fsSeekBar.value = seekValue;
       }
-      el.currentTime.textContent = formatTime(current || 0);
-      el.totalTime.textContent = formatTime(duration || 0);
-      el.fullscreenTrackMeta.textContent = `${formatTime(current || 0)} / ${formatTime(duration || 0)}`;
+      const currentText = formatTime(current || 0);
+      const totalText = formatTime(duration || 0);
+      el.currentTime.textContent = currentText;
+      el.fsCurrentTime.textContent = currentText;
+      el.totalTime.textContent = totalText;
+      el.fsTotalTime.textContent = totalText;
       const track = getTrack();
       if (track && isFinite(duration) && duration > 0) {
         state.durationCache.set(track.path, duration);
       }
     }
 
-    function focusCurrentTrack(targetView = el.playlistView) {
-      if (state.currentIndex < 0 || !targetView) return;
-      const row = targetView.querySelector(`.track-row[data-track-index="${state.currentIndex}"]`);
+    function focusCurrentTrack() {
+      if (state.currentIndex < 0) return;
+      const row = el.playlistView.querySelector(`.track-row[data-track-index="${state.currentIndex}"]`);
       row?.scrollIntoView({ block: "center", behavior: "smooth" });
     }
 
@@ -1512,107 +1621,30 @@
     function cycleVisualMode() {
       const current = VISUAL_MODES.indexOf(state.visualMode);
       state.visualMode = VISUAL_MODES[(current + 1) % VISUAL_MODES.length];
-      el.modeText.textContent = state.visualMode.toUpperCase();
-      el.sampleText.textContent = state.visualMode === "line-spectrum" ? "FREQUENCY DOMAIN" : "TIME DOMAIN";
+      const modeLabel = state.visualMode.toUpperCase();
+      const sampleLabel = state.visualMode === "line-spectrum" ? "FREQUENCY DOMAIN" : "TIME DOMAIN";
+      el.modeText.textContent = modeLabel;
+      el.fsModeText.textContent = modeLabel;
+      el.sampleText.textContent = sampleLabel;
+      el.fsSampleText.textContent = sampleLabel;
     }
 
     function syncMuteButtons() {
       const muted = el.audioPlayer.muted || el.audioPlayer.volume === 0;
       const label = muted ? "🔇" : "🔊";
       el.muteBtn.textContent = label;
+      el.fsMuteBtn.textContent = label;
     }
 
-    function isAnyFullscreen() {
-      return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
-    }
-
-    async function enterScopedFullscreen() {
-      const target = el.fullscreenOverlay;
-      if (!target) return false;
-      try {
-        if (target.requestFullscreen) {
-          await target.requestFullscreen();
-          return true;
-        }
-        if (target.webkitRequestFullscreen) {
-          target.webkitRequestFullscreen();
-          return true;
-        }
-        if (target.msRequestFullscreen) {
-          target.msRequestFullscreen();
-          return true;
-        }
-      } catch (err) {
-        console.error(err);
-      }
-      return false;
-    }
-
-    async function exitScopedFullscreen() {
-      try {
-        if (document.fullscreenElement && document.exitFullscreen) {
-          await document.exitFullscreen();
-          return;
-        }
-        if (document.webkitFullscreenElement && document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-          return;
-        }
-        if (document.msFullscreenElement && document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-
-    function mountPlayerInfoPanel(inFullscreen) {
-      const target = inFullscreen ? el.fullscreenInfoSlot : el.playerInfoHome;
-      if (!target || !el.playerInfoPanel) return;
-      if (el.playerInfoPanel.parentElement !== target) {
-        target.appendChild(el.playerInfoPanel);
-      }
-    }
-
-    function setFullscreenPlaylistOpen(open) {
-      if (!el.fullscreenPlaylistPop) return;
-      el.fullscreenPlaylistPop.classList.toggle("open", open);
-      el.fullscreenPlaylistPop.setAttribute("aria-hidden", open ? "false" : "true");
-      if (open) {
-        el.fullscreenSearchInput.value = state.search || "";
-        renderPlaylist();
-        if (state.currentIndex >= 0) {
-          requestAnimationFrame(() => focusCurrentTrack(el.fullscreenPlaylistView));
-        }
-      }
-    }
-
-    function toggleFullscreenPlaylist(force) {
-      const open = typeof force === "boolean"
-        ? force
-        : !el.fullscreenPlaylistPop.classList.contains("open");
-      setFullscreenPlaylistOpen(open);
-    }
-
-    async function toggleFullscreenOverlay() {
+    function toggleFullscreenOverlay() {
       if (!state.tracks.length) return;
-      const opening = !el.fullscreenOverlay.classList.contains("open");
-
-      if (opening) {
-        mountPlayerInfoPanel(true);
-        el.fullscreenOverlay.classList.add("open");
-        setFullscreenPlaylistOpen(false);
-        renderVisualizerToCanvas(el.fullscreenCanvas);
-        await enterScopedFullscreen();
-      } else {
-        setFullscreenPlaylistOpen(false);
-        el.fullscreenOverlay.classList.remove("open");
-        mountPlayerInfoPanel(false);
-        if (isAnyFullscreen()) {
-          await exitScopedFullscreen();
-        }
-      }
+      const willOpen = !el.fullscreenOverlay.classList.contains("open");
+      el.fullscreenOverlay.classList.toggle("open", willOpen);
+      setFsPlaylistOpen(false);
+      syncVolumeSliders(el.audioPlayer.volume);
+      updateNowPlaying();
+      updateSeekBar();
+      renderVisualizerToCanvas(el.fullscreenCanvas);
     }
 
     async function primeDurations() {
@@ -1647,17 +1679,25 @@
     el.playTopBtn.addEventListener("click", togglePlay);
     el.prevBtn.addEventListener("click", () => playAdjacent(-1));
     el.nextBtn.addEventListener("click", () => playAdjacent(1));
+    el.fsPrevBtn.addEventListener("click", () => playAdjacent(-1));
+    el.fsNextBtn.addEventListener("click", () => playAdjacent(1));
+    el.fsPlayBtn.addEventListener("click", togglePlay);
 
     el.stopBtn.addEventListener("click", () => stopPlayback(false));
-    el.backBtn.addEventListener("click", () => {
+    el.fsStopBtn.addEventListener("click", () => stopPlayback(false));
+    const seekBackTen = () => {
       el.audioPlayer.currentTime = Math.max(0, (el.audioPlayer.currentTime || 0) - 10);
       updateSeekBar();
-    });
-    el.forwardBtn.addEventListener("click", () => {
+    };
+    const seekForwardTen = () => {
       const duration = el.audioPlayer.duration || 0;
       el.audioPlayer.currentTime = Math.min(duration, (el.audioPlayer.currentTime || 0) + 10);
       updateSeekBar();
-    });
+    };
+    el.backBtn.addEventListener("click", seekBackTen);
+    el.fsBackBtn.addEventListener("click", seekBackTen);
+    el.forwardBtn.addEventListener("click", seekForwardTen);
+    el.fsForwardBtn.addEventListener("click", seekForwardTen);
 
     el.shuffleBtn.addEventListener("click", () => {
       state.shuffle = !state.shuffle;
@@ -1672,26 +1712,57 @@
     });
 
     el.visualModeBtn.addEventListener("click", cycleVisualMode);
-    el.fullscreenModeBtn.addEventListener("click", cycleVisualMode);
-    el.focusCurrentBtn.addEventListener("click", focusCurrentTrack);
+    el.fsVisualModeBtn.addEventListener("click", cycleVisualMode);
+    el.fsPlaylistToggleBtn.addEventListener("click", () => setFsPlaylistOpen(!state.fsPlaylistOpen));
 
-    el.seekBar.addEventListener("input", () => {
+    window.addEventListener("resize", () => {
+      if (state.fsPlaylistOpen) positionFsPlaylistPopup();
+    });
+    el.focusCurrentBtn.addEventListener("click", focusCurrentTrack);
+    el.fsFocusCurrentBtn.addEventListener("click", focusCurrentTrack);
+
+    function handleSeekInput(sourceBar, targetTimeEl) {
       state.isSeeking = true;
       const duration = el.audioPlayer.duration || 0;
-      const value = Number(el.seekBar.value) / 1000;
+      const value = Number(sourceBar.value) / 1000;
       el.currentTime.textContent = formatTime(duration * value);
-    });
+      el.fsCurrentTime.textContent = formatTime(duration * value);
+      targetTimeEl.textContent = formatTime(duration * value);
+    }
 
-    el.seekBar.addEventListener("change", () => {
+    function handleSeekChange(sourceBar) {
       const duration = el.audioPlayer.duration || 0;
-      const value = Number(el.seekBar.value) / 1000;
+      const value = Number(sourceBar.value) / 1000;
       el.audioPlayer.currentTime = duration * value;
+      el.seekBar.value = sourceBar.value;
+      el.fsSeekBar.value = sourceBar.value;
       state.isSeeking = false;
       updateSeekBar();
-    });
+    }
+
+    el.seekBar.addEventListener("input", () => handleSeekInput(el.seekBar, el.currentTime));
+    el.fsSeekBar.addEventListener("input", () => handleSeekInput(el.fsSeekBar, el.fsCurrentTime));
+
+    el.seekBar.addEventListener("change", () => handleSeekChange(el.seekBar));
+    el.fsSeekBar.addEventListener("change", () => handleSeekChange(el.fsSeekBar));
+
+    function syncVolumeSliders(value) {
+      el.volumeSlider.value = String(value);
+      el.fsVolumeSlider.value = String(value);
+    }
 
     el.volumeSlider.addEventListener("input", () => {
       el.audioPlayer.volume = Number(el.volumeSlider.value);
+      syncVolumeSliders(el.audioPlayer.volume);
+      if (el.audioPlayer.volume > 0 && el.audioPlayer.muted) {
+        el.audioPlayer.muted = false;
+      }
+      syncMuteButtons();
+    });
+
+    el.fsVolumeSlider.addEventListener("input", () => {
+      el.audioPlayer.volume = Number(el.fsVolumeSlider.value);
+      syncVolumeSliders(el.audioPlayer.volume);
       if (el.audioPlayer.volume > 0 && el.audioPlayer.muted) {
         el.audioPlayer.muted = false;
       }
@@ -1704,32 +1775,32 @@
     }
 
     el.muteBtn.addEventListener("click", toggleMute);
-
-    function syncSearchInputs() {
-      el.searchInput.value = state.search || "";
-      if (el.fullscreenSearchInput) el.fullscreenSearchInput.value = state.search || "";
-    }
-
-    function applyPlaylistSearch(value) {
-      state.search = value || "";
-      syncSearchInputs();
-      updateFilter();
-    }
+    el.fsMuteBtn.addEventListener("click", toggleMute);
 
     el.searchInput.addEventListener("input", () => {
-      applyPlaylistSearch(el.searchInput.value);
+      state.search = el.searchInput.value || "";
+      el.fsSearchInput.value = el.searchInput.value;
+      updateFilter();
     });
 
-    el.fullscreenSearchInput.addEventListener("input", () => {
-      applyPlaylistSearch(el.fullscreenSearchInput.value);
+    el.fsSearchInput.addEventListener("input", () => {
+      state.search = el.fsSearchInput.value || "";
+      el.searchInput.value = el.fsSearchInput.value;
+      updateFilter();
     });
 
     el.clearSearchBtn.addEventListener("click", () => {
-      applyPlaylistSearch("");
+      state.search = "";
+      el.searchInput.value = "";
+      el.fsSearchInput.value = "";
+      updateFilter();
     });
 
-    el.fullscreenClearSearchBtn.addEventListener("click", () => {
-      applyPlaylistSearch("");
+    el.fsClearSearchBtn.addEventListener("click", () => {
+      state.search = "";
+      el.searchInput.value = "";
+      el.fsSearchInput.value = "";
+      updateFilter();
     });
 
     async function handlePlaylistClick(e) {
@@ -1742,14 +1813,24 @@
         return;
       }
 
-      const row = e.target.closest("[data-track-index]");
+      const row = e.target.closest(".track-row[data-track-index]");
       if (!row) return;
       const index = Number(row.dataset.trackIndex);
+      if (Number.isNaN(index)) return;
       await loadTrack(index, true);
     }
 
     el.playlistView.addEventListener("click", handlePlaylistClick);
-    el.fullscreenPlaylistView.addEventListener("click", handlePlaylistClick);
+    el.fsPlaylistView.addEventListener("click", (e) => {
+      e.stopPropagation();
+      handlePlaylistClick(e);
+    });
+    el.fsPlaylistPopup.addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    el.fsPlaylistPopup.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+    });
 
     el.fallbackPicker.addEventListener("change", (e) => {
       const files = e.target.files;
@@ -1777,8 +1858,11 @@
 
     el.fullscreenBtn.addEventListener("click", toggleFullscreenOverlay);
     el.fullscreenCloseBtn.addEventListener("click", toggleFullscreenOverlay);
-    el.fsPlaylistBtn.addEventListener("click", () => toggleFullscreenPlaylist());
-    el.fullscreenPlaylistCloseBtn.addEventListener("click", () => toggleFullscreenPlaylist(false));
+    el.fullscreenOverlay.addEventListener("click", (e) => {
+      if (!state.fsPlaylistOpen) return;
+      if (e.target.closest("#fsPlaylistPopup") || e.target.closest("#fsPlaylistToggleBtn")) return;
+      setFsPlaylistOpen(false);
+    });
 
     window.addEventListener("keydown", async (e) => {
       const tag = (e.target.tagName || "").toLowerCase();
@@ -1845,27 +1929,7 @@
 
       if (e.key === "Escape" && el.fullscreenOverlay.classList.contains("open")) {
         e.preventDefault();
-        if (el.fullscreenPlaylistPop.classList.contains("open")) {
-          toggleFullscreenPlaylist(false);
-        } else {
-          toggleFullscreenOverlay();
-        }
-      }
-    });
-
-    document.addEventListener("fullscreenchange", () => {
-      if (!document.fullscreenElement && el.fullscreenOverlay.classList.contains("open")) {
-        setFullscreenPlaylistOpen(false);
-        el.fullscreenOverlay.classList.remove("open");
-        mountPlayerInfoPanel(false);
-      }
-    });
-
-    document.addEventListener("webkitfullscreenchange", () => {
-      if (!document.webkitFullscreenElement && el.fullscreenOverlay.classList.contains("open")) {
-        setFullscreenPlaylistOpen(false);
-        el.fullscreenOverlay.classList.remove("open");
-        mountPlayerInfoPanel(false);
+        toggleFullscreenOverlay();
       }
     });
 
@@ -1874,8 +1938,7 @@
       renderVisualizerToCanvas(el.fullscreenCanvas);
     });
 
-    mountPlayerInfoPanel(false);
-    syncSearchInputs();
+    syncVolumeSliders(el.audioPlayer.volume);
     syncMuteButtons();
     updatePathBar();
     updatePlayButtons();
