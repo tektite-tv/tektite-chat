@@ -409,16 +409,26 @@
       padding-left: calc(14px + (var(--depth, 0) * 18px));
       border-bottom: 1px solid rgba(0,255,0,0.09);
       cursor: pointer;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      transition: background 0.15s ease, border-color 0.15s ease, outline-color 0.15s ease, outline-offset 0.15s ease;
+      outline: 3px dashed transparent;
+      outline-offset: -3px;
     }
 
-    .folder-row {
-      background: linear-gradient(90deg, rgba(102,0,204,0.10), rgba(0,255,0,0.03));
+    .playlist .folder-row:nth-child(odd),
+    .playlist .track-row:nth-child(odd) {
+      background: rgba(90, 90, 90, 0.22);
+    }
+
+    .playlist .folder-row:nth-child(even),
+    .playlist .track-row:nth-child(even) {
+      background: rgba(145, 145, 145, 0.12);
     }
 
     .folder-row:hover,
     .track-row:hover {
       background: rgba(0,255,0,0.05);
+      outline-color: var(--line);
+      outline-offset: -3px;
     }
 
     .folder-row.open {
@@ -445,6 +455,15 @@
     .folder-copy,
     .track-copy {
       min-width: 0;
+    }
+
+    .folder-icon,
+    .track-icon {
+      font-size: 24px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .folder-name {
@@ -580,7 +599,7 @@
       bottom: 170px;
       transform: translateX(-50%);
       width: min(460px, calc(100vw - 52px));
-      max-height: min(76vh, 860px);
+      max-height: min(calc(76vh - 15px), 845px);
       display: none;
       z-index: 5;
       overflow: hidden;
@@ -1291,9 +1310,11 @@
       const minLeft = 18;
       const maxLeft = Math.max(minLeft, shellRect.width - popupWidth - 18);
       const left = Math.min(maxLeft, Math.max(minLeft, centerX - (popupWidth / 2)));
+      const buttonTopFromShell = buttonRect.top - shellRect.top;
+      const popupBottom = Math.max(92, (shellRect.height - buttonTopFromShell) + 58);
       popup.style.left = `${left}px`;
       popup.style.right = "auto";
-      popup.style.bottom = "76px";
+      popup.style.bottom = `${popupBottom}px`;
       popup.style.transform = "none";
     }
 
@@ -1359,6 +1380,12 @@
       el.fullscreenBtn.disabled = !hasTracks;
     }
 
+    function updateActivePlaylistRows() {
+      document.querySelectorAll('.track-row.active').forEach((row) => row.classList.remove('active'));
+      if (state.currentIndex < 0) return;
+      document.querySelectorAll(`.track-row[data-track-index="${state.currentIndex}"]`).forEach((row) => row.classList.add('active'));
+    }
+
     function updateNowPlaying() {
       const track = getTrack();
       const title = state.titleClearedOnStop ? "" : (track ? getDisplayTitle(track) : "No track selected");
@@ -1382,7 +1409,7 @@
         el.toolbarTitle.textContent = `${title} • ${track.folder}`;
       }
 
-      renderPlaylist();
+      updateActivePlaylistRows();
       updatePlayButtons();
     }
 
@@ -1636,15 +1663,54 @@
       el.fsMuteBtn.textContent = label;
     }
 
-    function toggleFullscreenOverlay() {
-      if (!state.tracks.length) return;
-      const willOpen = !el.fullscreenOverlay.classList.contains("open");
-      el.fullscreenOverlay.classList.toggle("open", willOpen);
+    function getFullscreenElement() {
+      return document.fullscreenElement || document.webkitFullscreenElement || null;
+    }
+
+    async function requestRealFullscreen(target) {
+      if (target.requestFullscreen) return target.requestFullscreen();
+      if (target.webkitRequestFullscreen) return target.webkitRequestFullscreen();
+    }
+
+    async function exitRealFullscreen() {
+      if (document.exitFullscreen) return document.exitFullscreen();
+      if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+    }
+
+    function openFullscreenOverlayUI() {
+      el.fullscreenOverlay.classList.add("open");
       setFsPlaylistOpen(false);
       syncVolumeSliders(el.audioPlayer.volume);
       updateNowPlaying();
       updateSeekBar();
       renderVisualizerToCanvas(el.fullscreenCanvas);
+    }
+
+    function closeFullscreenOverlayUI() {
+      el.fullscreenOverlay.classList.remove("open");
+      setFsPlaylistOpen(false);
+    }
+
+    async function toggleFullscreenOverlay() {
+      if (!state.tracks.length) return;
+      const willOpen = !el.fullscreenOverlay.classList.contains("open");
+      if (willOpen) {
+        openFullscreenOverlayUI();
+        try {
+          await requestRealFullscreen(document.documentElement);
+        } catch (err) {
+          console.warn("Fullscreen request failed:", err);
+        }
+      } else {
+        closeFullscreenOverlayUI();
+        if (getFullscreenElement()) {
+          try {
+            await exitRealFullscreen();
+          } catch (err) {
+            console.warn("Exiting fullscreen failed:", err);
+          }
+        }
+      }
     }
 
     async function primeDurations() {
@@ -1862,6 +1928,18 @@
       if (!state.fsPlaylistOpen) return;
       if (e.target.closest("#fsPlaylistPopup") || e.target.closest("#fsPlaylistToggleBtn")) return;
       setFsPlaylistOpen(false);
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+      if (!getFullscreenElement() && el.fullscreenOverlay.classList.contains("open")) {
+        closeFullscreenOverlayUI();
+      }
+    });
+
+    document.addEventListener("webkitfullscreenchange", () => {
+      if (!getFullscreenElement() && el.fullscreenOverlay.classList.contains("open")) {
+        closeFullscreenOverlayUI();
+      }
     });
 
     window.addEventListener("keydown", async (e) => {
