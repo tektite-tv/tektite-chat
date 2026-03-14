@@ -18,7 +18,7 @@
       --danger: #8a2bff;
       --shadow: 0 0 0 1px rgba(0,255,0,0.28), 0 0 18px rgba(0,255,0,0.08);
       --font-main: "Consolas", "Lucida Console", "Courier New", monospace;
-      --glow: 0 0 8px rgba(0,255,0,0.35);
+      --glow: 0 0 8px rgba(138,43,255,0.35);
     }
 
     * { box-sizing: border-box; }
@@ -58,7 +58,7 @@
     button {
       background: #000;
       color: var(--text);
-      border: 2px solid var(--line);
+      border: 2px solid var(--danger);
       cursor: pointer;
       padding: 10px 14px;
       transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.2s ease;
@@ -66,7 +66,7 @@
     }
 
     button:hover {
-      background: rgba(0,255,0,0.08);
+      background: rgba(138,43,255,0.08);
     }
 
     button:active {
@@ -84,9 +84,185 @@
       font-weight: bold;
     }
 
+    @keyframes rainbowHueShift {
+      from {
+        filter: hue-rotate(0deg);
+      }
+      to {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    #playBtn,
+    #fsPlayBtn {
+      width: 112px;
+      min-width: 112px;
+      max-width: 112px;
+      height: 40px;
+      min-height: 40px;
+      padding: 0 12px;
+      line-height: 1;
+      font-size: 20px;
+      font-weight: 700;
+      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      vertical-align: middle;
+      white-space: nowrap;
+      overflow: hidden;
+      flex: 0 0 112px;
+      position: relative;
+      animation: rainbowHueShift 6s linear infinite;
+    }
+
+    #prevBtn,
+    #nextBtn,
+    #fsPrevBtn,
+    #fsNextBtn {
+      height: 40px;
+      min-height: 40px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .toolbar > button {
+      height: 42px;
+      min-height: 42px;
+      box-sizing: border-box;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    #playTopBtn {
+      width: 42px;
+      min-width: 42px;
+      max-width: 42px;
+      height: 42px;
+      min-height: 42px;
+      padding: 0;
+      font-size: 22px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      flex: 0 0 42px;
+      white-space: nowrap;
+      overflow: hidden;
+      position: relative;
+      animation: rainbowHueShift 6s linear infinite;
+    }
+
+    #playTopBtn.is-playing,
+    #playBtn.is-playing,
+    #fsPlayBtn.is-playing {
+      color: #ff4d4d;
+      border-color: #ff4d4d;
+      box-shadow: 0 0 8px rgba(255,77,77,0.35);
+      transform: none;
+    }
+
+    #playTopBtn.is-playing {
+      padding-top: 0;
+    }
+
+    #playBtn.is-playing,
+    #fsPlayBtn.is-playing {
+      padding-top: 0;
+    }
+
+    #playTopBtn.is-playing:hover,
+    #playBtn.is-playing:hover,
+    #fsPlayBtn.is-playing:hover {
+      background: rgba(255,77,77,0.08);
+    }
+
+    #playTopBtn .btn-label,
+    #playBtn .btn-label,
+    #fsPlayBtn .btn-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      line-height: 1;
+    }
+
+    #playTopBtn.is-playing,
+    #playBtn.is-playing,
+    #fsPlayBtn.is-playing {
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    #playTopBtn.is-playing::before,
+    #playBtn.is-playing::before,
+    #fsPlayBtn.is-playing::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid #ff4d4d;
+      box-sizing: border-box;
+      pointer-events: none;
+      animation: rainbowHueShift 6s linear infinite reverse;
+      filter: hue-rotate(180deg);
+      z-index: 0;
+    }
+
+    #playTopBtn.is-playing .btn-label,
+    #playBtn.is-playing .btn-label,
+    #fsPlayBtn.is-playing .btn-label {
+      position: relative;
+      z-index: 1;
+      color: #ff4d4d;
+      animation: rainbowHueShift 6s linear infinite;
+    }
+
+
+    #fullscreenBtn {
+      position: relative;
+      overflow: hidden;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    #fullscreenBtn::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 2px solid #8a2bff;
+      box-sizing: border-box;
+      pointer-events: none;
+      animation: rainbowHueShift 6s linear infinite reverse;
+      filter: hue-rotate(180deg);
+      z-index: 0;
+    }
+
+    #fullscreenBtn .btn-label {
+      position: relative;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      color: var(--text);
+      animation: rainbowHueShift 6s linear infinite;
+    }
+
     .toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 220px) auto auto auto minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 220px) auto minmax(0, 1fr) auto;
+      grid-auto-rows: 42px;
       gap: 8px;
       align-items: center;
       padding: 10px 12px;
@@ -97,10 +273,40 @@
     .toolbar-title {
       min-width: 0;
       overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
-      color: var(--text-dim);
-      font-size: 13px;
+      color: var(--text);
+      font-size: clamp(18px, 1.35vw, 24px);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 12px rgba(0,255,0,0.2);
+    }
+
+    .toolbar-title > span,
+    .toolbar-title > .marquee-track,
+    #fsTrackFolder > .marquee-track {
+      display: inline-block;
+      min-width: 100%;
+      will-change: transform;
+    }
+
+    .toolbar-title.looping > .marquee-track,
+    #fsTrackFolder.looping > .marquee-track {
+      display: inline-flex;
+      align-items: center;
+      min-width: max-content;
+      will-change: transform;
+      animation: toolbarTicker var(--ticker-duration, 16s) linear infinite;
+    }
+
+    .toolbar-title.looping > .marquee-track > span,
+    #fsTrackFolder.looping > .marquee-track > span {
+      flex: 0 0 auto;
+      white-space: nowrap;
+    }
+
+    .toolbar-title.looping > .marquee-track > span + span,
+    #fsTrackFolder.looping > .marquee-track > span + span {
+      margin-left: var(--ticker-gap, 48px);
     }
 
     .pathbar {
@@ -250,6 +456,7 @@
       padding: 12px;
       border-top: 1px solid rgba(0,255,0,0.12);
       background: linear-gradient(180deg, rgba(102,0,204,0.12), rgba(0,0,0,0));
+      overflow: hidden;
     }
 
     .now-playing-label {
@@ -270,10 +477,66 @@
 
     .track-meta {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: 14px;
-      color: var(--text-dim);
+      color: transparent;
       font-size: 13px;
+      user-select: none;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
+      contain: layout paint;
+    }
+
+    #trackFolder,
+    #fsTrackFolder {
+      display: block;
+      flex: 1 1 auto;
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      box-sizing: border-box;
+      color: var(--text);
+      font-size: clamp(16px, 1.45vw, 22px);
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      text-shadow: 0 0 12px rgba(0,255,0,0.2);
+    }
+
+    #trackFolder > span,
+    #fsTrackFolder > span {
+      display: inline-block;
+      min-width: max-content;
+      will-change: transform;
+    }
+
+    #trackFolder.marquee > span,
+    #fsTrackFolder.marquee > span {
+      padding-right: 3rem;
+      animation: trackPathMarquee 12s linear infinite;
+    }
+
+    @keyframes trackPathMarquee {
+      0%, 10% {
+        transform: translateX(0);
+      }
+      90%, 100% {
+        transform: translateX(calc(-1 * var(--marquee-shift, 0px)));
+      }
+    }
+
+    @keyframes toolbarTicker {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(calc(-1 * var(--ticker-step, 0px)));
+      }
     }
 
     .seek-wrap {
@@ -291,16 +554,36 @@
       font-size: 12px;
     }
 
+    #timeHint,
+    #fsTimeHint {
+      display: inline !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      width: auto !important;
+      min-width: 0 !important;
+      overflow: visible !important;
+      pointer-events: auto !important;
+    }
+
     input[type="range"] {
       width: 100%;
       background: transparent;
       cursor: pointer;
+      --seek-progress: 0%;
+      --thumb-size: 16px;
+      --thumb-scale: 1;
+      --thumb-ring: transparent;
     }
 
+    
     #seekBar::-webkit-slider-runnable-track,
     #fsSeekBar::-webkit-slider-runnable-track {
       height: 8px;
-      background: linear-gradient(90deg, rgba(140,64,255,0.82), rgba(102,0,204,0.95));
+      background: linear-gradient(90deg,
+        rgba(0,255,0,0.95) 0%,
+        rgba(0,255,0,0.95) var(--seek-progress),
+        rgba(140,64,255,0.82) var(--seek-progress),
+        rgba(102,0,204,0.95) 100%);
       border: 1px solid rgba(180,120,255,0.45);
       box-shadow: 0 0 12px rgba(102,0,204,0.32);
     }
@@ -308,7 +591,11 @@
     #seekBar::-moz-range-track,
     #fsSeekBar::-moz-range-track {
       height: 8px;
-      background: linear-gradient(90deg, rgba(140,64,255,0.82), rgba(102,0,204,0.95));
+      background: linear-gradient(90deg,
+        rgba(0,255,0,0.95) 0%,
+        rgba(0,255,0,0.95) var(--seek-progress),
+        rgba(140,64,255,0.82) var(--seek-progress),
+        rgba(102,0,204,0.95) 100%);
       border: 1px solid rgba(180,120,255,0.45);
       box-shadow: 0 0 12px rgba(102,0,204,0.32);
     }
@@ -322,13 +609,16 @@
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       appearance: none;
-      width: 14px;
-      height: 14px;
+      width: var(--thumb-size);
+      height: var(--thumb-size);
       border-radius: 50%;
       background: var(--line);
-      margin-top: -4px;
-      box-shadow: 0 0 10px rgba(0,255,0,0.45);
+      margin-top: calc((8px - 16px) / 2);
+      transform: scale(var(--thumb-scale));
+      transform-origin: center center;
+      box-shadow: 0 0 10px rgba(0,255,0,0.45), 0 0 0 1px var(--thumb-ring);
       border: none;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
     }
 
     input[type="range"]::-moz-range-track {
@@ -338,12 +628,26 @@
     }
 
     input[type="range"]::-moz-range-thumb {
-      width: 14px;
-      height: 14px;
+      width: var(--thumb-size);
+      height: var(--thumb-size);
       border-radius: 50%;
       background: var(--line);
-      box-shadow: 0 0 10px rgba(0,255,0,0.45);
+      transform: scale(var(--thumb-scale));
+      transform-origin: center center;
+      box-shadow: 0 0 10px rgba(0,255,0,0.45), 0 0 0 1px var(--thumb-ring);
       border: none;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    #seekBar:hover,
+    #fsSeekBar:hover {
+      --thumb-scale: 1.35;
+    }
+
+    #seekBar.dragging,
+    #fsSeekBar.dragging {
+      --thumb-scale: 1.35;
+      --thumb-ring: rgba(160, 110, 255, 0.95);
     }
 
     .controls {
@@ -362,12 +666,61 @@
       min-width: 0;
     }
 
+    .controls .control-group:first-child {
+      align-items: stretch;
+    }
+
+    .controls .control-group:first-child > button,
+    #playBtn,
+    #fsPlayBtn,
+    #playBtn.is-playing,
+    #fsPlayBtn.is-playing,
+    #prevBtn,
+    #nextBtn,
+    #fsPrevBtn,
+    #fsNextBtn,
+    #playTopBtn,
+    #playTopBtn.is-playing,
+    .toolbar > button {
+      align-self: stretch;
+      margin: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
     .vol-wrap {
       display: flex;
       align-items: center;
       gap: 10px;
       min-width: 120px;
       justify-self: end;
+    }
+
+    .vol-labels {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
+      gap: 3px;
+      min-width: 42px;
+    }
+
+    .vol-labels .vol-text {
+      font-weight: 700;
+      font-size: 12px;
+      color: var(--line);
+      letter-spacing: 0.08em;
+    }
+
+    .vol-labels .vol-percent {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--line);
+      letter-spacing: 0.08em;
+      width: 100%;
+      text-align: center;
     }
 
     .vol-wrap input {
@@ -394,7 +747,7 @@
       padding: 10px 12px;
       background: #000;
       color: var(--text);
-      border: 2px solid var(--line);
+      border: 2px solid var(--danger);
       outline: none;
     }
 
@@ -450,7 +803,7 @@
     .search-suggestion.active {
       outline: 3px dashed #00ff00;
       outline-offset: -3px;
-      background: rgba(0,255,0,0.08);
+      background: rgba(138,43,255,0.08);
     }
 
     .suggestion-path {
@@ -637,6 +990,36 @@
 
     .fullscreen-player-shell .player-topbar {
       padding: 0;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: stretch;
+    }
+
+    .fullscreen-player-shell .player-top-info {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .fullscreen-player-shell .player-top-actions {
+      min-width: max-content;
+      flex: 0 0 auto;
+      justify-content: flex-end;
+      flex-wrap: nowrap;
+      overflow: visible;
+    }
+
+    .fullscreen-player-shell .track-meta {
+      justify-content: flex-start;
+    }
+
+    .fullscreen-player-shell #fsTrackFolder {
+      flex: 1 1 100%;
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .fullscreen-player-shell #fsTrackCount,
+    .fullscreen-player-shell #fsTrackDurationMeta {
+      display: none;
     }
 
     .fullscreen-player-shell .player-shell {
@@ -890,6 +1273,41 @@
         height: calc(100vh - 32px);
       }
     }
+  
+    .track-meta.text-hidden {
+      display: block !important;
+      width: 100% !important;
+      overflow: hidden !important;
+    }
+
+    .track-meta.text-hidden > span {
+      user-select: none;
+    }
+
+    .track-meta.text-hidden #trackFolder {
+      opacity: 1 !important;
+      color: var(--text) !important;
+      text-shadow: 0 0 12px rgba(0,255,0,0.2) !important;
+      display: block !important;
+      width: 100% !important;
+      overflow: hidden !important;
+      white-space: nowrap !important;
+      flex: none !important;
+      min-width: 0 !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    .track-meta.text-hidden #trackCount,
+    .track-meta.text-hidden #trackDurationMeta {
+      display: none !important;
+    }
+
+
+    .main > .player-shell > .track-card {
+      display: none !important;
+    }
+
   </style>
 </head>
 <body>
@@ -897,16 +1315,10 @@
   <section class="toolbar">
     <button id="openBtn">OPEN MUSIC FOLDER</button>
     <button id="playTopBtn" class="small">▶</button>
-    <button id="shuffleBtn" class="small">SHUF</button>
-    <button id="repeatBtn" class="small">REPT</button>
-    <div class="toolbar-title" id="toolbarTitle">No folder loaded. A music player without music, humanity’s favorite design pattern.</div>
-    <button id="fullscreenBtn">FULLSCREEN VISUALIZER</button>
+    <div class="toolbar-title" id="toolbarTitle"><span>Ready for a folder full of audio. Idle.</span></div>
+    <button id="fullscreenBtn"><span class="btn-label">FULLSCREEN VISUALIZER</span></button>
   </section>
 
-  <section class="pathbar">
-    <div class="pathtext" id="pathBox">Ready for a folder full of audio.</div>
-    <div class="status" id="statusText">Idle.</div>
-  </section>
 
   <main class="main">
     <section class="panel player-shell">
@@ -929,7 +1341,7 @@
       </div>
 
       <div class="track-card">
-        <div class="track-meta">
+        <div class="track-meta text-hidden">
           <span id="trackFolder">Folder: none</span>
           <span id="trackCount">0 tracks</span>
           <span id="trackDurationMeta">Duration: --:--</span>
@@ -956,14 +1368,14 @@
           <button id="muteBtn" class="small">🔊</button>
         </div>
         <div class="control-group">
-          <button id="backBtn" class="small">-10s</button>
-          <button id="forwardBtn" class="small">+10s</button>
-        </div>
-        <div class="control-group">
-          <button id="focusCurrentBtn" class="small">FIND</button>
+          <button id="shuffleBtn" class="small">SHUF</button>
+          <button id="repeatBtn" class="small">REPT</button>
         </div>
         <div class="vol-wrap">
-          <span>VOL</span>
+          <div class="vol-labels">
+            <span class="vol-text">VOL</span>
+            <span class="vol-percent" id="volumePercent">100%</span>
+          </div>
           <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
         </div>
       </div>
@@ -1026,7 +1438,7 @@
       <div class="seek-wrap">
         <div class="time-row">
           <span id="fsCurrentTime">0:00</span>
-          <span id="fsTimeHint">SPACE play/pause • ←/→ seek • ESC exit fullscreen</span>
+          <span id="fsTimeHint"></span>
           <span id="fsTotalTime">0:00</span>
         </div>
         <input id="fsSeekBar" type="range" min="0" max="1000" value="0" step="1" />
@@ -1043,15 +1455,15 @@
           <button id="fsMuteBtn" class="small">🔊</button>
         </div>
         <div class="control-group">
-          <button id="fsBackBtn" class="small">-10s</button>
-          <button id="fsForwardBtn" class="small">+10s</button>
-        </div>
-        <div class="control-group">
-          <button id="fsFocusCurrentBtn" class="small">FIND</button>
+          <button id="fsShuffleBtn" class="small">SHUF</button>
+          <button id="fsRepeatBtn" class="small">REPT</button>
         </div>
         <div class="vol-wrap">
           <button id="fsPlaylistToggleBtn" class="small fs-playlist-toggle">PLAYLIST</button>
-          <span>VOL</span>
+          <div class="vol-labels">
+            <span class="vol-text">VOL</span>
+            <span class="vol-percent" id="fsVolumePercent">100%</span>
+          </div>
           <input id="fsVolumeSlider" type="range" min="0" max="1" step="0.01" value="1" />
         </div>
       </div>
@@ -1117,7 +1529,6 @@
       repeatBtn: document.getElementById("repeatBtn"),
       toolbarTitle: document.getElementById("toolbarTitle"),
       fullscreenBtn: document.getElementById("fullscreenBtn"),
-      pathBox: document.getElementById("pathBox"),
       statusText: document.getElementById("statusText"),
       visualizerCanvas: document.getElementById("visualizerCanvas"),
       fullscreenCanvas: document.getElementById("fullscreenCanvas"),
@@ -1136,11 +1547,11 @@
       nextBtn: document.getElementById("nextBtn"),
       stopBtn: document.getElementById("stopBtn"),
       muteBtn: document.getElementById("muteBtn"),
-      backBtn: document.getElementById("backBtn"),
-      forwardBtn: document.getElementById("forwardBtn"),
+      shuffleBtn: document.getElementById("shuffleBtn"),
+      repeatBtn: document.getElementById("repeatBtn"),
       visualModeBtn: document.getElementById("visualModeBtn"),
-      focusCurrentBtn: document.getElementById("focusCurrentBtn"),
       volumeSlider: document.getElementById("volumeSlider"),
+      volumePercent: document.getElementById("volumePercent"),
       playlistModeText: document.getElementById("playlistModeText"),
       searchInput: document.getElementById("searchInput"),
       searchSuggestionsPanel: document.getElementById("searchSuggestionsPanel"),
@@ -1172,10 +1583,10 @@
       fsNextBtn: document.getElementById("fsNextBtn"),
       fsStopBtn: document.getElementById("fsStopBtn"),
       fsMuteBtn: document.getElementById("fsMuteBtn"),
-      fsBackBtn: document.getElementById("fsBackBtn"),
-      fsForwardBtn: document.getElementById("fsForwardBtn"),
-      fsFocusCurrentBtn: document.getElementById("fsFocusCurrentBtn"),
+      fsShuffleBtn: document.getElementById("fsShuffleBtn"),
+      fsRepeatBtn: document.getElementById("fsRepeatBtn"),
       fsVolumeSlider: document.getElementById("fsVolumeSlider"),
+      fsVolumePercent: document.getElementById("fsVolumePercent"),
       fsSampleText: document.getElementById("fsSampleText"),
       fsModeText: document.getElementById("fsModeText"),
       fsVisualStatus: document.getElementById("fsVisualStatus")
@@ -1315,11 +1726,10 @@
     }
 
     function setStatus(text) {
-      el.statusText.textContent = text;
+      if (el.statusText) el.statusText.textContent = text;
     }
 
     function updatePathBar() {
-      el.pathBox.textContent = state.rootName ? `Music Folder / ${state.rootName}` : "Ready for a folder full of audio.";
       el.openBtn.textContent = state.rootName || "OPEN MUSIC FOLDER";
     }
 
@@ -1441,11 +1851,11 @@
 
       if (state.tracks.length) {
         setStatus(`Loaded ${state.tracks.length} tracks.`);
-        el.toolbarTitle.textContent = `${state.rootName} loaded with ${state.tracks.length} track${state.tracks.length === 1 ? "" : "s"}.`;
+        setTrackPathLabel(el.toolbarTitle, `${state.rootName} loaded with ${state.tracks.length} track${state.tracks.length === 1 ? "" : "s"}.`);
         primeDurations();
       } else {
         setStatus("No supported audio files found.");
-        el.toolbarTitle.textContent = "No supported audio files were found in that folder.";
+        setTrackPathLabel(el.toolbarTitle, "No supported audio files were found in that folder.");
       }
     }
 
@@ -1486,26 +1896,115 @@
       return String(path).replace(/\.[^.]+$/, '');
     }
 
+    function stripLeadingTrackNumber(value = '') {
+      return String(value)
+        .replace(/^\s*\d{1,3}\s*[-._)\]]+\s*/g, '')
+        .replace(/^\s*\d{1,3}\s+/g, '')
+        .trim();
+    }
+
+    function normalizeSearchText(value = '') {
+      return stripLeadingTrackNumber(String(value))
+        .toLowerCase()
+        .replace(/[\[\](){},.!?:;'"`~@#$%^&*+=\/|<>_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function escapeRegExp(value = '') {
+      return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function scoreTrackMatch(track, query = state.search || '') {
+      const normalizedQuery = normalizeSearchText(query);
+      if (!normalizedQuery) return -Infinity;
+
+      const pathLabel = getPathWithoutExtension(track.path || track.name || '');
+      const pathParts = pathLabel.split('/');
+      const basename = pathParts[pathParts.length - 1] || pathLabel;
+      const title = getDisplayTitle(track);
+      const folder = track.folder || '';
+
+      const normalizedTitle = normalizeSearchText(title);
+      const normalizedBase = normalizeSearchText(basename);
+      const normalizedPath = normalizeSearchText(pathLabel);
+      const normalizedFolder = normalizeSearchText(folder);
+      const tokens = normalizedQuery.split(' ').filter(Boolean);
+
+      const combined = `${normalizedTitle} ${normalizedBase} ${normalizedFolder} ${normalizedPath}`.trim();
+      const containsWholeQuery = combined.includes(normalizedQuery);
+      const containsAllTokens = tokens.every((token) => combined.includes(token));
+      if (!containsWholeQuery && !containsAllTokens) return -Infinity;
+
+      let score = 0;
+
+      if (normalizedTitle === normalizedQuery) score += 1200;
+      if (normalizedBase === normalizedQuery) score += 1100;
+      if (normalizedTitle.startsWith(normalizedQuery)) score += 900;
+      if (normalizedBase.startsWith(normalizedQuery)) score += 850;
+
+      const titleBoundaryRegex = new RegExp(`\\b${escapeRegExp(normalizedQuery)}\\b`);
+      const baseBoundaryRegex = new RegExp(`\\b${escapeRegExp(normalizedQuery)}\\b`);
+      if (titleBoundaryRegex.test(normalizedTitle)) score += 700;
+      if (baseBoundaryRegex.test(normalizedBase)) score += 650;
+      if (normalizedPath.includes(normalizedQuery)) score += 300;
+      if (normalizedFolder.includes(normalizedQuery)) score += 120;
+
+      for (const token of tokens) {
+        const tokenBoundaryRegex = new RegExp(`\\b${escapeRegExp(token)}\\b`);
+        const tokenPrefixRegex = new RegExp(`\\b${escapeRegExp(token)}`);
+
+        if (tokenBoundaryRegex.test(normalizedTitle)) score += 90;
+        else if (tokenPrefixRegex.test(normalizedTitle)) score += 55;
+        else if (normalizedTitle.includes(token)) score += 20;
+
+        if (tokenBoundaryRegex.test(normalizedBase)) score += 70;
+        else if (tokenPrefixRegex.test(normalizedBase)) score += 40;
+        else if (normalizedBase.includes(token)) score += 15;
+
+        if (tokenBoundaryRegex.test(normalizedFolder)) score += 12;
+      }
+
+      const titleWords = normalizedTitle ? normalizedTitle.split(' ').length : 0;
+      const queryWords = tokens.length;
+      score -= Math.abs(titleWords - queryWords) * 8;
+      score -= Math.max(0, normalizedTitle.length - normalizedQuery.length) * 0.35;
+
+      return score;
+    }
+
     function buildSearchMatches(query = state.search || '') {
-      const q = String(query).trim().toLowerCase();
+      const q = normalizeSearchText(query);
       if (!q) return [];
 
       const seen = new Set();
-      const matches = [];
+      const matches = state.tracks
+        .map((track, index) => {
+          const label = getPathWithoutExtension(track.path || track.name || '');
+          return {
+            index,
+            label,
+            ext: getTrackExtension(track) || 'AUDIO',
+            score: scoreTrackMatch(track, q)
+          };
+        })
+        .filter((match) => Number.isFinite(match.score))
+        .sort((a, b) => {
+          if (b.score !== a.score) return b.score - a.score;
+          if (a.label.length !== b.label.length) return a.label.length - b.label.length;
+          return a.label.localeCompare(b.label, undefined, { sensitivity: 'base' });
+        });
 
-      for (let index = 0; index < state.tracks.length; index += 1) {
-        const track = state.tracks[index];
-        const label = getPathWithoutExtension(track.path || track.name || '');
-        const haystack = `${label} ${track.folder || ''} ${getDisplayTitle(track)}`.toLowerCase();
-        if (!haystack.includes(q)) continue;
-        const key = label.toLowerCase();
+      const uniqueMatches = [];
+      for (const match of matches) {
+        const key = match.label.toLowerCase();
         if (seen.has(key)) continue;
         seen.add(key);
-        matches.push({ index, label, ext: getTrackExtension(track) || 'AUDIO' });
-        if (matches.length >= 12) break;
+        uniqueMatches.push({ index: match.index, label: match.label, ext: match.ext });
+        if (uniqueMatches.length >= 12) break;
       }
 
-      return matches;
+      return uniqueMatches;
     }
 
     function renderSuggestionPanel(panel, matches) {
@@ -1542,6 +2041,21 @@
       el.fsSearchInput.value = state.search;
       updateFilter();
       hideSearchSuggestions();
+    }
+
+    function getTopSuggestionIndex(query = state.search || '') {
+      const matches = buildSearchMatches(query);
+      if (!matches.length) return -1;
+      return matches[0].index;
+    }
+
+    async function playTopSuggestion(query = state.search || '') {
+      const index = getTopSuggestionIndex(query);
+      if (index === -1) return;
+      const track = state.tracks[index];
+      if (!track) return;
+      applySuggestionValue(getDisplayLabel(track));
+      await loadTrack(index, true);
     }
 
     function updateFilter() {
@@ -1601,6 +2115,10 @@
       el.trackCount.textContent = trackCountText;
       el.fsTrackCount.textContent = trackCountText;
       el.playlistModeText.textContent = `Order: ${state.shuffle ? "shuffle" : "normal"}${state.repeat ? " • repeat on" : ""}`;
+      el.shuffleBtn?.classList.toggle("active", state.shuffle);
+      el.repeatBtn?.classList.toggle("active", state.repeat);
+      el.fsShuffleBtn?.classList.toggle("active", state.shuffle);
+      el.fsRepeatBtn?.classList.toggle("active", state.repeat);
       syncPlaylistMirror();
     }
 
@@ -1632,9 +2150,12 @@
     function updatePlayButtons() {
       const playing = !el.audioPlayer.paused && !el.audioPlayer.ended && !!el.audioPlayer.src;
       const label = playing ? "⏸ PAUSE" : "▶ PLAY";
-      el.playBtn.textContent = label;
-      el.playTopBtn.textContent = playing ? "⏸" : "▶";
-      el.fsPlayBtn.textContent = label;
+      el.playBtn.innerHTML = `<span class="btn-label">${label}</span>`;
+      el.playTopBtn.innerHTML = `<span class="btn-label">${playing ? "⏸" : "▶"}</span>`;
+      el.fsPlayBtn.innerHTML = `<span class="btn-label">${label}</span>`;
+      el.playTopBtn.classList.toggle("is-playing", playing);
+      el.playBtn.classList.toggle("is-playing", playing);
+      el.fsPlayBtn.classList.toggle("is-playing", playing);
       const visualLabel = playing ? "Signal live." : (state.tracks.length ? "Standing by." : "No signal.");
       el.visualStatus.textContent = visualLabel;
       el.fsVisualStatus.textContent = visualLabel;
@@ -1642,9 +2163,9 @@
 
     function updateTransportButtons() {
       const hasTracks = state.tracks.length > 0;
-      [el.playBtn, el.playTopBtn, el.prevBtn, el.nextBtn, el.stopBtn, el.backBtn, el.forwardBtn,
-       el.focusCurrentBtn, el.fullscreenBtn, el.fsPrevBtn, el.fsPlayBtn,
-       el.fsNextBtn, el.fsStopBtn, el.fsBackBtn, el.fsForwardBtn, el.fsFocusCurrentBtn].forEach(btn => btn.disabled = !hasTracks && btn !== el.fullscreenBtn);
+      [el.playBtn, el.playTopBtn, el.prevBtn, el.nextBtn, el.stopBtn, el.shuffleBtn, el.repeatBtn,
+       el.fullscreenBtn, el.fsPrevBtn, el.fsPlayBtn,
+       el.fsNextBtn, el.fsStopBtn, el.fsShuffleBtn, el.fsRepeatBtn].forEach(btn => btn.disabled = !hasTracks && btn !== el.fullscreenBtn);
       el.fullscreenBtn.disabled = !hasTracks;
     }
 
@@ -1654,14 +2175,122 @@
       document.querySelectorAll(`.track-row[data-track-index="${state.currentIndex}"]`).forEach((row) => row.classList.add('active'));
     }
 
+    function getLoadedTrackPath(track) {
+      if (!track) return "Folder: none";
+      const rawPath = normalizePath(track.path || track.name || "");
+      if (!rawPath) return state.rootName || track.name || "";
+      if (state.rootName && rawPath.split("/")[0] !== state.rootName) {
+        return `${state.rootName}/${rawPath}`;
+      }
+      return rawPath;
+    }
+
+    function setTrackPathLabel(node, text) {
+      if (!node) return;
+      const nextText = text || '';
+      const isToolbarTicker = node.id === 'toolbarTitle' || node.id === 'fsTrackFolder';
+      const marqueeEnabled = node.id !== 'trackFolder';
+      let inner = node.firstElementChild;
+      const textChanged = node.dataset.labelText !== nextText || !inner;
+
+      if (textChanged) {
+        node.classList.remove('marquee', 'looping');
+        node.style.removeProperty('--marquee-shift');
+        node.style.removeProperty('--ticker-step');
+        node.style.removeProperty('--ticker-duration');
+        node.style.removeProperty('--ticker-gap');
+        node.textContent = '';
+
+        if (isToolbarTicker) {
+          inner = document.createElement('div');
+          inner.className = 'marquee-track';
+          const first = document.createElement('span');
+          first.textContent = nextText;
+          inner.appendChild(first);
+          node.appendChild(inner);
+        } else {
+          inner = document.createElement('span');
+          inner.textContent = nextText;
+          node.appendChild(inner);
+        }
+
+        node.dataset.labelText = nextText;
+      }
+
+      if (!marqueeEnabled) {
+        node.classList.remove('marquee', 'looping');
+        node.style.removeProperty('--marquee-shift');
+        node.style.removeProperty('--ticker-step');
+        node.style.removeProperty('--ticker-duration');
+        node.style.removeProperty('--ticker-gap');
+        return;
+      }
+
+      const applyMarquee = () => {
+        const liveInner = node.firstElementChild;
+        if (!liveInner) return;
+        const nodeWidth = Math.floor(node.getBoundingClientRect().width || node.clientWidth || 0);
+
+        if (isToolbarTicker) {
+          const firstLabel = liveInner.firstElementChild;
+          if (!firstLabel) return;
+          const textWidth = Math.ceil(firstLabel.scrollWidth || firstLabel.getBoundingClientRect().width || 0);
+          const gap = 56;
+          node.classList.remove('looping');
+          node.style.removeProperty('--ticker-step');
+          node.style.removeProperty('--ticker-duration');
+          node.style.setProperty('--ticker-gap', `${gap}px`);
+
+          while (liveInner.children.length > 1) liveInner.removeChild(liveInner.lastElementChild);
+
+          if (textWidth > nodeWidth + 8 && nodeWidth > 0) {
+            const clone = firstLabel.cloneNode(true);
+            clone.setAttribute('aria-hidden', 'true');
+            liveInner.appendChild(clone);
+            node.classList.add('looping');
+            const step = textWidth + gap;
+            const pxPerSecond = 45;
+            const duration = Math.max(8, step / pxPerSecond);
+            node.style.setProperty('--ticker-step', `${step}px`);
+            node.style.setProperty('--ticker-duration', `${duration}s`);
+          }
+          return;
+        }
+
+        const textWidth = Math.ceil(liveInner.scrollWidth || liveInner.getBoundingClientRect().width || 0);
+        const overflow = Math.max(0, textWidth - nodeWidth);
+        node.classList.remove('marquee');
+        node.style.removeProperty('--marquee-shift');
+        if (overflow > 8 && nodeWidth > 0) {
+          node.classList.add('marquee');
+          node.style.setProperty('--marquee-shift', `${overflow + 32}px`);
+        }
+      };
+
+      requestAnimationFrame(() => {
+        applyMarquee();
+        if (textChanged) {
+          setTimeout(applyMarquee, 0);
+          setTimeout(applyMarquee, 60);
+        }
+      });
+    }
+
+    function refreshTrackPathLabels() {
+      const track = getTrack();
+      const loadedTrackPath = getLoadedTrackPath(track);
+      setTrackPathLabel(el.trackFolder, loadedTrackPath);
+      setTrackPathLabel(el.fsTrackFolder, loadedTrackPath);
+      setTrackPathLabel(el.toolbarTitle, loadedTrackPath || "Ready for a folder full of audio. Idle.");
+      return loadedTrackPath;
+    }
+
     function updateNowPlaying() {
       const track = getTrack();
       const title = state.titleClearedOnStop ? "" : (track ? getDisplayTitle(track) : "No track selected");
+      const loadedTrackPath = refreshTrackPathLabels();
       el.trackTitle.textContent = title;
       el.fsTrackTitle.textContent = title;
-      const folderText = `Folder: ${track ? track.folder : "none"}`;
-      el.trackFolder.textContent = folderText;
-      el.fsTrackFolder.textContent = folderText;
 
       const total = isFinite(el.audioPlayer.duration) ? el.audioPlayer.duration : (track ? state.durationCache.get(track.path) || 0 : 0);
       const durationText = `Duration: ${formatTime(total)}`;
@@ -1674,7 +2303,7 @@
       el.fsTrackCount.textContent = el.trackCount.textContent;
 
       if (track) {
-        el.toolbarTitle.textContent = `${title} • ${track.folder}`;
+        setTrackPathLabel(el.toolbarTitle, loadedTrackPath);
       }
 
       updateActivePlaylistRows();
@@ -1738,6 +2367,20 @@
       }
     }
 
+    async function handlePlayPauseClick(button) {
+      if (!state.tracks.length || !button) return;
+      const shouldPause = button.classList.contains("is-playing");
+      if (shouldPause) {
+        if (!el.audioPlayer.paused && !el.audioPlayer.ended) {
+          el.audioPlayer.pause();
+        } else {
+          updatePlayButtons();
+        }
+        return;
+      }
+      await playCurrent();
+    }
+
     function getFilteredOrder() {
       return state.filteredTrackIndexes.length ? state.filteredTrackIndexes.slice() : state.tracks.map((_, i) => i);
     }
@@ -1780,6 +2423,8 @@
         const seekValue = String(Math.round((current / duration) * 1000));
         el.seekBar.value = seekValue;
         el.fsSeekBar.value = seekValue;
+        syncSeekProgress(el.seekBar);
+        syncSeekProgress(el.fsSeekBar);
       }
       const currentText = formatTime(current || 0);
       const totalText = formatTime(duration || 0);
@@ -2022,41 +2667,40 @@
     }
 
     el.openBtn.addEventListener("click", loadPickedDirectory);
-    el.playBtn.addEventListener("click", togglePlay);
-    el.playTopBtn.addEventListener("click", togglePlay);
+    el.playBtn.addEventListener("click", () => handlePlayPauseClick(el.playBtn));
+    el.playTopBtn.addEventListener("click", () => handlePlayPauseClick(el.playTopBtn));
     el.prevBtn.addEventListener("click", () => playAdjacent(-1));
     el.nextBtn.addEventListener("click", () => playAdjacent(1));
     el.fsPrevBtn.addEventListener("click", () => playAdjacent(-1));
     el.fsNextBtn.addEventListener("click", () => playAdjacent(1));
-    el.fsPlayBtn.addEventListener("click", togglePlay);
+    el.fsPlayBtn.addEventListener("click", () => handlePlayPauseClick(el.fsPlayBtn));
 
     el.stopBtn.addEventListener("click", () => stopPlayback(false));
     el.fsStopBtn.addEventListener("click", () => stopPlayback(false));
-    const seekBackTen = () => {
-      el.audioPlayer.currentTime = Math.max(0, (el.audioPlayer.currentTime || 0) - 10);
-      updateSeekBar();
-    };
-    const seekForwardTen = () => {
-      const duration = el.audioPlayer.duration || 0;
-      el.audioPlayer.currentTime = Math.min(duration, (el.audioPlayer.currentTime || 0) + 10);
-      updateSeekBar();
-    };
-    el.backBtn.addEventListener("click", seekBackTen);
-    el.fsBackBtn.addEventListener("click", seekBackTen);
-    el.forwardBtn.addEventListener("click", seekForwardTen);
-    el.fsForwardBtn.addEventListener("click", seekForwardTen);
 
-    el.shuffleBtn.addEventListener("click", () => {
-      state.shuffle = !state.shuffle;
+    const syncToggleButtons = () => {
       el.shuffleBtn.classList.toggle("active", state.shuffle);
-      updatePlaylistStats();
-    });
-
-    el.repeatBtn.addEventListener("click", () => {
-      state.repeat = !state.repeat;
       el.repeatBtn.classList.toggle("active", state.repeat);
+      el.fsShuffleBtn.classList.toggle("active", state.shuffle);
+      el.fsRepeatBtn.classList.toggle("active", state.repeat);
+    };
+
+    const toggleShuffle = () => {
+      state.shuffle = !state.shuffle;
+      syncToggleButtons();
       updatePlaylistStats();
-    });
+    };
+
+    const toggleRepeat = () => {
+      state.repeat = !state.repeat;
+      syncToggleButtons();
+      updatePlaylistStats();
+    };
+
+    el.shuffleBtn.addEventListener("click", toggleShuffle);
+    el.fsShuffleBtn.addEventListener("click", toggleShuffle);
+    el.repeatBtn.addEventListener("click", toggleRepeat);
+    el.fsRepeatBtn.addEventListener("click", toggleRepeat);
 
     el.visualModeBtn.addEventListener("click", cycleVisualMode);
     el.fsVisualModeBtn.addEventListener("click", cycleVisualMode);
@@ -2065,8 +2709,6 @@
     window.addEventListener("resize", () => {
       if (state.fsPlaylistOpen) positionFsPlaylistPopup();
     });
-    el.focusCurrentBtn.addEventListener("click", focusCurrentTrack);
-    el.fsFocusCurrentBtn.addEventListener("click", focusCurrentTrack);
 
     function handleSeekInput(sourceBar, targetTimeEl) {
       state.isSeeking = true;
@@ -2092,10 +2734,34 @@
 
     el.seekBar.addEventListener("change", () => handleSeekChange(el.seekBar));
     el.fsSeekBar.addEventListener("change", () => handleSeekChange(el.fsSeekBar));
+    bindSeekThumbState(el.seekBar);
+    bindSeekThumbState(el.fsSeekBar);
 
     function syncVolumeSliders(value) {
       el.volumeSlider.value = String(value);
       el.fsVolumeSlider.value = String(value);
+      const percentText = `${Math.round(Number(value) * 100)}%`;
+      if (el.volumePercent) el.volumePercent.textContent = percentText;
+      if (el.fsVolumePercent) el.fsVolumePercent.textContent = percentText;
+    }
+
+    function syncSeekProgress(bar) {
+      const min = Number(bar.min || 0);
+      const max = Number(bar.max || 100);
+      const value = Number(bar.value || 0);
+      const percent = max > min ? ((value - min) / (max - min)) * 100 : 0;
+      bar.style.setProperty("--seek-progress", `${percent}%`);
+    }
+
+    function bindSeekThumbState(bar) {
+      if (!bar) return;
+      syncSeekProgress(bar);
+      ["pointerdown", "mousedown", "touchstart"].forEach(evt => {
+        bar.addEventListener(evt, () => bar.classList.add("dragging"));
+      });
+      ["pointerup", "mouseup", "touchend", "blur", "change"].forEach(evt => {
+        bar.addEventListener(evt, () => bar.classList.remove("dragging"));
+      });
     }
 
     el.volumeSlider.addEventListener("input", () => {
@@ -2143,6 +2809,31 @@
     el.searchInput.addEventListener("blur", () => setTimeout(hideSearchSuggestions, 120));
     el.fsSearchInput.addEventListener("blur", () => setTimeout(hideSearchSuggestions, 120));
 
+    async function handleSearchEnter(e) {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      e.stopPropagation();
+
+      const isFsInput = e.currentTarget === el.fsSearchInput;
+      const panel = isFsInput ? el.fsSearchSuggestionsPanel : el.searchSuggestionsPanel;
+      const topSuggestionButton = panel?.querySelector('[data-track-index]');
+
+      if (topSuggestionButton) {
+        const index = Number(topSuggestionButton.dataset.trackIndex);
+        const suggestionValue = topSuggestionButton.dataset.suggestionValue || '';
+        applySuggestionValue(suggestionValue);
+        if (!Number.isNaN(index)) {
+          await loadTrack(index, true);
+        }
+        return;
+      }
+
+      await playTopSuggestion(e.currentTarget.value || '');
+    }
+
+    el.searchInput.addEventListener('keydown', handleSearchEnter);
+    el.fsSearchInput.addEventListener('keydown', handleSearchEnter);
+
     el.clearSearchBtn.addEventListener("click", () => {
       state.search = "";
       el.searchInput.value = "";
@@ -2159,10 +2850,13 @@
       updateFilter();
     });
 
-    function handleSuggestionClick(e) {
+    async function handleSuggestionClick(e) {
       const button = e.target.closest('[data-suggestion-value]');
       if (!button) return;
+      const index = Number(button.dataset.trackIndex);
       applySuggestionValue(button.dataset.suggestionValue || '');
+      if (Number.isNaN(index)) return;
+      await loadTrack(index, true);
     }
 
     el.searchSuggestionsPanel.addEventListener('mousedown', (e) => {
@@ -2319,6 +3013,7 @@
 
     window.addEventListener("resize", () => {
       updateVisualModeEffects();
+      refreshTrackPathLabels();
       renderVisualizerToCanvas(el.visualizerCanvas);
       renderVisualizerToCanvas(el.fullscreenCanvas);
     });
