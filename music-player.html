@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tektite's Music Player</title>
+  <title>Tektite Sound Machine</title>
   <style>
     :root {
       --bg: #120018;
@@ -297,6 +297,22 @@
       cursor: pointer;
     }
 
+    #seekBar::-webkit-slider-runnable-track,
+    #fsSeekBar::-webkit-slider-runnable-track {
+      height: 8px;
+      background: linear-gradient(90deg, rgba(140,64,255,0.82), rgba(102,0,204,0.95));
+      border: 1px solid rgba(180,120,255,0.45);
+      box-shadow: 0 0 12px rgba(102,0,204,0.32);
+    }
+
+    #seekBar::-moz-range-track,
+    #fsSeekBar::-moz-range-track {
+      height: 8px;
+      background: linear-gradient(90deg, rgba(140,64,255,0.82), rgba(102,0,204,0.95));
+      border: 1px solid rgba(180,120,255,0.45);
+      box-shadow: 0 0 12px rgba(102,0,204,0.32);
+    }
+
     input[type="range"]::-webkit-slider-runnable-track {
       height: 8px;
       background: linear-gradient(90deg, rgba(0,255,0,0.3), rgba(102,0,204,0.45));
@@ -384,6 +400,77 @@
 
     .playlist-tools input::placeholder {
       color: var(--text-soft);
+    }
+
+    .search-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
+    .search-suggestions {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      right: 0;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      background: rgba(12, 12, 12, 0.97);
+      border: 2px solid rgba(0,255,0,0.32);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.55);
+      z-index: 30;
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    .search-suggestions.open {
+      display: flex;
+    }
+
+    .search-suggestion {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(60,60,60,0.28);
+      border: 1px solid rgba(0,255,0,0.14);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .search-suggestion:nth-child(even) {
+      background: rgba(110,110,110,0.18);
+    }
+
+    .search-suggestion:hover,
+    .search-suggestion.active {
+      outline: 3px dashed #00ff00;
+      outline-offset: -3px;
+      background: rgba(0,255,0,0.08);
+    }
+
+    .suggestion-path {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .suggestion-ext-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 42px;
+      padding: 4px 8px;
+      border: 1px solid rgba(0,255,0,0.45);
+      background: rgba(0,255,0,0.09);
+      color: var(--text);
+      font-size: 12px;
+      letter-spacing: 0.08em;
     }
 
     .playlist-stats {
@@ -615,6 +702,110 @@
       max-height: none;
     }
 
+    .fullscreen-overlay.glitch-mode::before,
+    .fullscreen-overlay.glitch-mode::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 80;
+    }
+
+    .fullscreen-overlay.glitch-mode::before {
+      opacity: 0.82;
+      background:
+        repeating-linear-gradient(
+          180deg,
+          rgba(255,255,255,0.18) 0px,
+          rgba(255,255,255,0.18) 1px,
+          rgba(0,0,0,0.22) 1px,
+          rgba(0,0,0,0.22) 3px,
+          rgba(0,0,0,0) 3px,
+          rgba(0,0,0,0) 6px
+        ),
+        repeating-linear-gradient(
+          180deg,
+          rgba(0, 255, 120, 0.05) 0px,
+          rgba(0, 255, 120, 0.05) 2px,
+          rgba(0, 0, 0, 0) 2px,
+          rgba(0, 0, 0, 0) 10px
+        ),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 110, 0.30), rgba(0, 255, 110, 0.14) 18%, rgba(0, 255, 110, 0.05) 34%, rgba(0, 255, 110, 0) 56%),
+        radial-gradient(circle at 18% 42%, rgba(255, 0, 64, 0.30), rgba(255, 0, 64, 0) 34%),
+        radial-gradient(circle at 82% 38%, rgba(0, 110, 255, 0.32), rgba(0, 110, 255, 0) 36%),
+        linear-gradient(90deg,
+          rgba(255, 30, 90, 0.26) 0%,
+          rgba(255, 30, 90, 0.11) 28%,
+          rgba(0, 255, 110, 0.18) 50%,
+          rgba(0, 115, 255, 0.11) 72%,
+          rgba(0, 115, 255, 0.26) 100%
+        );
+      mix-blend-mode: screen;
+    }
+
+    .fullscreen-overlay.glitch-mode::after {
+      opacity: 0.48;
+      background:
+        linear-gradient(90deg,
+          rgba(255, 0, 60, 0.22) 0%,
+          rgba(255, 0, 60, 0.10) 34%,
+          rgba(0, 255, 120, 0.14) 50%,
+          rgba(0, 120, 255, 0.10) 66%,
+          rgba(0, 120, 255, 0.22) 100%),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 110, 0.22), rgba(0, 255, 110, 0.06) 24%, rgba(0, 255, 110, 0) 46%),
+        radial-gradient(circle at 50% 50%, rgba(180, 0, 255, 0.08), rgba(180, 0, 255, 0) 62%);
+      mix-blend-mode: color-dodge;
+    }
+
+    .fullscreen-overlay.glitch-mode .fullscreen-player-shell {
+      position: relative;
+      filter: saturate(1.38) contrast(1.12) brightness(1.03);
+      will-change: auto;
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    /* Performance-safe chromatic tint:
+       keep the heavy look without applying expensive shadows to every single node */
+    .fullscreen-overlay.glitch-mode .fullscreen-player-shell {
+      text-shadow:
+        -1px 0 0 rgba(255, 0, 70, 0.28),
+        1px 0 0 rgba(0, 120, 255, 0.28);
+    }
+
+    .fullscreen-overlay.glitch-mode .fullscreen-player-shell::before,
+    .fullscreen-overlay.glitch-mode .fullscreen-player-shell::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 79;
+      border-radius: inherit;
+    }
+
+    .fullscreen-overlay.glitch-mode .fullscreen-player-shell::before {
+      opacity: 0.22;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 110, 0.20), rgba(0, 255, 110, 0.08) 24%, rgba(0, 255, 110, 0) 56%),
+        linear-gradient(90deg,
+          rgba(255, 0, 70, 0.16) 0%,
+          rgba(255, 0, 70, 0.03) 38%,
+          rgba(0, 255, 110, 0.10) 50%,
+          rgba(0, 120, 255, 0.03) 62%,
+          rgba(0, 120, 255, 0.16) 100%);
+      mix-blend-mode: screen;
+    }
+
+    .fullscreen-overlay.glitch-mode .fullscreen-player-shell::after {
+      opacity: 0.14;
+      background:
+        radial-gradient(circle at 30% 30%, rgba(255, 0, 110, 0.12), rgba(255, 0, 110, 0) 24%),
+        radial-gradient(circle at 70% 66%, rgba(0, 130, 255, 0.12), rgba(0, 130, 255, 0) 26%),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 110, 0.14), rgba(0, 255, 110, 0) 38%);
+      mix-blend-mode: screen;
+    }
+
+
     ::-webkit-scrollbar {
       width: 12px;
       height: 12px;
@@ -785,7 +976,10 @@
       </div>
 
       <div class="playlist-tools">
-        <input id="searchInput" type="text" placeholder="Search tracks..." />
+        <div class="search-wrap">
+          <input id="searchInput" type="text" placeholder="Search tracks..." autocomplete="off" />
+          <div class="search-suggestions" id="searchSuggestionsPanel"></div>
+        </div>
         <button id="clearSearchBtn">CLEAR</button>
       </div>
 
@@ -869,7 +1063,10 @@
         </div>
 
         <div class="playlist-tools">
-          <input id="fsSearchInput" type="text" placeholder="Search tracks..." />
+          <div class="search-wrap">
+            <input id="fsSearchInput" type="text" placeholder="Search tracks..." autocomplete="off" />
+            <div class="search-suggestions" id="fsSearchSuggestionsPanel"></div>
+          </div>
           <button id="fsClearSearchBtn">CLEAR</button>
         </div>
 
@@ -881,6 +1078,7 @@
       </section>
     </section>
   </div>
+
 
 <input class="hidden-input" id="fallbackPicker" type="file" webkitdirectory multiple accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a,.aac,.opus" />
   <audio id="audioPlayer" preload="metadata" crossorigin="anonymous"></audio>
@@ -908,7 +1106,8 @@
       animationFrame: 0,
       durationCache: new Map(),
       expandedFolders: new Set([""]),
-      titleClearedOnStop: false
+      titleClearedOnStop: false,
+      fsBounceSmoothed: 0
     };
 
     const el = {
@@ -944,6 +1143,7 @@
       volumeSlider: document.getElementById("volumeSlider"),
       playlistModeText: document.getElementById("playlistModeText"),
       searchInput: document.getElementById("searchInput"),
+      searchSuggestionsPanel: document.getElementById("searchSuggestionsPanel"),
       clearSearchBtn: document.getElementById("clearSearchBtn"),
       playlistStats: document.getElementById("playlistStats"),
       playlistView: document.getElementById("playlistView"),
@@ -956,6 +1156,7 @@
       fsPlaylistPopup: document.getElementById("fsPlaylistPopup"),
       fsPlaylistModeText: document.getElementById("fsPlaylistModeText"),
       fsSearchInput: document.getElementById("fsSearchInput"),
+      fsSearchSuggestionsPanel: document.getElementById("fsSearchSuggestionsPanel"),
       fsClearSearchBtn: document.getElementById("fsClearSearchBtn"),
       fsPlaylistStats: document.getElementById("fsPlaylistStats"),
       fsPlaylistView: document.getElementById("fsPlaylistView"),
@@ -1234,6 +1435,7 @@
       stopPlayback(true);
       updatePathBar();
       updateFilter();
+      hideSearchSuggestions();
       updateTransportButtons();
       updateNowPlaying();
 
@@ -1274,6 +1476,72 @@
 
     function getDisplayTitle(track) {
       return track ? track.name.replace(/\.[^.]+$/, "") : "No track selected";
+    }
+
+    function getTrackExtension(track) {
+      return (track?.name.match(/\.([^.]+)$/)?.[1] || '').toUpperCase();
+    }
+
+    function getPathWithoutExtension(path = '') {
+      return String(path).replace(/\.[^.]+$/, '');
+    }
+
+    function buildSearchMatches(query = state.search || '') {
+      const q = String(query).trim().toLowerCase();
+      if (!q) return [];
+
+      const seen = new Set();
+      const matches = [];
+
+      for (let index = 0; index < state.tracks.length; index += 1) {
+        const track = state.tracks[index];
+        const label = getPathWithoutExtension(track.path || track.name || '');
+        const haystack = `${label} ${track.folder || ''} ${getDisplayTitle(track)}`.toLowerCase();
+        if (!haystack.includes(q)) continue;
+        const key = label.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        matches.push({ index, label, ext: getTrackExtension(track) || 'AUDIO' });
+        if (matches.length >= 12) break;
+      }
+
+      return matches;
+    }
+
+    function renderSuggestionPanel(panel, matches) {
+      if (!panel) return;
+      if (!matches.length) {
+        panel.innerHTML = '';
+        panel.classList.remove('open');
+        return;
+      }
+
+      panel.innerHTML = matches.map(({ index, label, ext }) => `
+        <button class="search-suggestion" type="button" data-track-index="${index}" data-suggestion-value="${escapeHtml(label)}">
+          <span class="suggestion-path">${escapeHtml(label)}</span>
+          <span class="suggestion-ext-badge">${escapeHtml(ext)}</span>
+        </button>
+      `).join('');
+      panel.classList.add('open');
+    }
+
+    function updateSearchSuggestions(query = state.search || '') {
+      const matches = buildSearchMatches(query);
+      renderSuggestionPanel(el.searchSuggestionsPanel, matches);
+      renderSuggestionPanel(el.fsSearchSuggestionsPanel, matches);
+    }
+
+    function hideSearchSuggestions() {
+      el.searchSuggestionsPanel?.classList.remove('open');
+      el.fsSearchSuggestionsPanel?.classList.remove('open');
+    }
+
+    function applySuggestionValue(value) {
+      state.search = value || '';
+      el.searchInput.value = state.search;
+      el.fsSearchInput.value = state.search;
+      updateFilter();
+      hideSearchSuggestions();
     }
 
     function updateFilter() {
@@ -1633,8 +1901,19 @@
       } else if (state.visualMode === "line-spectrum") {
         drawSpectrum(ctx, width, height, freqData);
       } else {
-        drawHybrid(ctx, width, height, timeData, freqData);
+        drawOscilloscope(ctx, width, height, timeData);
       }
+    }
+
+    function updateVisualModeEffects() {
+      const glitchOn = state.visualMode === "hybrid";
+      el.fullscreenOverlay.classList.toggle("glitch-mode", glitchOn);
+    }
+
+    function updateFullscreenReactiveMotion() {
+      const shell = document.querySelector(".fullscreen-player-shell");
+      if (!shell) return;
+      shell.style.removeProperty("--fs-audio-bounce");
     }
 
     function animateVisualizer() {
@@ -1642,6 +1921,7 @@
       if (el.fullscreenOverlay.classList.contains("open")) {
         renderVisualizerToCanvas(el.fullscreenCanvas);
       }
+      updateFullscreenReactiveMotion();
       state.animationFrame = requestAnimationFrame(animateVisualizer);
     }
 
@@ -1654,6 +1934,7 @@
       el.fsModeText.textContent = modeLabel;
       el.sampleText.textContent = sampleLabel;
       el.fsSampleText.textContent = sampleLabel;
+      updateVisualModeEffects();
     }
 
     function syncMuteButtons() {
@@ -1846,19 +2127,27 @@
     el.searchInput.addEventListener("input", () => {
       state.search = el.searchInput.value || "";
       el.fsSearchInput.value = el.searchInput.value;
+      updateSearchSuggestions(state.search);
       updateFilter();
     });
 
     el.fsSearchInput.addEventListener("input", () => {
       state.search = el.fsSearchInput.value || "";
       el.searchInput.value = el.fsSearchInput.value;
+      updateSearchSuggestions(state.search);
       updateFilter();
     });
+
+    el.searchInput.addEventListener("focus", () => updateSearchSuggestions(el.searchInput.value));
+    el.fsSearchInput.addEventListener("focus", () => updateSearchSuggestions(el.fsSearchInput.value));
+    el.searchInput.addEventListener("blur", () => setTimeout(hideSearchSuggestions, 120));
+    el.fsSearchInput.addEventListener("blur", () => setTimeout(hideSearchSuggestions, 120));
 
     el.clearSearchBtn.addEventListener("click", () => {
       state.search = "";
       el.searchInput.value = "";
       el.fsSearchInput.value = "";
+      hideSearchSuggestions();
       updateFilter();
     });
 
@@ -1866,7 +2155,24 @@
       state.search = "";
       el.searchInput.value = "";
       el.fsSearchInput.value = "";
+      hideSearchSuggestions();
       updateFilter();
+    });
+
+    function handleSuggestionClick(e) {
+      const button = e.target.closest('[data-suggestion-value]');
+      if (!button) return;
+      applySuggestionValue(button.dataset.suggestionValue || '');
+    }
+
+    el.searchSuggestionsPanel.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      handleSuggestionClick(e);
+    });
+
+    el.fsSearchSuggestionsPanel.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      handleSuggestionClick(e);
     });
 
     async function handlePlaylistClick(e) {
@@ -2012,6 +2318,7 @@
     });
 
     window.addEventListener("resize", () => {
+      updateVisualModeEffects();
       renderVisualizerToCanvas(el.visualizerCanvas);
       renderVisualizerToCanvas(el.fullscreenCanvas);
     });
